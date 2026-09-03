@@ -1,0 +1,18 @@
+<baza-page-shell
+  [title]="brand"
+  subtitle="Oferty pracy w transporcie — trasy i powroty do domu"
+>
+  <p>
+    Monorepo działa. Wspólne typy (np. kadencje powrotu) są dzielone z API:
+  </p>
+  <ul>
+    @for (cadence of cadences; track cadence) {
+      <li>{{ cadence }}</li>
+    }
+  </ul>
+  <p>
+    Health check API (przez proxy):
+    <code>GET /api/health</code>
+  </p>
+</baza-page-shell>
+<router-outlet />

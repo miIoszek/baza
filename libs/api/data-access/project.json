@@ -1,0 +1,27 @@
+{
+  "name": "api-data-access",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/api/data-access/src",
+  "projectType": "library",
+  "tags": [
+    "type:data-access",
+    "scope:api"
+  ],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/libs/api/data-access",
+        "tsConfig": "libs/api/data-access/tsconfig.lib.json",
+        "packageJson": "libs/api/data-access/package.json",
+        "main": "libs/api/data-access/src/index.ts",
+        "assets": [
+          "libs/api/data-access/*.md"
+        ]
+      }
+    }
+  }
+}

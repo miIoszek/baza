@@ -1,0 +1,11 @@
+<header class="baza-page-shell__header">
+  @if (title) {
+    <h1 class="baza-page-shell__title">{{ title }}</h1>
+  }
+  @if (subtitle) {
+    <p class="baza-page-shell__subtitle">{{ subtitle }}</p>
+  }
+</header>
+<main class="baza-page-shell__main">
+  <ng-content />
+</main>
