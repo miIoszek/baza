@@ -1,0 +1,26 @@
+<section class="home">
+  <h1>{{ brand }}</h1>
+  <p class="home__subtitle">
+    Oferty pracy w transporcie — trasy i powroty do domu
+  </p>
+  <p>
+    Monorepo działa. Wspólne typy (np. kadencje powrotu) są dzielone z API:
+  </p>
+  <ul>
+    @for (cadence of cadences; track cadence) {
+      <li>{{ cadence }}</li>
+    }
+  </ul>
+  <p>
+    Połączenie z API
+    <code>GET /api/health</code>:
+  </p>
+  <p
+    [attr.data-health]="healthStatus()"
+    [class.health-ok]="healthStatus() === 'ok'"
+    [class.health-error]="healthStatus() === 'error'"
+    [class.health-loading]="healthStatus() === 'loading'"
+  >
+    {{ healthDetail() }}
+  </p>
+</section>

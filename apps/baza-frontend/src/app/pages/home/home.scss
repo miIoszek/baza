@@ -1,0 +1,31 @@
+.home {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.home__subtitle {
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: 0;
+}
+
+ul {
+  margin: 0.75rem 0;
+  padding-left: 1.25rem;
+}
+
+code {
+  font-size: 0.9em;
+}
+
+.health-ok {
+  color: var(--mat-sys-secondary);
+}
+
+.health-error {
+  color: var(--mat-sys-error);
+}
+
+.health-loading {
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -1,0 +1,93 @@
+@use "@angular/material" as mat;
+
+// Custom M3 dark theme for international drivers — navy surfaces, sky primary,
+// safety green secondary, amber tertiary. Base palettes + exact token overrides.
+@mixin baza-dark-theme {
+  color-scheme: dark;
+
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$blue-palette,
+        secondary: mat.$green-palette,
+        tertiary: mat.$yellow-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  // ===== Primary =====
+  --mat-sys-primary: #90caf9;
+  --mat-sys-on-primary: #003258;
+  --mat-sys-primary-container: #004b7a;
+  --mat-sys-on-primary-container: #cfe4ff;
+
+  // ===== Secondary (safety green) =====
+  --mat-sys-secondary: #6ee7b7;
+  --mat-sys-on-secondary: #003822;
+  --mat-sys-secondary-container: #005c3a;
+  --mat-sys-on-secondary-container: #a7f3d0;
+
+  // ===== Tertiary (amber alerts / emphasis) =====
+  --mat-sys-tertiary: #fbbf24;
+  --mat-sys-on-tertiary: #3d2e00;
+  --mat-sys-tertiary-container: #5c4500;
+  --mat-sys-on-tertiary-container: #ffe08a;
+
+  // ===== Error =====
+  --mat-sys-error: #f87171;
+  --mat-sys-on-error: #450a0a;
+  --mat-sys-error-container: #7f1d1d;
+  --mat-sys-on-error-container: #fecaca;
+
+  // ===== Surface & background =====
+  --mat-sys-background: #0f172a;
+  --mat-sys-on-background: #e2e8f0;
+  --mat-sys-surface: #1e293b;
+  --mat-sys-on-surface: #f1f5f9;
+  --mat-sys-surface-variant: #334155;
+  --mat-sys-on-surface-variant: #94a3b8;
+  --mat-sys-surface-container: #1e293b;
+  --mat-sys-surface-container-low: #172033;
+  --mat-sys-surface-container-high: #273548;
+  --mat-sys-surface-container-highest: #334155;
+  --mat-sys-surface-container-lowest: #0f172a;
+  --mat-sys-surface-bright: #334155;
+  --mat-sys-surface-dim: #0f172a;
+  --mat-sys-surface-tint: #90caf9;
+
+  // ===== Outline =====
+  --mat-sys-outline: #64748b;
+  --mat-sys-outline-variant: #475569;
+
+  // ===== Inverse =====
+  --mat-sys-inverse-surface: #e2e8f0;
+  --mat-sys-inverse-on-surface: #1e293b;
+  --mat-sys-inverse-primary: #0b3d91;
+
+  // ===== Misc =====
+  --mat-sys-shadow: #000000;
+  --mat-sys-scrim: #000000;
+
+  // App tokens
+  --baza-auth-card-bg: var(--mat-sys-surface);
+  --baza-auth-card-border: var(--mat-sys-outline-variant);
+  --baza-shell-elev: var(--mat-sys-surface);
+
+  // ===== Premium / Glass tokens (global) =====
+  --baza-glass-bg: rgba(30, 41, 59, 0.42);
+  --baza-glass-border: rgba(148, 163, 184, 0.28);
+  --baza-glass-blur: 28px;
+  --baza-button-glow:
+    0 0 20px rgba(144, 202, 249, 0.55),
+    0 0 48px rgba(144, 202, 249, 0.35);
+  --baza-card-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --baza-page-bg: radial-gradient(
+    ellipse 90% 70% at 50% 32%,
+    #1e293b 0%,
+    #0f172a 42%,
+    #020617 100%
+  );
+}

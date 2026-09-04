@@ -1,0 +1,141 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2.5rem 1rem 3.5rem;
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
+  // Local gradient so glass always has something to blur (not a flat Material surface)
+  background: var(--baza-page-bg);
+  background-color: #020617;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 36rem;
+  padding: 1rem 0.75rem 1.5rem;
+  color: var(--mat-sys-on-surface);
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin: 0.25rem 0 1rem;
+  padding: 0 0.5rem;
+}
+
+.auth-brand__logo {
+  width: 48px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+}
+
+.auth-brand__name {
+  font: var(--mat-sys-headline-small);
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.auth-card mat-card-header {
+  margin-bottom: 0.25rem;
+  display: block;
+  text-align: center;
+  padding: 0 0.5rem !important;
+}
+
+.auth-card mat-card-title {
+  font: var(--mat-sys-headline-small);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  justify-content: center;
+}
+
+.auth-card mat-card-subtitle {
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: 0.35rem !important;
+  justify-content: center;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+  padding: 0 1rem;
+}
+
+.auth-field {
+  width: 100%;
+}
+
+.auth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.auth-row .auth-field mat-error,
+.auth-row .mat-mdc-form-field-error {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .auth-card {
+    max-width: 100%;
+  }
+
+  .auth-row {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-row .auth-field mat-error,
+  .auth-row .mat-mdc-form-field-error {
+    white-space: normal;
+  }
+}
+
+.auth-form .baza-btn-premium {
+  margin-top: 0.75rem;
+}
+
+.auth-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.auth-footer {
+  display: block;
+  text-align: center;
+  padding: 1.25rem 1rem 0.35rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.auth-footer a {
+  color: var(--mat-sys-primary);
+  margin-left: 0.25rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.auth-field-error {
+  margin: -0.25rem 0 0.5rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-error);
+}
+
+.auth-terms--invalid {
+  color: var(--mat-sys-error);
+}

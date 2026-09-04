@@ -1,16 +1,4 @@
 :host {
   display: block;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  color: #1a1f26;
-  background: linear-gradient(165deg, #f3f6f9 0%, #e8eef4 45%, #dfe8f0 100%);
-  min-height: 100vh;
-}
-
-ul {
-  margin: 0.75rem 0;
-  padding-left: 1.25rem;
-}
-
-code {
-  font-size: 0.9em;
+  min-height: 100%;
 }

@@ -1,0 +1,33 @@
+<mat-toolbar class="baza-app-shell__toolbar">
+  <a class="baza-app-shell__brand" routerLink="/" aria-label="Baza — strona główna">
+    <img class="baza-app-shell__logo" src="/baza-logo.png" alt="" width="36" height="44" />
+    <span class="baza-app-shell__brand-text">Baza</span>
+  </a>
+  <span class="baza-app-shell__spacer"></span>
+  @if (accountLabel()) {
+    <div class="baza-app-shell__account-wrap">
+      @if (accountAvatarUrl()) {
+        <img
+          class="baza-app-shell__avatar"
+          [src]="accountAvatarUrl()!"
+          alt=""
+          width="32"
+          height="32"
+        />
+      } @else {
+        <span class="baza-app-shell__avatar baza-app-shell__avatar--placeholder" aria-hidden="true">
+          {{ accountLabel()!.charAt(0).toUpperCase() }}
+        </span>
+      }
+      <span class="baza-app-shell__account">{{ accountLabel() }}</span>
+    </div>
+    <button mat-button type="button" (click)="logout.emit()">Wyloguj</button>
+  } @else {
+    <a mat-button routerLink="/login" routerLinkActive="baza-app-shell__active">
+      Login
+    </a>
+  }
+</mat-toolbar>
+<main class="baza-app-shell__main">
+  <ng-content />
+</main>

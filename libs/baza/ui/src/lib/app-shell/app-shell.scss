@@ -1,0 +1,86 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: transparent;
+  color: var(--mat-sys-on-background);
+}
+
+.baza-app-shell__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--baza-glass-border, var(--mat-sys-outline-variant));
+}
+
+.baza-app-shell__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font: var(--mat-sys-title-large);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}
+
+.baza-app-shell__logo {
+  display: block;
+  width: 36px;
+  height: auto;
+  object-fit: contain;
+}
+
+.baza-app-shell__brand-text {
+  line-height: 1;
+}
+
+.baza-app-shell__spacer {
+  flex: 1 1 auto;
+}
+
+.baza-app-shell__account-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 0.25rem;
+  min-width: 0;
+}
+
+.baza-app-shell__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--baza-glass-border, var(--mat-sys-outline-variant));
+  background: var(--mat-sys-surface-container-high, #273548);
+}
+
+.baza-app-shell__avatar--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+}
+
+.baza-app-shell__account {
+  font: var(--mat-sys-body-medium);
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.baza-app-shell__main {
+  flex: 1 1 auto;
+  display: block;
+  background: transparent;
+}
