@@ -1,0 +1,11 @@
+import type { BazaEnvironment } from './environment.model';
+
+/** Copy to environment.local.ts and fill values. Never commit real keys. */
+export const localEnvironment: Pick<
+  BazaEnvironment,
+  'supabaseUrl' | 'supabaseAnonKey'
+> & { apiBaseUrl?: string } = {
+  apiBaseUrl: '',
+  supabaseUrl: '',
+  supabaseAnonKey: '',
+};

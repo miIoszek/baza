@@ -52,3 +52,7 @@ __screenshots__/
 .env
 .env.*
 !.env.example
+
+# Frontend local overrides (never commit real anon/project keys)
+apps/baza-frontend/src/environments/environment.local.ts
+apps/baza-frontend/src/environments/environment.production.local.ts

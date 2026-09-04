@@ -1,15 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { PageShell } from '@baza/ui';
-import { HOME_RETURN_CADENCES } from '@baza/shared-types';
+import { AppShell } from '@baza/ui';
+import { AuthService } from './core/auth.service';
 
 @Component({
-  imports: [PageShell, RouterModule],
+  imports: [AppShell, RouterModule],
   selector: 'baza-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected readonly brand = 'Baza';
-  protected readonly cadences = HOME_RETURN_CADENCES;
+export class App implements OnInit {
+  protected readonly auth = inject(AuthService);
+
+  ngOnInit(): void {
+    void this.auth.init();
+  }
+
+  protected async onLogout(): Promise<void> {
+    await this.auth.signOut();
+  }
 }
