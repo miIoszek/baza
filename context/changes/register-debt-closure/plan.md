@@ -235,12 +235,12 @@ Negligible: one-time env checks at boot; compensation only on failure path.
 
 #### Automated
 
-- [x] 2.1 `npx nx test baza-api` passes including new `auth.service.spec.ts`
-- [x] 2.2 `npx nx build baza-api` succeeds
+- [x] 2.1 `npx nx test baza-api` passes including new `auth.service.spec.ts` — 7e061f8
+- [x] 2.2 `npx nx build baza-api` succeeds — 7e061f8
 
 #### Manual
 
-- [x] 2.3 Skim test names/descriptions: a reviewer can tell which orphan scenarios are locked without reading implementation
+- [x] 2.3 Skim test names/descriptions: a reviewer can tell which orphan scenarios are locked without reading implementation — 7e061f8
 
 ### Phase 3: Operator docs for required keys
 
