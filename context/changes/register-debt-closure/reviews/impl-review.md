@@ -62,7 +62,7 @@ All Progress rows `[x]` (Phases 1–3). Manual items marked complete with user c
   - Tradeoff: Leaves a dead/contradictory path that can confuse future agents.
   - Confidence: MEDIUM.
   - Blind spot: Whether any test/tooling relies on anon fallback.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — require SERVICE_ROLE only; drop anon fallback
 
 ### F2 — Deploy plan still says “no Auth code yet”
 
@@ -72,7 +72,7 @@ All Progress rows `[x]` (Phases 1–3). Manual items marked complete with user c
 - **Location**: `context/deployment/deploy-plan.md:21`
 - **Detail**: Phase 3 updated the env table/boot gate, but the “What is live” Supabase row still says “no Auth code yet,” which is stale after register/auth work.
 - **Fix**: Update that row to reflect Auth + boot-gate reality (names only, no secrets).
-- **Decision**: PENDING
+- **Decision**: FIXED — updated live-status row for Auth + boot gate
 
 ### F3 — No unit test for `assertRequiredSupabaseEnv`
 
@@ -82,7 +82,7 @@ All Progress rows `[x]` (Phases 1–3). Manual items marked complete with user c
 - **Location**: `apps/baza-api/src/supabase-env.ts`
 - **Detail**: Compensation paths are covered in `auth.service.spec.ts`; the pure boot-gate helper has no direct unit test (blank/missing key naming). Manual + runtime evidence exists.
 - **Fix**: Add a tiny `supabase-env.spec.ts` for missing/blank keys and message contents.
-- **Decision**: PENDING
+- **Decision**: FIXED — added `apps/baza-api/src/supabase-env.spec.ts`
 
 ### F4 — Upstream Supabase errors may reach the client on register
 
@@ -92,4 +92,15 @@ All Progress rows `[x]` (Phases 1–3). Manual items marked complete with user c
 - **Location**: `apps/baza-api/src/app/auth/auth.service.ts` (company insert / mapSignUpError paths)
 - **Detail**: Some provider messages are forwarded via `BadRequestException(message)`. Partly pre-existing pattern; still present after this change’s register simplification.
 - **Fix**: Map unknown provider errors to stable public messages; log raw detail server-side.
-- **Decision**: PENDING
+- **Decision**: FIXED — stable public messages for register/company insert; raw provider detail logged server-side
+
+## Triage summary
+
+| ID | Outcome |
+| -- | ------- |
+| F1 | FIXED (Fix A) |
+| F2 | FIXED |
+| F3 | FIXED |
+| F4 | FIXED |
+
+All review findings triaged and applied.

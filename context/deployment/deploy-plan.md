@@ -18,7 +18,7 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | Angular SPA (Cloudflare Pages) | https://baza-app.pages.dev | Live (HTTP 200); project name `baza-app` (name `baza` failed to create) |
 | Preview deploy example | https://8ce8f45f.baza-app.pages.dev | Used for first CORS allow-list |
 | R2 bucket | `baza-uploads` | Created 2026-09-04 |
-| Supabase | Env vars on Railway (user-wired) | Project keys present on API service; no Auth code yet |
+| Supabase | Env vars on Railway (user-wired) | Auth + company register live on API; Nest boot requires `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` |
 
 ## Smoke — FE ↔ API
 

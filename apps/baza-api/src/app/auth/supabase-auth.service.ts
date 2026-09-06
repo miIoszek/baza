@@ -11,19 +11,15 @@ export class SupabaseAuthService {
     }
 
     const url = process.env['SUPABASE_URL']?.trim();
-    // Prefer service role (required for Nest boot); anon is a last-resort fallback
-    // only if someone constructs this service outside normal bootstrap.
-    const key =
-      process.env['SUPABASE_SERVICE_ROLE_KEY']?.trim() ||
-      process.env['SUPABASE_ANON_KEY']?.trim();
+    const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']?.trim();
 
-    if (!url || !key) {
+    if (!url || !serviceKey) {
       throw new ServiceUnavailableException(
-        'Supabase is not configured (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY required; ANON alone is not enough for Nest API)'
+        'Supabase is not configured (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY required)'
       );
     }
 
-    this.client = createClient(url, key, {
+    this.client = createClient(url, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     return this.client;

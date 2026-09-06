@@ -97,9 +97,12 @@ export class AuthService {
         .single();
 
       if (companyError || !company) {
-        throw new BadRequestException(
-          companyError?.message ?? 'Failed to create company profile'
-        );
+        if (companyError?.message) {
+          this.logger.warn(
+            `Company insert failed during register: ${companyError.message}`
+          );
+        }
+        throw new BadRequestException('Failed to create company profile');
       }
 
       return { userId, companyId: company.id as string };
@@ -187,6 +190,7 @@ export class AuthService {
     if (msg.includes('already') || msg.includes('registered')) {
       return new ConflictException('Email already registered');
     }
-    return new BadRequestException(message);
+    this.logger.warn(`Auth createUser failed during register: ${message}`);
+    return new BadRequestException('Registration failed');
   }
 }
