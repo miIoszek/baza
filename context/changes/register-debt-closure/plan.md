@@ -246,8 +246,8 @@ Negligible: one-time env checks at boot; compensation only on failure path.
 
 #### Automated
 
-- [x] 3.1 Diff review: no secret values committed; `.env.example` still names-only
+- [x] 3.1 Diff review: no secret values committed; `.env.example` still names-only — f3eae0c
 
 #### Manual
 
-- [x] 3.2 A new operator reading `.env.example` alone would know the API refuses to start without the three Supabase keys
+- [x] 3.2 A new operator reading `.env.example` alone would know the API refuses to start without the three Supabase keys — f3eae0c
