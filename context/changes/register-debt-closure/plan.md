@@ -221,15 +221,15 @@ Negligible: one-time env checks at boot; compensation only on failure path.
 
 #### Automated
 
-- [x] 1.1 `npx nx build baza-api` succeeds
-- [x] 1.2 `npx nx test baza-api` still passes existing specs (auth specs may land in Phase 2)
-- [x] 1.3 Lint for touched API files is clean (`npx nx lint baza-api` if configured)
+- [x] 1.1 `npx nx build baza-api` succeeds — ae36ba5
+- [x] 1.2 `npx nx test baza-api` still passes existing specs (auth specs may land in Phase 2) — ae36ba5
+- [x] 1.3 Lint for touched API files is clean (`npx nx lint baza-api` if configured) — ae36ba5
 
 #### Manual
 
-- [x] 1.4 With all three Supabase vars set, API starts and existing health/API route responds
-- [x] 1.5 With `SUPABASE_SERVICE_ROLE_KEY` unset/empty, process fails to start and names the missing key (does not listen on the port)
-- [x] 1.6 Spot-check: rejected MIME on register still returns 4xx (no F5 regression)
+- [x] 1.4 With all three Supabase vars set, API starts and existing health/API route responds — ae36ba5
+- [x] 1.5 With `SUPABASE_SERVICE_ROLE_KEY` unset/empty, process fails to start and names the missing key (does not listen on the port) — ae36ba5
+- [x] 1.6 Spot-check: rejected MIME on register still returns 4xx (no F5 regression) — ae36ba5
 
 ### Phase 2: Unit tests for register compensation
 
