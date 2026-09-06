@@ -1,10 +1,10 @@
 ---
 change_id: auth-company-register
 title: Company register FR-001 without logo upload
-status: done
+status: archived
 created: 2026-09-04
-updated: 2026-09-04
-archived_at: null
+updated: 2026-09-06
+archived_at: 2026-09-06T18:25:21Z
 ---
 
 ## Notes
