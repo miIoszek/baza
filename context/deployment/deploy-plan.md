@@ -42,6 +42,7 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 - CORS from `CORS_ORIGIN` — [`libs/api/core/src/lib/configure-app.ts`](../../libs/api/core/src/lib/configure-app.ts)
 - FE consumes `/api/health` — [`apps/baza-frontend/src/app/app.ts`](../../apps/baza-frontend/src/app/app.ts)
 - Env name template — [`.env.example`](../../.env.example)
+- **Boot gate:** Nest refuses to start without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (see `apps/baza-api/src/supabase-env.ts`). Service role is required for API process start, not only for optional compensation.
 
 ## Cloudflare Pages (FE)
 
@@ -56,9 +57,9 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | Variable | Where | Status |
 |----------|-------|--------|
 | `CORS_ORIGIN` | Railway | Wired (Pages production + preview hosts) |
-| `SUPABASE_URL` | Railway | Wired by user (values not stored in this file) |
-| `SUPABASE_ANON_KEY` | Railway | Wired by user |
-| `SUPABASE_SERVICE_ROLE_KEY` | Railway | Wired by user — **never** on Pages |
+| `SUPABASE_URL` | Railway | Wired by user (values not stored in this file) — **required for Nest boot** |
+| `SUPABASE_ANON_KEY` | Railway | Wired by user — **required for Nest boot** |
+| `SUPABASE_SERVICE_ROLE_KEY` | Railway | Wired by user — **required for Nest boot** (admin register + compensation); **never** on Pages |
 | `R2_ACCOUNT_ID` | Railway | Wired by user |
 | `R2_ACCESS_KEY_ID` | Railway | Wired by user |
 | `R2_SECRET_ACCESS_KEY` | Railway | Wired by user |
