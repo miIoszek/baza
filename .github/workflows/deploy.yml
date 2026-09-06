@@ -105,6 +105,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Ensure FE local env placeholders
+        run: node scripts/ensure-fe-env.mjs
+
       - name: Write production env
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
