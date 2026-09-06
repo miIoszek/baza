@@ -310,8 +310,8 @@ Make deployment docs and agent onboarding match Actions-first reality.
 
 #### Automated
 
-- [x] 1.1 Node pin present (`.nvmrc` + `engines`) and lint script works: `npm run lint`
-- [x] 1.2 Env writer succeeds with dummy env and fails without required vars
+- [x] 1.1 Node pin present (`.nvmrc` + `engines`) and lint script works: `npm run lint` — e858bfc
+- [x] 1.2 Env writer succeeds with dummy env and fails without required vars — e858bfc
 
 #### Manual
 
@@ -321,8 +321,8 @@ Make deployment docs and agent onboarding match Actions-first reality.
 
 #### Automated
 
-- [x] 2.1 `.github/workflows/ci.yml` exists with lint, test, build
-- [x] 2.2 Local `npm run lint && npm run test && npm run build` pass
+- [x] 2.1 `.github/workflows/ci.yml` exists with lint, test, build — e858bfc
+- [x] 2.2 Local `npm run lint && npm run test && npm run build` pass — e858bfc
 
 #### Manual
 
@@ -332,8 +332,8 @@ Make deployment docs and agent onboarding match Actions-first reality.
 
 #### Automated
 
-- [x] 3.1 `deploy.yml` path filters match API/FE sets; Pages uses `wrangler pages deploy`
-- [x] 3.2 FE job runs env writer before production build
+- [x] 3.1 `deploy.yml` path filters match API/FE sets; Pages uses `wrangler pages deploy` — e858bfc
+- [x] 3.2 FE job runs env writer before production build — e858bfc
 
 #### Manual
 
@@ -344,7 +344,7 @@ Make deployment docs and agent onboarding match Actions-first reality.
 
 #### Automated
 
-- [x] 4.1 `deploy-plan.md` and `AGENTS.md` reference the new workflows
+- [x] 4.1 `deploy-plan.md` and `AGENTS.md` reference the new workflows — e858bfc
 
 #### Manual
 
