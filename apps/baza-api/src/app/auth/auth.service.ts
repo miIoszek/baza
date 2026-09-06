@@ -43,61 +43,34 @@ export class AuthService {
     const url = process.env['SUPABASE_URL']?.trim();
     const anonKey = process.env['SUPABASE_ANON_KEY']?.trim();
     const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']?.trim();
-    if (!url || !anonKey) {
-      throw new ServiceUnavailableException('Supabase anon config missing');
+    if (!url || !anonKey || !serviceKey) {
+      throw new ServiceUnavailableException(
+        'Supabase config missing (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY required)'
+      );
     }
 
     let userId: string | null = null;
     let photoKey: string | null = null;
     let photoUrls: CompanyPhotoUrls | null = null;
-    let db: SupabaseClient;
     let adminClient: SupabaseClient | null = null;
 
     try {
-      if (serviceKey) {
-        adminClient = createClient(url, serviceKey, {
-          auth: { autoRefreshToken: false, persistSession: false },
-        });
-        db = adminClient;
-        const { data, error } = await adminClient.auth.admin.createUser({
-          email: dto.email,
-          password: dto.password,
-          email_confirm: true,
-        });
-        if (error) {
-          throw this.mapSignUpError(error.message);
-        }
-        if (!data.user) {
-          throw new BadRequestException('Admin createUser returned no user');
-        }
-        userId = data.user.id;
-      } else {
-        const anon = createClient(url, anonKey, {
-          auth: { autoRefreshToken: false, persistSession: false },
-        });
-        const { data: signUpData, error: signUpError } = await anon.auth.signUp({
-          email: dto.email,
-          password: dto.password,
-        });
-        if (signUpError) {
-          throw this.mapSignUpError(signUpError.message);
-        }
-        const user = signUpData.user;
-        if (!user) {
-          throw new BadRequestException('Sign-up did not return a user');
-        }
-        userId = user.id;
-        const accessToken = signUpData.session?.access_token;
-        if (!accessToken) {
-          throw new BadRequestException(
-            'No session after sign-up — disable Confirm email in Supabase Auth, or set SUPABASE_SERVICE_ROLE_KEY'
-          );
-        }
-        db = createClient(url, anonKey, {
-          auth: { autoRefreshToken: false, persistSession: false },
-          global: { headers: { Authorization: `Bearer ${accessToken}` } },
-        });
+      adminClient = createClient(url, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const db = adminClient;
+      const { data, error } = await adminClient.auth.admin.createUser({
+        email: dto.email,
+        password: dto.password,
+        email_confirm: true,
+      });
+      if (error) {
+        throw this.mapSignUpError(error.message);
       }
+      if (!data.user) {
+        throw new BadRequestException('Admin createUser returned no user');
+      }
+      userId = data.user.id;
 
       if (photo?.buffer?.length) {
         const uploaded = await this.r2.uploadCompanyLogo(
@@ -190,16 +163,21 @@ export class AuthService {
 
     if (!admin) {
       this.logger.warn(
-        `Cannot delete orphaned auth user ${userId} — set SUPABASE_SERVICE_ROLE_KEY for compensation`
+        `Compensation orphan cleanup failed for auth user ${userId}: no admin client (SUPABASE_SERVICE_ROLE_KEY required)`
       );
       return;
     }
 
     try {
-      await admin.auth.admin.deleteUser(userId);
+      const { error } = await admin.auth.admin.deleteUser(userId);
+      if (error) {
+        this.logger.warn(
+          `Compensation orphan cleanup failed for auth user ${userId}: ${error.message}`
+        );
+      }
     } catch (e) {
       this.logger.warn(
-        `Failed to delete orphaned auth user ${userId}: ${String(e)}`
+        `Compensation orphan cleanup failed for auth user ${userId}: ${String(e)}`
       );
     }
   }

@@ -1,7 +1,7 @@
 ---
 change_id: register-debt-closure
 title: Close register debt after logo-r2 REJECTED review
-status: planned
+status: implementing
 created: 2026-09-06
 updated: 2026-09-06
 archived_at: null
