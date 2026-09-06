@@ -10,8 +10,11 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { configureApp } from '@baza/api-core';
 import { AppModule } from './app/app.module';
+import { assertRequiredSupabaseEnv } from './supabase-env';
 
 async function bootstrap() {
+  assertRequiredSupabaseEnv();
+
   const app = await NestFactory.create(AppModule);
   configureApp(app);
 
@@ -25,4 +28,11 @@ async function bootstrap() {
   );
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  Logger.error(
+    err instanceof Error ? err.message : String(err),
+    err instanceof Error ? err.stack : undefined,
+    'Bootstrap'
+  );
+  process.exit(1);
+});
