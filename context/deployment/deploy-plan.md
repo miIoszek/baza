@@ -64,10 +64,33 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | `R2_SECRET_ACCESS_KEY` | Railway | Wired by user |
 | `R2_BUCKET` | Railway | Expect `baza-uploads` |
 | `R2_PUBLIC_URL` | Railway | Optional / as configured |
-| Supabase anon on Pages | Pages | **Pending** until Auth FE (next product plan) |
-| R2 SDK / upload routes in Nest | Code | **Pending** — next plan (registry photo) |
+| Supabase anon on Pages | Pages / Actions | Injected at Pages build via GitHub Secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — wire secrets before first Actions FE deploy |
+| R2 SDK / upload routes in Nest | Code | Shipped for register photo; keep R2 vars on Railway only |
 
-## Redeploy cheat-sheet
+## GitHub Actions (primary redeploy path)
+
+Workflows:
+
+- [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — on PR + `main`: `npm run lint`, `test`, `build`
+- [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — on `main` only, path-filtered:
+  - API paths → `railway up --service=baza-api --ci`
+  - FE paths → write prod env from secrets → `nx build baza-frontend` → `wrangler pages deploy`
+
+### Required GitHub Actions secrets
+
+| Secret | Used by |
+|--------|---------|
+| `RAILWAY_TOKEN` | API deploy job |
+| `CLOUDFLARE_API_TOKEN` | Pages deploy (Wrangler) |
+| `CLOUDFLARE_ACCOUNT_ID` | Pages deploy |
+| `SUPABASE_URL` | FE production env writer (public project URL) |
+| `SUPABASE_ANON_KEY` | FE production env writer (anon key only) |
+
+Path filters (see `deploy.yml`): API also watches `libs/api/**`, `libs/shared/**`, lockfile/Nx config, `railway.toml`. FE watches `apps/baza-frontend/**`, `libs/baza/**`, `libs/shared/**`, lockfile/Nx config. Shared-lib or root package changes redeploy both.
+
+FE build injects Supabase anon via `scripts/write-fe-production-env.mjs` (overwrites `environment.production.ts` in the runner only — committed file stays empty placeholders).
+
+## Redeploy cheat-sheet (manual fallback)
 
 ```bash
 # API

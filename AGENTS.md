@@ -28,11 +28,12 @@ Path aliases are defined in `@tsconfig.base.json`. Deeper layout: `@README.md`. 
 
 - `npm run serve:api` — Nest on `http://localhost:3000/api`
 - `npm run serve:frontend` — Angular on `http://localhost:4200`
+- `npm run lint` — ESLint for API + frontend (same as CI)
 - `npm run build` — build API + frontend
 - `npm run test` — run tests for both apps
 - `npm run graph` — Nx dependency graph
 
-Lint via Nx/ESLint flat config `@eslint.config.mjs` (`@nx/enforce-module-boundaries`).
+Lint via Nx/ESLint flat config `@eslint.config.mjs` (`@nx/enforce-module-boundaries`). CI: `.github/workflows/ci.yml` runs lint/test/build on PRs and `main`. Deploys on `main`: `.github/workflows/deploy.yml` (path-filtered Railway + Cloudflare Pages).
 
 ## Coding Style & Naming Conventions
 
@@ -40,11 +41,11 @@ TypeScript throughout. Follow Angular/Nest generators already in the tree (e.g. 
 
 ## Testing Guidelines
 
-API: Jest (`@apps/baza-api/jest.config.cts`, root `@jest.config.ts`). Frontend: Angular unit-test target in `@apps/baza-frontend/project.json`. Run both with `npm run test`; single-project: `npx nx test baza-api` or `npx nx test baza-frontend`.
+API: Jest (`@apps/baza-api/jest.config.js`, root `@jest.preset.js`). Frontend: Angular unit-test target in `@apps/baza-frontend/project.json`. Run both with `npm run test`; single-project: `npx nx test baza-api` or `npx nx test baza-frontend`.
 
 ## Commit & Pull Request Guidelines
 
-History so far uses descriptive subjects (e.g. `Initial commit: Baza Nx monorepo…`). Prefer Conventional Commits going forward (`feat:`, `fix:`, `chore:`). Remote: `https://github.com/miIoszek/baza.git`. No in-repo CI workflows yet — still run `npm run build` and `npm run test` before pushing.
+History so far uses descriptive subjects (e.g. `Initial commit: Baza Nx monorepo…`). Prefer Conventional Commits going forward (`feat:`, `fix:`, `chore:`). Remote: `https://github.com/miIoszek/baza.git`. Prefer green CI on the PR (`npm run lint && npm run test && npm run build` locally mirrors `.github/workflows/ci.yml`).
 
 ## Security & Configuration Tips
 

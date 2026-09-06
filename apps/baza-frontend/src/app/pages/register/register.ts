@@ -76,8 +76,9 @@ export class RegisterPage {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
 
-    if (this.photoPreview()) {
-      URL.revokeObjectURL(this.photoPreview()!);
+    const previousPreview = this.photoPreview();
+    if (previousPreview) {
+      URL.revokeObjectURL(previousPreview);
     }
 
     if (!file) {

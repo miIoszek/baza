@@ -2,12 +2,17 @@
   "name": "@baza/source",
   "version": "0.0.0",
   "license": "MIT",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "serve:api": "nx serve baza-api",
     "serve:frontend": "node scripts/ensure-fe-env.mjs && nx serve baza-frontend --port=4200",
     "build": "nx run-many -t build -p baza-api,baza-frontend",
     "build:api": "nx build baza-api --configuration=production",
+    "build:frontend:ci": "node scripts/write-fe-production-env.mjs && nx build baza-frontend --configuration=production",
     "start": "node dist/apps/baza-api/main.js",
+    "lint": "nx run-many -t lint -p baza-api,baza-frontend",
     "test": "nx run-many -t test -p baza-api,baza-frontend",
     "graph": "nx graph"
   },

@@ -196,17 +196,15 @@
           }
         </mat-form-field>
 
-        <label
+        <mat-checkbox
           class="auth-terms"
           [class.auth-terms--invalid]="form.controls.terms.touched && form.controls.terms.invalid"
+          formControlName="terms"
         >
-          <mat-checkbox formControlName="terms" />
-          <span>
-            Akceptuję
-            <a href="#" (click)="$event.preventDefault()">regulamin</a>
-            i politykę prywatności
-          </span>
-        </label>
+          Akceptuję
+          <a href="#" (click)="$event.preventDefault()">regulamin</a>
+          i politykę prywatności
+        </mat-checkbox>
         @if (form.controls.terms.touched &&
         form.controls.terms.hasError('required')) {
         <p class="auth-field-error">Musisz zaakceptować regulamin</p>
