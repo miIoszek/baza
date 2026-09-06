@@ -1,10 +1,10 @@
 ---
 change_id: github-actions
 title: Add GitHub Actions CI for the monorepo
-status: implementing
+status: archived
 created: 2026-09-05
 updated: 2026-09-06
-archived_at: null
+archived_at: 2026-09-06T18:25:21Z
 ---
 
 ## Notes
