@@ -1,0 +1,43 @@
+.company-public {
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.company-public__status {
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant, #666);
+}
+
+.company-public__card {
+  padding: 0.5rem;
+}
+
+.company-public__logo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.company-public__fields {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.company-public__fields dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mat-sys-on-surface-variant, #666);
+  margin-bottom: 0.25rem;
+}
+
+.company-public__fields dd {
+  margin: 0;
+  white-space: pre-wrap;
+}

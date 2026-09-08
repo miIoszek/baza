@@ -1,7 +1,7 @@
 ---
 change_id: company-public-profile
 title: Company public profile
-status: planned
+status: implementing
 created: 2026-09-08
 updated: 2026-09-08
 archived_at: null

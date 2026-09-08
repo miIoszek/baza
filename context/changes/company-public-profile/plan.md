@@ -239,9 +239,9 @@ Not applicable — no schema change. Existing `companies` rows immediately gain 
 
 #### Automated
 
-- [ ] 1.1 `npm run lint` passes after Phase 1 changes
-- [ ] 1.2 `npx nx test baza-api` passes after Phase 1 changes
-- [ ] 1.3 Full build includes updated `@baza/shared-types` exports
+- [x] 1.1 `npm run lint` passes after Phase 1 changes
+- [x] 1.2 `npx nx test baza-api` passes after Phase 1 changes
+- [x] 1.3 Full build includes updated `@baza/shared-types` exports
 
 #### Manual
 
