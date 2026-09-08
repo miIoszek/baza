@@ -6,6 +6,14 @@ import {
 describe('rewriteR2PhotoUrls', () => {
   const publicBase = 'https://pub-fc53a13a5e564e91a116f9ebb2036071.r2.dev';
 
+  beforeEach(() => {
+    process.env['R2_PUBLIC_URL'] = publicBase;
+  });
+
+  afterEach(() => {
+    delete process.env['R2_PUBLIC_URL'];
+  });
+
   it('rewrites S3 API host to R2_PUBLIC_URL', () => {
     const input = {
       s96: 'https://86ebf1237b6e38a608067182849713c8.r2.cloudflarestorage.com/companies/user-1/logo/s96.webp',
