@@ -245,7 +245,7 @@ Not applicable — no schema change. Existing `companies` rows immediately gain 
 
 #### Manual
 
-- [ ] 1.4 Logged-out `/companies/:id` shows public profile; unknown id shows not-found
+- [x] 1.4 Logged-out `/companies/:id` shows public profile; unknown id shows not-found
 
 ### Phase 2: Owner profile edit (API + FE)
 
