@@ -284,8 +284,8 @@ Not applicable — no schema changes.
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes after Phase 1 changes
-- [x] 1.2 `npx nx test baza-frontend` passes after Phase 1 changes
+- [x] 1.1 `npm run lint` passes after Phase 1 changes — 104c576
+- [x] 1.2 `npx nx test baza-frontend` passes after Phase 1 changes — 104c576
 
 #### Manual
 
