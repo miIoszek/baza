@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AppShell } from '@baza/ui';
 import { AuthService } from './core/auth.service';
 
@@ -11,6 +11,7 @@ import { AuthService } from './core/auth.service';
 })
 export class App implements OnInit {
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   ngOnInit(): void {
     void this.auth.init();
@@ -18,5 +19,6 @@ export class App implements OnInit {
 
   protected async onLogout(): Promise<void> {
     await this.auth.signOut();
+    await this.router.navigateByUrl('/');
   }
 }
