@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { CompanyPublicProfile } from '@baza/shared-types';
+import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 
 @Injectable()
@@ -24,7 +25,9 @@ export class CompanyPublicService {
       nip: data.nip as string,
       description: data.description as string,
       baseLocation: data.base_location as string,
-      photoUrls: (data.photo_urls as Record<string, string> | null) ?? null,
+      photoUrls: rewriteR2PhotoUrls(
+        (data.photo_urls as Record<string, string> | null) ?? null
+      ),
     };
   }
 }
