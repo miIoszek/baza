@@ -296,8 +296,8 @@ Not applicable — no schema changes.
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes after Phase 2 changes
-- [x] 2.2 `npx nx test baza-api` passes after Phase 2 changes
+- [x] 2.1 `npm run lint` passes after Phase 2 changes — 11b32ff
+- [x] 2.2 `npx nx test baza-api` passes after Phase 2 changes — 11b32ff
 
 #### Manual
 
@@ -307,9 +307,9 @@ Not applicable — no schema changes.
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run test` passes (both apps)
-- [x] 3.3 `npm run build` passes
+- [x] 3.1 `npm run lint` passes — 6362918
+- [x] 3.2 `npm run test` passes (both apps) — 6362918
+- [x] 3.3 `npm run build` passes — 6362918
 
 #### Manual
 
