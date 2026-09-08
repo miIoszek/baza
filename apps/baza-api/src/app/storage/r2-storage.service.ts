@@ -38,6 +38,10 @@ export class R2StorageService {
       return null;
     }
 
+    if (publicUrl.includes('.r2.cloudflarestorage.com')) {
+      return null;
+    }
+
     return { accountId, accessKeyId, secretAccessKey, bucket, publicUrl };
   }
 

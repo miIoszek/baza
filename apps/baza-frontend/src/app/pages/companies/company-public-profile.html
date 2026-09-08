@@ -1,0 +1,42 @@
+<section class="company-public">
+  @if (loading()) {
+    <p class="company-public__status">Ładowanie profilu…</p>
+  } @else if (notFound()) {
+    <mat-card appearance="outlined" class="company-public__card">
+      <mat-card-header>
+        <mat-card-title>Nie znaleziono firmy</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Ten profil nie istnieje lub adres jest nieprawidłowy.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (profile(); as company) {
+    <mat-card appearance="outlined" class="company-public__card">
+      <mat-card-header>
+        @if (logoUrl(company); as logo) {
+          <img
+            class="company-public__logo"
+            [src]="logo"
+            alt=""
+            width="96"
+            height="96"
+          />
+        }
+        <mat-card-title>{{ company.name }}</mat-card-title>
+        <mat-card-subtitle>NIP: {{ company.nip }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="company-public__fields">
+          <div>
+            <dt>Lokalizacja bazy</dt>
+            <dd>{{ company.baseLocation }}</dd>
+          </div>
+          <div>
+            <dt>O firmie</dt>
+            <dd>{{ company.description }}</dd>
+          </div>
+        </dl>
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

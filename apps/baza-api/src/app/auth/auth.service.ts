@@ -11,6 +11,7 @@ import {
   R2StorageService,
   type CompanyPhotoUrls,
 } from '../storage/r2-storage.service';
+import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { SupabaseAuthService } from './supabase-auth.service';
 
@@ -136,7 +137,9 @@ export class AuthService {
       nip: data.nip as string,
       description: data.description as string,
       baseLocation: data.base_location as string,
-      photoUrls: (data.photo_urls as Record<string, string> | null) ?? null,
+      photoUrls: rewriteR2PhotoUrls(
+        (data.photo_urls as Record<string, string> | null) ?? null
+      ),
     };
   }
 

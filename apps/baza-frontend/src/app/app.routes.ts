@@ -6,9 +6,14 @@ import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
 import { CompanyInboxPlaceholder } from './pages/company/company-inbox-placeholder';
 import { CompanyProfilePlaceholder } from './pages/company/company-profile-placeholder';
+import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 
 export const appRoutes: Route[] = [
   { path: '', component: HomePage },
+  {
+    path: 'companies/:id',
+    component: CompanyPublicProfilePage,
+  },
   {
     path: 'login',
     component: LoginPage,

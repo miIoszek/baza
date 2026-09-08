@@ -3,19 +3,12 @@ export interface GeoPoint {
   lng: number;
 }
 
+/** Public company profile (S-01) — matches DB / AuthMeCompany field shapes. */
 export interface CompanyPublicProfile {
   id: string;
   name: string;
   nip: string;
   description: string;
-  photoUrl?: string;
-  baseLocation: GeoPoint;
-}
-
-export interface CreateCompanyRequest {
-  name: string;
-  nip: string;
-  description: string;
-  photoUrl?: string;
-  baseLocation: GeoPoint;
+  baseLocation: string;
+  photoUrls: Record<string, string> | null;
 }
