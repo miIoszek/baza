@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -33,6 +33,7 @@ export class LoginPage {
   private readonly fb = new FormBuilder();
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly hidePassword = signal(true);
@@ -57,7 +58,10 @@ export class LoginPage {
         this.snackBar.open(error, 'OK', { duration: 5000 });
         return;
       }
-      await this.router.navigateByUrl('/');
+      const returnUrl = this.resolveReturnUrl(
+        this.route.snapshot.queryParamMap.get('returnUrl')
+      );
+      await this.router.navigateByUrl(returnUrl);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Nie udało się zalogować';
@@ -65,5 +69,12 @@ export class LoginPage {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private resolveReturnUrl(raw: string | null): string {
+    if (!raw || !raw.startsWith('/') || raw.startsWith('//')) {
+      return '/company/profile';
+    }
+    return raw;
   }
 }

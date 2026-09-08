@@ -9,7 +9,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 
 const VARIANT_SIZES = [48, 96, 192, 512] as const;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -80,7 +80,7 @@ export class R2StorageService {
       );
     }
 
-    let meta: sharp.Metadata;
+    let meta: Metadata;
     try {
       meta = await sharp(buffer, { failOn: 'error' }).metadata();
     } catch {

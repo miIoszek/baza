@@ -1,7 +1,7 @@
 ---
 change_id: gate-company-routes
 title: Gate company routes behind login (F-01)
-status: planned
+status: implementing
 created: 2026-09-08
 updated: 2026-09-08
 archived_at: null
