@@ -146,7 +146,7 @@ export class RegisterPage {
         return;
       }
 
-      await this.router.navigateByUrl('/');
+      await this.router.navigateByUrl('/company/profile');
     } catch (err: unknown) {
       const message = this.extractError(err);
       this.snackBar.open(message, 'OK', { duration: 6000 });

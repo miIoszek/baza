@@ -30,6 +30,11 @@ export class AuthService {
   });
   readonly isLoggedIn = computed(() => !!this.sessionSignal());
 
+  /** Resolves after Supabase session hydration (safe to call from route guards). */
+  whenReady(): Promise<void> {
+    return this.init();
+  }
+
   async init(): Promise<void> {
     if (this.initialized) {
       return;
