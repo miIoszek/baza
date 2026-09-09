@@ -9,6 +9,7 @@ main_goal: speed
 top_blocker: time
 ---
 
+
 # Roadmap: Baza
 
 > Derived from `context/foundation/prd.md` (v1) + auto-researched codebase baseline.
@@ -29,8 +30,8 @@ Transport companies lose drivers when job boards ignore route geography and home
 
 | ID   | Change ID               | Outcome (user can …)                                              | Prerequisites | PRD refs              | Status   |
 | ---- | ----------------------- | ----------------------------------------------------------------- | ------------- | --------------------- | -------- |
-| F-01 | gate-company-routes     | (foundation) Company-only routes and API paths require login      | —             | Access Control        | ready    |
-| S-01 | company-public-profile  | View and edit public company profile after registration           | F-01          | FR-001, FR-002        | proposed |
+| F-01 | gate-company-routes     | (foundation) Company-only routes and API paths require login      | —             | Access Control        | done     |
+| S-01 | company-public-profile  | View and edit public company profile after registration           | F-01          | FR-001, FR-002        | in-progress |
 | S-02 | publish-job-offer       | Publish a free offer; see it on profile, Job Offers list, map pin | S-01          | FR-003, FR-004, US-01 | proposed |
 | S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | proposed |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | proposed |
@@ -53,7 +54,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Frontend:** present — Angular 22 SPA with Material, `@baza/ui`, routes for home/login/register (`apps/baza-frontend/src/app/app.routes.ts`).
 - **Backend / API:** present — NestJS with global prefix `api`; `GET /api/health`, `POST /api/auth/register`, `GET /api/auth/me` (`apps/baza-api/src/app/auth/auth.controller.ts`).
 - **Data:** partial — Supabase Postgres migration for `companies` only (`supabase/migrations/20260904120000_create_companies.sql`); no `offers` or `applications` tables yet.
-- **Auth:** partial — Supabase Auth on FE + API; JWT guard on `GET /api/auth/me` only; no Angular route guards; company register + R2 photo path live.
+- **Auth:** present — Supabase Auth on FE + API; JWT on `/api/auth/me` and `/api/company/*`; Angular `companyAuthGuard` on employer routes (F-01); company register + R2 photo path live.
 - **Deploy / infra:** partial — CI (`/.github/workflows/ci.yml`) and deploy to Railway (API via `railway.toml` + Railpack) and Cloudflare Pages (FE via `deploy.yml`); production live per `context/deployment/deploy-plan.md`. No Dockerfile — not required (Railpack + Pages build/deploy without Docker).
 - **Observability:** partial — Nest `Logger` and global exception filter; no Sentry, metrics, or structured logging.
 
@@ -70,7 +71,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Auth scaffold exists but routes are open; gating now prevents shipping company features behind unprotected URLs and aligns FE with API before profile and inbox land.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -84,7 +85,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Register creates `companies` rows today but there is no profile page; this slice closes FR-002 and the "land on profile" gap in FR-001 before publish work starts.
-- **Status:** proposed
+- **Status:** in-progress
+- **Progress note:** Phase 1 shipped (public `GET /api/companies/:id` + `/companies/:id`). Phase 2–3 (owner `PATCH` + edit UI at `/company/profile`) still open — page is still a placeholder.
 
 ### S-02: Publish job offer
 
@@ -142,9 +144,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 | Roadmap ID | Change ID               | Suggested issue title                              | Ready for `/10x-plan` | Notes                                      |
 | ---------- | ----------------------- | -------------------------------------------------- | --------------------- | ------------------------------------------ |
-| F-01       | gate-company-routes     | Gate company routes behind login                   | yes                   | Run `/10x-plan gate-company-routes` first  |
-| S-01       | company-public-profile  | Company public profile view and edit               | no                    | After F-01                                 |
-| S-02       | publish-job-offer       | Publish job offer with map pin on Job Offers       | no                    | After S-01                                 |
+| F-01       | gate-company-routes     | Gate company routes behind login                   | — (done)              | Merged; archive when closing change folder |
+| S-01       | company-public-profile  | Company public profile view and edit               | yes (resume)          | Finish Phase 2–3 edit path before S-02     |
+| S-02       | publish-job-offer       | Publish job offer with map pin on Job Offers       | no                    | After S-01 done                            |
 | S-03       | driver-browse-job-offers| Driver Job Offers browse and route/cadence filters | no                    | After S-02                                 |
 | S-04       | driver-apply-via-map    | Driver apply with route map and CV upload          | no                    | After S-03                                 |
 | S-05       | company-application-inbox | Company inbox for driver applications            | no                    | North star; after S-04                     |
@@ -169,4 +171,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends entries when matching changes archive.)
+- **F-01** `gate-company-routes` — 2026-09-08 — Company FE routes + `/api/company/*` require session (PR #3). Formal `/10x-archive` still pending for the change folder.
