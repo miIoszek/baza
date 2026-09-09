@@ -1,10 +1,10 @@
 ---
 change_id: company-public-profile
 title: Company public profile
-status: implemented
+status: archived
 created: 2026-09-08
 updated: 2026-09-09
-archived_at: null
+archived_at: 2026-09-09T20:46:53Z
 ---
 
 ## Notes
