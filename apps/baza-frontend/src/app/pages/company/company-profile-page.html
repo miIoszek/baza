@@ -1,0 +1,160 @@
+<section class="auth-page">
+  <mat-card class="auth-card baza-glass-card" appearance="outlined">
+    <div class="auth-brand">
+      <img
+        class="auth-brand__logo"
+        src="/baza-logo.png"
+        alt=""
+        width="48"
+        height="59"
+      />
+      <span class="auth-brand__name">Baza</span>
+    </div>
+    <mat-card-header>
+      <mat-card-title>Profil firmy</mat-card-title>
+      <mat-card-subtitle>
+        Edytuj dane widoczne na publicznym profilu
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+      <p class="auth-form company-profile__status">Ładowanie…</p>
+      } @else {
+      <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="auth-row">
+          <mat-form-field
+            appearance="outline"
+            class="auth-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>Nazwa firmy</mat-label>
+            <mat-icon matPrefix>business</mat-icon>
+            <input
+              matInput
+              formControlName="name"
+              maxlength="120"
+              autocomplete="organization"
+            />
+            @if (form.controls.name.touched &&
+            form.controls.name.hasError('required')) {
+            <mat-error>Pole wymagane</mat-error>
+            } @else if (form.controls.name.touched &&
+            form.controls.name.hasError('minlength')) {
+            <mat-error>Min. 2 znaki</mat-error>
+            } @else if (form.controls.name.touched &&
+            form.controls.name.hasError('maxlength')) {
+            <mat-error>Max. 120 znaków</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="auth-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>NIP</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input
+              matInput
+              formControlName="nip"
+              inputmode="numeric"
+              maxlength="10"
+            />
+            @if (form.controls.nip.touched &&
+            form.controls.nip.hasError('required')) {
+            <mat-error>Pole wymagane</mat-error>
+            } @else if (form.controls.nip.touched &&
+            form.controls.nip.hasError('pattern')) {
+            <mat-error>NIP musi mieć dokładnie 10 cyfr</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field
+          appearance="outline"
+          class="auth-field"
+          subscriptSizing="dynamic"
+        >
+          <mat-label>Lokalizacja bazowa</mat-label>
+          <mat-icon matPrefix>place</mat-icon>
+          <input
+            matInput
+            formControlName="baseLocation"
+            maxlength="200"
+            placeholder="Polska, ul. Przykładowa 1, 00-001 Warszawa"
+            autocomplete="street-address"
+          />
+          @if (form.controls.baseLocation.touched &&
+          form.controls.baseLocation.hasError('required')) {
+          <mat-error>Lokalizacja jest wymagana</mat-error>
+          } @else if (form.controls.baseLocation.touched &&
+          form.controls.baseLocation.hasError('maxlength')) {
+          <mat-error>Max. 200 znaków</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field
+          appearance="outline"
+          class="auth-field"
+          subscriptSizing="dynamic"
+        >
+          <mat-label>Krótki opis</mat-label>
+          <mat-icon matPrefix>notes</mat-icon>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="description"
+            maxlength="2000"
+          ></textarea>
+          @if (form.controls.description.touched &&
+          form.controls.description.hasError('required')) {
+          <mat-error>Opis jest wymagany</mat-error>
+          } @else if (form.controls.description.touched &&
+          form.controls.description.hasError('maxlength')) {
+          <mat-error>Max. 2000 znaków</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="auth-photo">
+          <label class="auth-photo__label" for="profile-photo"
+            >Logo firmy (opcjonalne)</label
+          >
+          <input
+            id="profile-photo"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="onPhotoSelected($event)"
+          />
+          @if (photoPreview()) {
+          <img
+            class="auth-photo__preview"
+            [src]="photoPreview()"
+            alt="Podgląd logo"
+          />
+          }
+        </div>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="baza-btn-premium full-width"
+          type="submit"
+          [disabled]="submitting()"
+        >
+          Zapisz zmiany
+        </button>
+      </form>
+      }
+    </mat-card-content>
+
+    @if (companyId()) {
+    <mat-card-footer class="auth-footer">
+      Zobacz jak wygląda profil
+      <a [routerLink]="['/companies', companyId()]" target="_blank" rel="noopener"
+        >Profil publiczny</a
+      >
+    </mat-card-footer>
+    }
+  </mat-card>
+</section>

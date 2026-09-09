@@ -3,6 +3,7 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
@@ -68,6 +69,11 @@ export class R2StorageService {
     return this.client;
   }
 
+  /**
+   * Upload logo under a unique versioned prefix:
+   * `companies/{userId}/logos/{versionId}/…`
+   * (not nested under legacy `companies/{userId}/logo/` so old cleanup is safe).
+   */
   async uploadCompanyLogo(
     userId: string,
     buffer: Buffer,
@@ -113,7 +119,8 @@ export class R2StorageService {
       throw new BadRequestException('Image dimensions are too large');
     }
 
-    const baseKey = `companies/${userId}/logo`;
+    const versionId = randomUUID();
+    const baseKey = `companies/${userId}/logos/${versionId}`;
     const uploadedKeys: string[] = [];
 
     try {
@@ -145,7 +152,8 @@ export class R2StorageService {
         const key = `${baseKey}/s${size}.webp`;
         await this.put(cfg.bucket, key, webp, 'image/webp');
         uploadedKeys.push(key);
-        urls[`s${size}` as keyof CompanyPhotoUrls] = `${cfg.publicUrl}/${key}`;
+        urls[`s${size}` as keyof CompanyPhotoUrls] =
+          `${cfg.publicUrl}/${key}`;
       }
 
       return { photoKey: baseKey, photoUrls: urls };
@@ -158,7 +166,7 @@ export class R2StorageService {
     }
   }
 
-  /** Best-effort cleanup of all objects under companies/{userId}/logo */
+  /** Best-effort cleanup of all objects under a photo_key prefix. */
   async deletePrefix(prefix: string): Promise<void> {
     const cfg = this.getConfig();
     if (!cfg) {
@@ -201,6 +209,8 @@ export class R2StorageService {
         Key: key,
         Body: body,
         ContentType: contentType,
+        // Versioned keys are immutable; long cache is safe.
+        CacheControl: 'public, max-age=31536000, immutable',
       })
     );
   }

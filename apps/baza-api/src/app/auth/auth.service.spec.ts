@@ -118,7 +118,7 @@ describe('AuthService.register compensation', () => {
     r2 = {
       isConfigured: jest.fn().mockReturnValue(true),
       uploadCompanyLogo: jest.fn().mockResolvedValue({
-        photoKey: 'companies/user-1/logo',
+        photoKey: 'companies/user-1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         photoUrls: {
           original: 'https://cdn.example/logo.jpg',
           s48: 'https://cdn.example/logo-48.jpg',
@@ -212,7 +212,9 @@ describe('AuthService.register compensation', () => {
     );
 
     expect(r2.uploadCompanyLogo).toHaveBeenCalled();
-    expect(r2.deletePrefix).toHaveBeenCalledWith('companies/user-1/logo');
+    expect(r2.deletePrefix).toHaveBeenCalledWith(
+      'companies/user-1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+    );
     expect(deleteUser).toHaveBeenCalledWith('user-1');
   });
 

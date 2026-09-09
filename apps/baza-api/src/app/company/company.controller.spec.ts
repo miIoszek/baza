@@ -3,13 +3,16 @@ import { AuthService } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthedRequest } from '../auth/jwt-auth.guard';
 import { CompanyController } from './company.controller';
+import { CompanyService } from './company.service';
 
 describe('CompanyController', () => {
   let controller: CompanyController;
   const getCompanyForUser = jest.fn();
+  const updateProfile = jest.fn();
 
   beforeEach(async () => {
     getCompanyForUser.mockReset();
+    updateProfile.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CompanyController],
@@ -17,6 +20,10 @@ describe('CompanyController', () => {
         {
           provide: AuthService,
           useValue: { getCompanyForUser },
+        },
+        {
+          provide: CompanyService,
+          useValue: { updateProfile },
         },
       ],
     })
@@ -63,5 +70,32 @@ describe('CompanyController', () => {
       user: { id: '', email: null },
       company: null,
     });
+  });
+
+  it('updateProfile delegates to CompanyService for authenticated user', async () => {
+    const company = {
+      id: 'company-1',
+      name: 'Acme Updated',
+      nip: '1234567890',
+      description: 'New desc',
+      baseLocation: 'Krakow',
+      photoUrls: null,
+    };
+    updateProfile.mockResolvedValue(company);
+
+    const dto = {
+      name: 'Acme Updated',
+      nip: '1234567890',
+      description: 'New desc',
+      baseLocation: 'Krakow',
+    };
+
+    const result = await controller.updateProfile(
+      { user: { id: 'user-1', email: 'fleet@acme.pl' } } as AuthedRequest,
+      dto
+    );
+
+    expect(updateProfile).toHaveBeenCalledWith('user-1', dto, undefined);
+    expect(result).toEqual(company);
   });
 });

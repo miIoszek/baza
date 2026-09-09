@@ -16,7 +16,8 @@ export class AuthService {
   readonly session = this.sessionSignal.asReadonly();
   readonly user = computed(() => this.sessionSignal()?.user ?? null);
   readonly email = computed(() => this.user()?.email ?? null);
-  readonly companyName = computed(() => this.meSignal()?.company?.name ?? null);
+  readonly company = computed(() => this.meSignal()?.company ?? null);
+  readonly companyName = computed(() => this.company()?.name ?? null);
   readonly accountLabel = computed(
     () => this.companyName() ?? this.email()
   );

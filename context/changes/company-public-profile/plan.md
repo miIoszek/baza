@@ -8,21 +8,23 @@ Deliver roadmap slice **S-01** / **FR-002**: after registration, a company can *
 
 ## Current State Analysis
 
-**Data (`companies` table):** `name`, `nip`, `description`, `base_location` (text), `photo_key`, `photo_urls` (JSON map). RLS allows **public SELECT**; update restricted to owner (`supabase/migrations/20260904120000_create_companies.sql`).
+**Phase 1 done (public read):** `CompanyPublicProfile` aligned with DB/`AuthMeCompany` (`libs/shared/types/src/lib/company.ts`). `GET /api/companies/:id` via unguarded `CompanyPublicController` + `CompanyPublicService`. FE `/companies/:id` renders public profile without `companyAuthGuard`. Progress §Phase 1 fully checked.
 
-**Register:** `POST /api/auth/register` creates auth user + company row; optional R2 logo upload (`auth.service.ts`). FE lands on `/company/profile` after sign-in (`register.ts`).
+**Still open for Phase 2–3:**
 
-**F-01 shell:** `/company/profile` shows `CompanyProfilePlaceholder` behind `companyAuthGuard`. `CompanyController` has guarded `GET /api/company/session` only.
+**Data (`companies` table):** `name`, `nip`, `description`, `base_location` (text), `photo_key`, `photo_urls` (JSON map). RLS allows **public SELECT**; update restricted to owner (`supabase/migrations/20260904120000_create_companies.sql`). No schema change required for S-01.
 
-**Shared types:** `AuthMeCompany` matches runtime data (`libs/shared/types/src/lib/auth.ts`). `CompanyPublicProfile` in `company.ts` is **stale** (`GeoPoint`, single `photoUrl`) and unused.
+**Register:** `POST /api/auth/register` creates auth user + company row; optional R2 logo upload (`auth.service.ts`). FE lands on `/company/profile` after sign-in (`register.ts`). Validation today is floors-only on Nest (`MinLength`, `@IsEmail`) — **no `@MaxLength`**, NIP is `@MinLength(10)` not exact 10 digits; FE register lacks `minLength(2)` on name and max-length caps (photo MIME + 5 MB already enforced on FE + `FileInterceptor`).
 
-**Gaps:** No public company route, no `GET /api/companies/:id`, no profile update endpoint, no edit UI, no aligned public DTO.
+**F-01 / employer shell:** `/company/profile` still shows `CompanyProfilePlaceholder` behind `companyAuthGuard`. `CompanyController` has guarded `GET /api/company/session` only — **no** `CompanyService`, **no** PATCH, **no** `dto/` yet.
+
+**Gaps remaining:** No profile update endpoint, no edit UI, register/edit validation not yet locked to the strict shared policy below.
 
 ### Key Discoveries
 
-- Photo display pattern exists: `photoUrls['s96'] ?? s48 ?? original` in `AuthService.accountAvatarUrl` — reuse on profile pages.
-- R2 upload pipeline (`uploadCompanyLogo`) is register-only today; profile photo change should reuse it with optional old-key cleanup.
-- `base_location` is free text today; map pin / `GeoPoint` deferred to S-02 per roadmap — S-01 keeps text only.
+- Photo display: navbar uses `s96 ?? s48 ?? original`; public page uses `s192 ?? s512 ?? s96 ?? original` (cosmetic drift — optional align later).
+- R2 `uploadCompanyLogo` writes a **versioned** prefix `companies/${userId}/logos/{uuid}` and stores new `photo_key` / `photo_urls`; after successful profile update, best-effort `deletePrefix` removes the previous key (including legacy `…/logo`).
+- `base_location` is free text today; map pin / `GeoPoint` deferred to S-02 — S-01 keeps text only.
 - Lesson: lock validation FE + BE + sensible max lengths (`context/foundation/lessons.md`).
 
 ## Desired End State
@@ -50,11 +52,23 @@ Three phases: **public read path** (API + unguarded FE), **owner edit path** (PA
 
 **Ownership on PATCH:** Resolve company by `req.user.id` → `companies.user_id`; never accept `companyId` in body for authorization. Return 404 if no company row for user.
 
-**Photo replace:** If new photo uploaded on PATCH, call existing R2 upload; on success update `photo_key` / `photo_urls`; best-effort delete previous prefix (same compensation mindset as register).
+**Photo replace:** Each upload uses a unique R2 prefix `companies/{userId}/logos/{uuid}/` and stores new `photo_key` + `photo_urls` on the company row. After a successful DB update, best-effort `deletePrefix(previousPhotoKey)` removes the prior version (including legacy `companies/{userId}/logo`). On upload/DB failure, delete only the newly uploaded prefix. Do not use `?v=` cache-bust query params.
 
 **Public vs employer URLs:** `/company/profile` = authenticated employer workspace. `/companies/:id` = public read — do not guard the latter.
 
-**Validation parity:** Mirror register limits on shared fields — at minimum `name` ≥2, `nip` ≥10, non-empty `description` and `baseLocation`; add `@MaxLength` caps on Nest DTO and Angular validators (e.g. name 120, description 2000, baseLocation 200) per lessons.md.
+**Strict validation (register + PATCH + FE, locked together):** Apply the same field rules on `RegisterCompanyDto`, `UpdateCompanyProfileDto`, register form, and edit form. Photo rules apply wherever upload is accepted (register + PATCH).
+
+| Field | Rule |
+| ----- | ---- |
+| `email` | Valid email (`@IsEmail` / `Validators.email`) — register only |
+| `password` | Min 8 chars — register only |
+| `name` | Min 2, max 120 |
+| `nip` | Exactly **10 digits** (`Matches(/^\d{10}$/)` / pattern validator) — not “≥10” |
+| `description` | Min 1, max 2000 |
+| `baseLocation` | Min 1, max 200 |
+| `photo` (optional) | JPEG/PNG/WebP only; **max 5 MB** (`FileInterceptor` limits + FE pre-check); reject with clear Polish error |
+
+Phase 2 **updates register** (Nest DTO + `register.ts`) to this policy while adding PATCH — do not leave register looser than edit.
 
 ---
 
@@ -115,13 +129,18 @@ Allow authenticated company owners to update profile fields and optional logo; r
 
 ### Changes Required
 
-#### 1. Update DTO + service method
+#### 1. Strict shared validation + update DTO + service
 
-**Files:** `apps/baza-api/src/app/company/dto/update-company-profile.dto.ts`, extend `company.service.ts` (or `auth.service` helper if preferred — prefer dedicated company service to keep auth register separate)
+**Files:**
+- `apps/baza-api/src/app/auth/dto/register-company.dto.ts` — tighten to the strict table above
+- `apps/baza-frontend/src/app/pages/register/register.ts` — FE validators + keep/confirm photo 5 MB + MIME
+- `apps/baza-api/src/app/company/dto/update-company-profile.dto.ts` (new)
+- `apps/baza-api/src/app/company/company.service.ts` (new) — prefer dedicated company service; keep auth register separate
+- extend guarded `company.controller.ts`
 
-**Intent:** Validated partial/full update of own company row.
+**Intent:** One validation policy for company profile fields; validated update of own company row.
 
-**Contract:** `UpdateCompanyProfileDto`: `name`, `nip`, `description`, `baseLocation` with same validators as register + max lengths. `PATCH /api/company/profile` on **guarded** `CompanyController` with optional `photo` multipart (reuse register MIME/size limits). Returns `AuthMeResponse` or `AuthMeCompany` — pick one and use consistently (recommend `AuthMeCompany` for PATCH response to match edit form; FE calls `refreshMe()` after save).
+**Contract:** `UpdateCompanyProfileDto` mirrors register field rules for `name`, `nip`, `description`, `baseLocation`. `PATCH /api/company/profile` with optional `photo` multipart (same MIME + **5 MB** as register). Ownership via `req.user.id` → `companies.user_id` only. Returns `AuthMeCompany`; FE calls `refreshMe()` after save. Photo path: versioned `uploadCompanyLogo` + persist new URLs; best-effort delete previous `photo_key`.
 
 #### 2. Replace profile placeholder
 
@@ -129,7 +148,7 @@ Allow authenticated company owners to update profile fields and optional logo; r
 
 **Intent:** Owner edits profile at `/company/profile` (still behind `companyAuthGuard`).
 
-**Contract:** Reactive form prefilled from `AuthService` / `refreshMe()`. Submit `FormData` or JSON + separate photo upload — match register multipart pattern for photo. On success: snackbar + refresh session. Show link/button to public profile `/companies/{company.id}`. Field-level validation messages (Polish) aligned with DTO.
+**Contract:** Reactive form prefilled from `AuthService` / `refreshMe()` with the **same strict validators** as register (NIP exactly 10 digits, max lengths, etc.). Submit `FormData` multipart matching register for photo. On success: snackbar + refresh session. Show link/button to public profile `/companies/{company.id}`. Field-level validation messages (Polish) aligned with DTO.
 
 #### 3. Optional shell link
 
@@ -149,8 +168,9 @@ Allow authenticated company owners to update profile fields and optional logo; r
 #### Manual Verification
 
 - Logged in at `/company/profile`, edit description and save — public `/companies/:id` reflects change when opened logged out
-- Upload/replace logo on edit — new image on public profile and navbar avatar
-- Validation errors show under fields for empty name, short NIP, etc.
+- Upload/replace logo on edit — new image on public profile and navbar avatar (old logo not wiped by mistaken cleanup)
+- Validation errors show under fields: empty name, NIP not exactly 10 digits, over-max description, invalid email on register, photo > 5 MB rejected
+- Register form rejects the same invalid cases (parity with edit)
 
 **Implementation Note**: Pause for manual confirmation before Phase 3.
 
@@ -164,17 +184,17 @@ Fill test gaps and run full monorepo verification.
 
 ### Changes Required
 
-#### 1. API tests
+#### 1. API tests (new / extend — do not rewrite Phase 1 public specs)
 
-**Files:** `company-public.controller.spec.ts`, `company.controller` PATCH tests (extend existing spec or new)
+**Files:** `company.controller` PATCH tests (extend `company.controller.spec.ts` or new); optionally extend existing `company-public.controller.spec.ts` only if a regression gap appears. Add/adjust register DTO validation coverage for NIP exact-10 + MaxLength if not already covered.
 
-**Intent:** Cover 404 on unknown id, 200 public shape, PATCH 401 without token, PATCH 200 for owner, validation 400.
+**Intent:** PATCH 401 without token, PATCH 200 for owner, validation 400 (bad NIP, over-max fields). Keep Phase 1 public 200/404 specs as-is.
 
 #### 2. FE tests
 
-**Files:** minimal specs for public profile component (404 + happy path with HttpTestingController) and profile edit form (validation or submit wiring)
+**Files:** minimal specs for profile edit form (strict validators / submit wiring); optional public profile HttpTestingController specs if missing.
 
-**Intent:** Guard against regressions on S-01 routes.
+**Intent:** Guard against regressions on S-01 edit path and validation parity.
 
 #### 3. Full CI mirror
 
@@ -251,12 +271,12 @@ Not applicable — no schema change. Existing `companies` rows immediately gain 
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes after Phase 2 changes
-- [ ] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass after Phase 2 changes
+- [x] 2.1 `npm run lint` passes after Phase 2 changes
+- [x] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass after Phase 2 changes
 
 #### Manual
 
-- [ ] 2.3 Edit at `/company/profile` persists; public URL reflects changes; logo replace works
+- [x] 2.3 Edit at `/company/profile` persists; public URL reflects changes; logo replace works; strict validation (NIP 10 digits, max lengths, photo ≤5 MB) on edit + register
 
 ### Phase 3: Tests and CI verification
 
