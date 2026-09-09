@@ -271,12 +271,12 @@ Not applicable — no schema change. Existing `companies` rows immediately gain 
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes after Phase 2 changes
-- [x] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass after Phase 2 changes
+- [x] 2.1 `npm run lint` passes after Phase 2 changes — eb980db
+- [x] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass after Phase 2 changes — eb980db
 
 #### Manual
 
-- [x] 2.3 Edit at `/company/profile` persists; public URL reflects changes; logo replace works; strict validation (NIP 10 digits, max lengths, photo ≤5 MB) on edit + register
+- [x] 2.3 Edit at `/company/profile` persists; public URL reflects changes; logo replace works; strict validation (NIP 10 digits, max lengths, photo ≤5 MB) on edit + register — eb980db
 
 ### Phase 3: Tests and CI verification
 
