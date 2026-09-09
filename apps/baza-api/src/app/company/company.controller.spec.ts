@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthedRequest } from '../auth/jwt-auth.guard';
@@ -97,5 +98,17 @@ describe('CompanyController', () => {
 
     expect(updateProfile).toHaveBeenCalledWith('user-1', dto, undefined);
     expect(result).toEqual(company);
+  });
+
+  it('updateProfile throws when request has no authenticated user', async () => {
+    await expect(
+      controller.updateProfile({} as AuthedRequest, {
+        name: 'Acme',
+        nip: '1234567890',
+        description: 'd',
+        baseLocation: 'Warsaw',
+      })
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(updateProfile).not.toHaveBeenCalled();
   });
 });
