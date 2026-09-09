@@ -282,10 +282,10 @@ Not applicable — no schema change. Existing `companies` rows immediately gain 
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run test` passes (both apps)
-- [x] 3.3 `npm run build` passes
+- [x] 3.1 `npm run lint` passes — 88de56f
+- [x] 3.2 `npm run test` passes (both apps) — 88de56f
+- [x] 3.3 `npm run build` passes — 88de56f
 
 #### Manual
 
-- [x] 3.4 Register → edit → public view smoke in incognito
+- [x] 3.4 Register → edit → public view smoke in incognito — 88de56f
