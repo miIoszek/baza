@@ -59,6 +59,8 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
       '',
       [Validators.required, Validators.minLength(1), Validators.maxLength(200)],
     ],
+    baseLat: [null as number | null],
+    baseLng: [null as number | null],
     description: [
       '',
       [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
@@ -71,12 +73,25 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
     const company = this.auth.company();
     if (!company) {
       this.loading.set(false);
-      this.snackBar.open('Nie znaleziono profilu firmy', 'OK', {
-        duration: 5000,
-      });
+      const loggedIn = this.auth.isLoggedIn();
+      this.snackBar.open(
+        loggedIn
+          ? 'Brak profilu firmy dla tego konta — zarejestruj firmę ponownie (/register)'
+          : 'Nie znaleziono profilu firmy',
+        'OK',
+        { duration: 7000 }
+      );
       return;
     }
-    this.applyCompany(company);
+    try {
+      this.applyCompany(company);
+    } catch (err: unknown) {
+      this.snackBar.open(
+        err instanceof Error ? err.message : 'Nie udało się wczytać profilu',
+        'OK',
+        { duration: 6000 }
+      );
+    }
     this.loading.set(false);
   }
 
@@ -134,6 +149,13 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
       formData.append('nip', raw.nip);
       formData.append('description', raw.description);
       formData.append('baseLocation', raw.baseLocation);
+      if (raw.baseLat != null && raw.baseLng != null) {
+        formData.append('baseLat', String(raw.baseLat));
+        formData.append('baseLng', String(raw.baseLng));
+      } else {
+        formData.append('baseLat', '');
+        formData.append('baseLng', '');
+      }
       if (this.photoFile) {
         formData.append('photo', this.photoFile);
       }
@@ -164,6 +186,8 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
       name: company.name,
       nip: company.nip,
       baseLocation: company.baseLocation,
+      baseLat: company.baseLat ?? null,
+      baseLng: company.baseLng ?? null,
       description: company.description,
     });
     const urls = company.photoUrls;

@@ -24,6 +24,8 @@ describe('CompanyProfilePage', () => {
         nip: '1234567890',
         description: 'Fleet',
         baseLocation: 'Warsaw',
+        baseLat: null,
+        baseLng: null,
         photoUrls: null,
       }),
     };
@@ -72,6 +74,8 @@ describe('CompanyProfilePage', () => {
       name: 'Acme Transport',
       nip: '1234567890',
       baseLocation: 'Warsaw',
+      baseLat: null,
+      baseLng: null,
       description: 'Fleet',
     });
     expect(page['companyId']()).toBe('company-1');

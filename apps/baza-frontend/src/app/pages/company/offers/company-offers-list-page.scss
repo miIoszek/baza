@@ -1,0 +1,35 @@
+@use '../../auth-shared';
+
+.offers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.offers-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--baza-glass-border, rgba(148, 163, 184, 0.2));
+}
+
+.offers-list__meta {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+.offers-list__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+}
+
+.offers-list__empty,
+.offers-list__status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}

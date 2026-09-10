@@ -10,6 +10,8 @@ export interface AuthMeCompany {
   nip: string;
   description: string;
   baseLocation: string;
+  baseLat: number | null;
+  baseLng: number | null;
   photoUrls: Record<string, string> | null;
 }
 

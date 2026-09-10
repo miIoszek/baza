@@ -94,6 +94,40 @@
           }
         </mat-form-field>
 
+        <p class="company-profile__hint">
+          Współrzędne mapy (na razie ręcznie; później Google Places)
+        </p>
+        <div class="auth-row">
+          <mat-form-field
+            appearance="outline"
+            class="auth-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>Szerokość (lat)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="baseLat"
+              step="any"
+              placeholder="52.2297"
+            />
+          </mat-form-field>
+          <mat-form-field
+            appearance="outline"
+            class="auth-field"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>Długość (lng)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="baseLng"
+              step="any"
+              placeholder="21.0122"
+            />
+          </mat-form-field>
+        </div>
+
         <mat-form-field
           appearance="outline"
           class="auth-field"
@@ -149,11 +183,27 @@
     </mat-card-content>
 
     @if (companyId()) {
-    <mat-card-footer class="auth-footer">
-      Zobacz jak wygląda profil
-      <a [routerLink]="['/companies', companyId()]" target="_blank" rel="noopener"
-        >Profil publiczny</a
-      >
+    <mat-card-footer class="auth-footer company-profile__footer">
+      <div>
+        Zobacz jak wygląda profil
+        <a [routerLink]="['/companies', companyId()]" target="_blank" rel="noopener"
+          >Profil publiczny</a
+        >
+      </div>
+      <div class="company-profile__offer-links">
+        <a
+          mat-stroked-button
+          class="company-profile__offer-link"
+          routerLink="/company/offers"
+          >Moje oferty</a
+        >
+        <a
+          mat-flat-button
+          class="baza-btn-premium company-profile__offer-link"
+          routerLink="/company/offers/new"
+          >Dodaj ofertę</a
+        >
+      </div>
     </mat-card-footer>
     }
   </mat-card>

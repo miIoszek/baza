@@ -41,3 +41,41 @@
   margin: 0;
   white-space: pre-wrap;
 }
+
+.company-public__offers {
+  margin-top: 1.75rem;
+}
+
+.company-public__offers h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.company-public__offers-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.company-public__offers-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.company-public__offers-list a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.company-public__offers-list a:hover strong {
+  color: var(--mat-sys-primary);
+}
+
+.company-public__offers-list span {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}

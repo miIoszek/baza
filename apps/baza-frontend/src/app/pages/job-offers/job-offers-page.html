@@ -1,0 +1,50 @@
+<section class="job-offers">
+  <header class="job-offers__header">
+    <h1>Oferty pracy</h1>
+    <p>Darmowe oferty transportu dla kierowców</p>
+  </header>
+
+  @if (loading()) {
+  <p class="job-offers__status">Ładowanie ofert…</p>
+  } @else if (error(); as err) {
+  <p class="job-offers__status job-offers__status--error">{{ err }}</p>
+  } @else if (offers().length === 0) {
+  <p class="job-offers__status">Brak opublikowanych ofert.</p>
+  } @else {
+  <div class="job-offers__layout" [class.job-offers__layout--map]="showMap()">
+    <ul class="job-offers__list">
+      @for (o of offers(); track o.id) {
+      <li>
+        <mat-card appearance="outlined" class="job-offers__card">
+          <mat-card-header>
+            <mat-card-title>{{ o.title }}</mat-card-title>
+            <mat-card-subtitle>
+              {{ routesSummary(o) }} · {{ cadenceLabel(o.homeReturnCadence) }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ transportLabel(o.requiredTransportType) }} · min.
+              {{ o.requiredYearsExperience }} lat</p>
+            @if (o.companyBaseLocationText) {
+            <p class="job-offers__loc">{{ o.companyBaseLocationText }}</p>
+            }
+          </mat-card-content>
+          <mat-card-actions>
+            <a mat-button [routerLink]="['/job-offers', o.id]">Szczegóły</a>
+            <a mat-button [routerLink]="['/companies', o.companyId]"
+              >Profil firmy</a
+            >
+          </mat-card-actions>
+        </mat-card>
+      </li>
+      }
+    </ul>
+
+    @if (showMap()) {
+    <div class="job-offers__map-pane">
+      <baza-offers-map [markers]="mapMarkers()" />
+    </div>
+    }
+  </div>
+  }
+</section>

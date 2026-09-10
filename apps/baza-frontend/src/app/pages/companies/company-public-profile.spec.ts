@@ -45,6 +45,15 @@ describe('CompanyPublicProfilePage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
+    const offersReq = http.expectOne((r) =>
+      r.url.includes('/api/companies/company-1/offers')
+    );
+    expect(offersReq.request.method).toBe('GET');
+    offersReq.flush([]);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Acme');
     http.verify();
   });

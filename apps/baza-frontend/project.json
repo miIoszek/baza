@@ -27,7 +27,11 @@
           }
         ],
         "styles": [
+          "node_modules/leaflet/dist/leaflet.css",
           "apps/baza-frontend/src/styles.scss"
+        ],
+        "allowedCommonJsDependencies": [
+          "leaflet"
         ]
       },
       "configurations": {

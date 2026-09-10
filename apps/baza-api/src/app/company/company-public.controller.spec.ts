@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CompanyPublicController } from './company-public.controller';
 import { CompanyPublicService } from './company-public.service';
+import { JobOfferService } from './job-offer.service';
 
 describe('CompanyPublicController', () => {
   let controller: CompanyPublicController;
@@ -17,6 +18,10 @@ describe('CompanyPublicController', () => {
           provide: CompanyPublicService,
           useValue: { getById },
         },
+        {
+          provide: JobOfferService,
+          useValue: { listPublishedByCompany: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -30,6 +35,8 @@ describe('CompanyPublicController', () => {
       nip: '1234567890',
       description: 'Fleet ops',
       baseLocation: 'Warsaw',
+      baseLat: null,
+      baseLng: null,
       photoUrls: { s192: 'https://cdn.example/logo-192.webp' },
     });
 
@@ -46,6 +53,8 @@ describe('CompanyPublicController', () => {
       nip: '1234567890',
       description: 'Fleet ops',
       baseLocation: 'Warsaw',
+      baseLat: null,
+      baseLng: null,
       photoUrls: { s192: 'https://cdn.example/logo-192.webp' },
     });
   });

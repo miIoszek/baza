@@ -32,7 +32,7 @@ Transport companies lose drivers when job boards ignore route geography and home
 | ---- | ----------------------- | ----------------------------------------------------------------- | ------------- | --------------------- | -------- |
 | F-01 | gate-company-routes     | (foundation) Company-only routes and API paths require login      | —             | Access Control        | done     |
 | S-01 | company-public-profile  | View and edit public company profile after registration           | F-01          | FR-001, FR-002        | done     |
-| S-02 | publish-job-offer       | Publish a free offer; see it on profile, Job Offers list, map pin | S-01          | FR-003, FR-004, US-01 | proposed |
+| S-02 | publish-job-offer       | Publish a free offer; see it on profile, Job Offers list, map pin | S-01          | FR-003, FR-004, US-01 | in-progress |
 | S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | proposed |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | proposed |
 | S-05 | company-application-inbox | See driver applications in employer inbox                         | S-04, F-01    | FR-005, US-01         | proposed |
@@ -95,10 +95,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** S-01
 - **Parallel with:** —
 - **Blockers:** —
-- **Unknowns:**
-  - Geocoding vs manual lat/lng for base map pin — Owner: user. Block: no.
+- **Unknowns:** —
 - **Risk:** First slice that introduces `offers` persistence and public Job Offers surface; sequenced before driver browse because empty marketplace blocks meaningful filter validation.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-03: Driver browse Job Offers
 
