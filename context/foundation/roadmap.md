@@ -3,7 +3,7 @@ project: Baza
 version: 1
 status: draft
 created: 2026-09-08
-updated: 2026-09-09
+updated: 2026-09-10
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -171,4 +171,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 ## Done
 
 - **F-01** `gate-company-routes` — 2026-09-08 — Company FE routes + `/api/company/*` require session (PR #3). Formal `/10x-archive` still pending for the change folder.
-- **S-01: User can view and edit their public company profile after registration, including landing on the profile flow post-signup.** — Archived 2026-09-09 → `context/archive/2026-09-08-company-public-profile/`. Lesson: —.
+- **S-01: User can view and edit their public company profile after registration, including landing on the profile flow post-signup.** — Archived 2026-09-10 → `context/archive/2026-09-08-company-public-profile/` (impl-reviewed + triage). Lesson: —.
