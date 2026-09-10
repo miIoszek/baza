@@ -5,7 +5,7 @@ import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
 import { CompanyInboxPlaceholder } from './pages/company/company-inbox-placeholder';
-import { CompanyProfilePlaceholder } from './pages/company/company-profile-placeholder';
+import { CompanyProfilePage } from './pages/company/company-profile-page';
 import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 
 export const appRoutes: Route[] = [
@@ -31,7 +31,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'company/profile',
-    component: CompanyProfilePlaceholder,
+    component: CompanyProfilePage,
     canActivate: [companyAuthGuard],
   },
   {

@@ -30,11 +30,18 @@
             <input
               matInput
               formControlName="companyName"
+              maxlength="120"
               autocomplete="organization"
             />
             @if (form.controls.companyName.touched &&
             form.controls.companyName.hasError('required')) {
             <mat-error>Pole wymagane</mat-error>
+            } @else if (form.controls.companyName.touched &&
+            form.controls.companyName.hasError('minlength')) {
+            <mat-error>Min. 2 znaki</mat-error>
+            } @else if (form.controls.companyName.touched &&
+            form.controls.companyName.hasError('maxlength')) {
+            <mat-error>Max. 120 znaków</mat-error>
             }
           </mat-form-field>
 
@@ -45,13 +52,18 @@
           >
             <mat-label>NIP</mat-label>
             <mat-icon matPrefix>badge</mat-icon>
-            <input matInput formControlName="nip" inputmode="numeric" />
+            <input
+              matInput
+              formControlName="nip"
+              inputmode="numeric"
+              maxlength="10"
+            />
             @if (form.controls.nip.touched &&
             form.controls.nip.hasError('required')) {
             <mat-error>Pole wymagane</mat-error>
             } @else if (form.controls.nip.touched &&
-            form.controls.nip.hasError('minlength')) {
-            <mat-error>Min. 10 znaków</mat-error>
+            form.controls.nip.hasError('pattern')) {
+            <mat-error>NIP musi mieć dokładnie 10 cyfr</mat-error>
             }
           </mat-form-field>
         </div>
@@ -88,12 +100,16 @@
           <input
             matInput
             formControlName="location"
+            maxlength="200"
             placeholder="Polska, ul. Przykładowa 1, 00-001 Warszawa"
             autocomplete="street-address"
           />
           @if (form.controls.location.touched &&
           form.controls.location.hasError('required')) {
           <mat-error>Lokalizacja jest wymagana</mat-error>
+          } @else if (form.controls.location.touched &&
+          form.controls.location.hasError('maxlength')) {
+          <mat-error>Max. 200 znaków</mat-error>
           }
         </mat-form-field>
 
@@ -104,10 +120,18 @@
         >
           <mat-label>Krótki opis</mat-label>
           <mat-icon matPrefix>notes</mat-icon>
-          <textarea matInput rows="3" formControlName="description"></textarea>
+          <textarea
+            matInput
+            rows="3"
+            formControlName="description"
+            maxlength="2000"
+          ></textarea>
           @if (form.controls.description.touched &&
           form.controls.description.hasError('required')) {
           <mat-error>Opis jest wymagany</mat-error>
+          } @else if (form.controls.description.touched &&
+          form.controls.description.hasError('maxlength')) {
+          <mat-error>Max. 2000 znaków</mat-error>
           }
         </mat-form-field>
 
@@ -160,6 +184,9 @@
           } @else if (form.controls.password.touched &&
           form.controls.password.hasError('minlength')) {
           <mat-error>Hasło musi mieć min. 8 znaków</mat-error>
+          } @else if (form.controls.password.touched &&
+          form.controls.password.hasError('maxlength')) {
+          <mat-error>Hasło może mieć max. 128 znaków</mat-error>
           }
         </mat-form-field>
 

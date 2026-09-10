@@ -39,7 +39,7 @@ export class AuthController {
         if (!ALLOWED_UPLOAD_MIME.has(file.mimetype)) {
           cb(
             new BadRequestException(
-              'Only JPEG, PNG, and WebP images are allowed'
+              'Dozwolone są tylko pliki JPEG, PNG lub WebP'
             ) as unknown as Error,
             false
           );

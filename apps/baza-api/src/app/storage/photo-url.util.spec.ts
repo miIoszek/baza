@@ -43,4 +43,15 @@ describe('rewriteR2PhotoUrl', () => {
       )
     ).toBe('https://pub-example.r2.dev/companies/u/logo/original.jpg');
   });
+
+  it('preserves cache-bust query when rewriting', () => {
+    expect(
+      rewriteR2PhotoUrl(
+        'https://acct.r2.cloudflarestorage.com/companies/u/logo/s96.webp?v=1710000000000',
+        'https://pub-example.r2.dev'
+      )
+    ).toBe(
+      'https://pub-example.r2.dev/companies/u/logo/s96.webp?v=1710000000000'
+    );
+  });
 });

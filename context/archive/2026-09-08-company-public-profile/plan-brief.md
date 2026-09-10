@@ -8,10 +8,11 @@ Companies must **view and edit a public profile** after registration (FR-002). R
 
 ## Starting Point
 
+- **Phase 1 done:** public `GET /api/companies/:id`, FE `/companies/:id`, aligned `CompanyPublicProfile`.
 - DB: `companies` table with public RLS read; fields populated at register.
-- API: `CompanyController` with guarded `GET /api/company/session` only.
-- FE: gated `/company/profile` placeholder; no `/companies/:id`.
-- Types: `AuthMeCompany` is accurate; `CompanyPublicProfile` is stale (GeoPoint / single photoUrl).
+- API: `CompanyController` still session-only; **no** PATCH / `CompanyService` yet.
+- FE: gated `/company/profile` still a **placeholder**.
+- Validation: register has email + MinLength floors; missing MaxLength, exact NIP (10 digits), and FE name minLength(2). Photo 5 MB + MIME already on register upload path.
 
 ## Desired End State
 
@@ -27,14 +28,15 @@ Anyone can open **`/companies/:id`** and see the company’s public profile. The
 | Update API | `PATCH /api/company/profile` with JWT | Class-level guard pattern from F-01 | F-01 |
 | Location field | Text `baseLocation` only | Matches register + DB; map/geocode in S-02 | Roadmap |
 | Public type shape | Align `CompanyPublicProfile` with `AuthMeCompany` | One truth for name/nip/description/photoUrls | Research |
-| Photo edit | Reuse R2 `uploadCompanyLogo` on PATCH | Pipeline exists from register | Archive logo-r2 |
+| Photo edit | Versioned `uploadCompanyLogo` + store new `photo_key`/`photo_urls`; delete previous prefix | Unique URLs avoid cache; legacy `…/logo` still cleaned safely | Plan review F1 → revised |
+| Validation | Strict shared policy on register + PATCH + FE | Email valid; NIP exactly 10 digits; max lengths; photo ≤5 MB + MIME | Plan review F2 + user |
 | ID in URL | UUID primary key | No slug system in MVP | Plan |
 
 ## Scope
 
-**In scope:** Public read API + page, owner edit API + form, shared type fix, validation parity, basic tests, optional navbar link to profile.
+**In scope:** Owner edit API + form, tighten register validation to same strict rules, shared type already fixed in Phase 1, validation parity, PATCH/FE tests, optional navbar link to profile.
 
-**Out of scope:** Offers, map pin, geocoding, slugs, inbox, driver routes, OAuth.
+**Out of scope:** Offers, map pin, geocoding, slugs, inbox, driver routes, OAuth, rewriting Phase 1 public specs.
 
 ## Architecture / Approach
 
@@ -51,17 +53,17 @@ Nest: new public controller for read; extend guarded `CompanyController` for PAT
 
 | Phase | What it delivers | Key risk |
 | ----- | ---------------- | -------- |
-| 1. Public read | Shared type, GET API, public FE page | Stale `CompanyPublicProfile` drift if not fixed first |
-| 2. Owner edit | PATCH + form replacing placeholder | Photo replace + R2 cleanup edge cases |
-| 3. Tests + CI | Specs, lint/test/build | Multipart PATCH testing |
+| 1. Public read | Shared type, GET API, public FE page | **Done** |
+| 2. Owner edit + strict validation | PATCH + form; lock register/edit validators | Versioned logo keys + NIP/max-length parity |
+| 3. Tests + CI | PATCH/FE specs + lint/test/build | Multipart PATCH testing |
 
 **Prerequisites:** F-01 merged; Supabase + optional R2 env for logo tests.
 
 ## Open Risks & Assumptions
 
-- F-01 manual verification items may still be open — confirm guards/session before or during S-01.
-- Public profile exposes NIP and description — assumed acceptable per PRD public profile intent.
+- Photo replace uses versioned R2 keys and updates `photo_urls` in DB; previous prefix is deleted after success.
 - Geocoding deferred; `baseLocation` displayed as text until S-02.
+- Public profile exposes NIP and description — assumed acceptable per PRD.
 
 ## Success Criteria (Summary)
 

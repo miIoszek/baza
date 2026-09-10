@@ -73,16 +73,7 @@ export class AuthService {
       }
       userId = data.user.id;
 
-      if (photo?.buffer?.length) {
-        const uploaded = await this.r2.uploadCompanyLogo(
-          userId,
-          photo.buffer,
-          photo.mimetype || 'image/jpeg'
-        );
-        photoKey = uploaded.photoKey;
-        photoUrls = uploaded.photoUrls;
-      }
-
+      // Insert company first so logo keys can use public companyId (not auth userId).
       const { data: company, error: companyError } = await db
         .from('companies')
         .insert({
@@ -91,8 +82,8 @@ export class AuthService {
           nip: dto.nip,
           description: dto.description,
           base_location: dto.baseLocation,
-          photo_key: photoKey,
-          photo_urls: photoUrls,
+          photo_key: null,
+          photo_urls: null,
         })
         .select('id')
         .single();
@@ -106,7 +97,34 @@ export class AuthService {
         throw new BadRequestException('Failed to create company profile');
       }
 
-      return { userId, companyId: company.id as string };
+      const companyId = company.id as string;
+
+      if (photo?.buffer?.length) {
+        const uploaded = await this.r2.uploadCompanyLogo(
+          companyId,
+          photo.buffer,
+          photo.mimetype || 'image/jpeg'
+        );
+        photoKey = uploaded.photoKey;
+        photoUrls = uploaded.photoUrls;
+
+        const { error: photoUpdateError } = await db
+          .from('companies')
+          .update({
+            photo_key: photoKey,
+            photo_urls: photoUrls,
+          })
+          .eq('id', companyId);
+
+        if (photoUpdateError) {
+          this.logger.warn(
+            `Company photo update failed during register: ${photoUpdateError.message}`
+          );
+          throw new BadRequestException('Failed to create company profile');
+        }
+      }
+
+      return { userId, companyId };
     } catch (err) {
       await this.compensateFailedRegister({
         userId,

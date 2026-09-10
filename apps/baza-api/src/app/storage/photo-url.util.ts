@@ -25,7 +25,8 @@ export function rewriteR2PhotoUrl(url: string, publicBase: string): string {
   try {
     const parsed = new URL(url);
     if (parsed.hostname.includes('.r2.cloudflarestorage.com')) {
-      return `${publicBase}${parsed.pathname}`;
+      // Preserve ?v= (and any other) cache-bust query from stored URLs.
+      return `${publicBase}${parsed.pathname}${parsed.search}`;
     }
   } catch {
     // keep original on parse failure

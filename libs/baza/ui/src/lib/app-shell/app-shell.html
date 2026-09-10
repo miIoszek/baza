@@ -5,6 +5,13 @@
   </a>
   <span class="baza-app-shell__spacer"></span>
   @if (accountLabel()) {
+    <a
+      mat-button
+      routerLink="/company/profile"
+      routerLinkActive="baza-app-shell__active"
+    >
+      Profil firmy
+    </a>
     <div class="baza-app-shell__account-wrap">
       @if (accountAvatarUrl()) {
         <img

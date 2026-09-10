@@ -1,14 +1,11 @@
-import { Transform } from 'class-transformer';
 import {
-  IsBoolean,
-  IsEmail,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
-export class RegisterCompanyDto {
+export class UpdateCompanyProfileDto {
   @IsString()
   @MinLength(2)
   @MaxLength(120)
@@ -17,14 +14,6 @@ export class RegisterCompanyDto {
   @IsString()
   @Matches(/^\d{10}$/, { message: 'NIP must be exactly 10 digits' })
   nip!: string;
-
-  @IsEmail()
-  email!: string;
-
-  @IsString()
-  @MinLength(8)
-  @MaxLength(128)
-  password!: string;
 
   @IsString()
   @MinLength(1)
@@ -35,8 +24,4 @@ export class RegisterCompanyDto {
   @MinLength(1)
   @MaxLength(200)
   baseLocation!: string;
-
-  @Transform(({ value }) => value === true || value === 'true' || value === '1')
-  @IsBoolean()
-  termsAccepted!: boolean;
 }
