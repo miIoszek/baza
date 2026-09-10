@@ -58,7 +58,7 @@ export class CompanyService {
 
     if (photo?.buffer?.length) {
       const uploaded = await this.r2.uploadCompanyLogo(
-        userId,
+        existing.id as string,
         photo.buffer,
         photo.mimetype || 'image/jpeg'
       );

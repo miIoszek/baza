@@ -71,11 +71,11 @@ export class R2StorageService {
 
   /**
    * Upload logo under a unique versioned prefix:
-   * `companies/{userId}/logos/{versionId}/…`
-   * (not nested under legacy `companies/{userId}/logo/` so old cleanup is safe).
+   * `companies/{companyId}/logos/{versionId}/…`
+   * (legacy keys may still be `companies/{userId}/logo` or `…/logos/…` until replaced).
    */
   async uploadCompanyLogo(
-    userId: string,
+    companyId: string,
     buffer: Buffer,
     claimedMime: string
   ): Promise<{ photoKey: string; photoUrls: CompanyPhotoUrls }> {
@@ -86,7 +86,7 @@ export class R2StorageService {
 
     if (!ALLOWED_MIME.has(claimedMime)) {
       throw new BadRequestException(
-        'Only JPEG, PNG, and WebP images are allowed'
+        'Dozwolone są tylko pliki JPEG, PNG lub WebP'
       );
     }
 
@@ -109,7 +109,7 @@ export class R2StorageService {
 
     if (!detectedMime || !ALLOWED_MIME.has(detectedMime)) {
       throw new BadRequestException(
-        'Only JPEG, PNG, and WebP images are allowed'
+        'Dozwolone są tylko pliki JPEG, PNG lub WebP'
       );
     }
 
@@ -120,7 +120,7 @@ export class R2StorageService {
     }
 
     const versionId = randomUUID();
-    const baseKey = `companies/${userId}/logos/${versionId}`;
+    const baseKey = `companies/${companyId}/logos/${versionId}`;
     const uploadedKeys: string[] = [];
 
     try {

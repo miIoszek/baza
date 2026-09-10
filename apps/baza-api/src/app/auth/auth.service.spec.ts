@@ -67,6 +67,7 @@ describe('AuthService.register compensation', () => {
       data: { id: string } | null;
       error: null | { message: string };
     };
+    updateResult?: { error: null | { message: string } };
     deleteUserResult?: { data: null; error: null | { message: string } };
   } = {}) {
     createUser = jest.fn().mockResolvedValue(
@@ -84,6 +85,9 @@ describe('AuthService.register compensation', () => {
         error: { message: 'insert failed' },
       }
     );
+    const updateEq = jest.fn().mockResolvedValue(
+      opts.updateResult ?? { error: null }
+    );
     signUp = jest.fn();
 
     const from = jest.fn().mockReturnValue({
@@ -91,6 +95,9 @@ describe('AuthService.register compensation', () => {
         select: jest.fn().mockReturnValue({
           single: insertSingle,
         }),
+      }),
+      update: jest.fn().mockReturnValue({
+        eq: updateEq,
       }),
     });
 
@@ -118,7 +125,7 @@ describe('AuthService.register compensation', () => {
     r2 = {
       isConfigured: jest.fn().mockReturnValue(true),
       uploadCompanyLogo: jest.fn().mockResolvedValue({
-        photoKey: 'companies/user-1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        photoKey: 'companies/c1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
         photoUrls: {
           original: 'https://cdn.example/logo.jpg',
           s48: 'https://cdn.example/logo-48.jpg',
@@ -192,7 +199,10 @@ describe('AuthService.register compensation', () => {
   });
 
   it('on failure after photo upload, deletes R2 prefix and auth user', async () => {
-    mockAdminClient();
+    mockAdminClient({
+      insertResult: { data: { id: 'c1' }, error: null },
+      updateResult: { error: { message: 'photo update failed' } },
+    });
 
     const photo = {
       fieldname: 'photo',
@@ -211,9 +221,13 @@ describe('AuthService.register compensation', () => {
       BadRequestException
     );
 
-    expect(r2.uploadCompanyLogo).toHaveBeenCalled();
+    expect(r2.uploadCompanyLogo).toHaveBeenCalledWith(
+      'c1',
+      photo.buffer,
+      'image/jpeg'
+    );
     expect(r2.deletePrefix).toHaveBeenCalledWith(
-      'companies/user-1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+      'companies/c1/logos/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     );
     expect(deleteUser).toHaveBeenCalledWith('user-1');
   });

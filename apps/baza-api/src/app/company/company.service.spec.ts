@@ -91,7 +91,7 @@ describe('CompanyService', () => {
     });
     updateEq.mockResolvedValue({ error: null });
     uploadCompanyLogo.mockResolvedValue({
-      photoKey: 'companies/user-1/logos/new-id',
+      photoKey: 'companies/c1/logos/new-id',
       photoUrls: {
         original: 'https://cdn.example/new.jpg',
         s48: 'https://cdn.example/n48.webp',
@@ -114,7 +114,7 @@ describe('CompanyService', () => {
     await service.updateProfile('user-1', dto, photo);
 
     expect(uploadCompanyLogo).toHaveBeenCalledWith(
-      'user-1',
+      'c1',
       photo.buffer,
       'image/jpeg'
     );
@@ -136,7 +136,7 @@ describe('CompanyService', () => {
     });
     updateEq.mockResolvedValue({ error: { message: 'db fail' } });
     uploadCompanyLogo.mockResolvedValue({
-      photoKey: 'companies/user-1/logos/new-id',
+      photoKey: 'companies/c1/logos/new-id',
       photoUrls: {
         original: 'https://cdn.example/new.jpg',
         s48: '',
@@ -155,7 +155,7 @@ describe('CompanyService', () => {
       service.updateProfile('user-1', dto, photo)
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(deletePrefix).toHaveBeenCalledWith(
-      'companies/user-1/logos/new-id'
+      'companies/c1/logos/new-id'
     );
   });
 });

@@ -12,7 +12,7 @@ Deliver roadmap slice **S-01** / **FR-002**: after registration, a company can *
 
 **Still open for Phase 2–3:**
 
-**Data (`companies` table):** `name`, `nip`, `description`, `base_location` (text), `photo_key`, `photo_urls` (JSON map). RLS allows **public SELECT**; update restricted to owner (`supabase/migrations/20260904120000_create_companies.sql`). No schema change required for S-01.
+**Data (`companies` table):** `name` varchar(120), `nip` varchar(10) + digit CHECK, `description` varchar(2000), `base_location` varchar(200), `photo_key`, `photo_urls` (JSON map). RLS: owners SELECT/INSERT/UPDATE own row; **no** public anon SELECT — public profile reads go through Nest (`GET /api/companies/:id`). Length limits: `20260909121000_companies_field_length_limits.sql`. Public SELECT drop: `20260909120000_companies_drop_public_select.sql`.
 
 **Register:** `POST /api/auth/register` creates auth user + company row; optional R2 logo upload (`auth.service.ts`). FE lands on `/company/profile` after sign-in (`register.ts`). Validation today is floors-only on Nest (`MinLength`, `@IsEmail`) — **no `@MaxLength`**, NIP is `@MinLength(10)` not exact 10 digits; FE register lacks `minLength(2)` on name and max-length caps (photo MIME + 5 MB already enforced on FE + `FileInterceptor`).
 
@@ -23,7 +23,7 @@ Deliver roadmap slice **S-01** / **FR-002**: after registration, a company can *
 ### Key Discoveries
 
 - Photo display: navbar uses `s96 ?? s48 ?? original`; public page uses `s192 ?? s512 ?? s96 ?? original` (cosmetic drift — optional align later).
-- R2 `uploadCompanyLogo` writes a **versioned** prefix `companies/${userId}/logos/{uuid}` and stores new `photo_key` / `photo_urls`; after successful profile update, best-effort `deletePrefix` removes the previous key (including legacy `…/logo`).
+- R2 `uploadCompanyLogo` writes a **versioned** prefix `companies/${companyId}/logos/{uuid}` and stores new `photo_key` / `photo_urls`; after successful profile update, best-effort `deletePrefix` removes the previous key (including legacy `…/logo` or `companies/{userId}/…`).
 - `base_location` is free text today; map pin / `GeoPoint` deferred to S-02 — S-01 keeps text only.
 - Lesson: lock validation FE + BE + sensible max lengths (`context/foundation/lessons.md`).
 
@@ -52,7 +52,7 @@ Three phases: **public read path** (API + unguarded FE), **owner edit path** (PA
 
 **Ownership on PATCH:** Resolve company by `req.user.id` → `companies.user_id`; never accept `companyId` in body for authorization. Return 404 if no company row for user.
 
-**Photo replace:** Each upload uses a unique R2 prefix `companies/{userId}/logos/{uuid}/` and stores new `photo_key` + `photo_urls` on the company row. After a successful DB update, best-effort `deletePrefix(previousPhotoKey)` removes the prior version (including legacy `companies/{userId}/logo`). On upload/DB failure, delete only the newly uploaded prefix. Do not use `?v=` cache-bust query params.
+**Photo replace:** Each upload uses a unique R2 prefix `companies/{companyId}/logos/{uuid}/` and stores new `photo_key` + `photo_urls` on the company row. After a successful DB update, best-effort `deletePrefix(previousPhotoKey)` removes the prior version (including legacy `companies/{userId}/logo` or older `companies/{userId}/logos/…`). On upload/DB failure, delete only the newly uploaded prefix. Do not use `?v=` cache-bust query params. Register inserts the company row before logo upload so `companyId` is available for the key.
 
 **Public vs employer URLs:** `/company/profile` = authenticated employer workspace. `/companies/:id` = public read — do not guard the latter.
 

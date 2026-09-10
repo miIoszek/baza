@@ -145,7 +145,7 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
         )
       );
 
-      // Drop blob preview first, then show server URLs (include ?v= cache bust).
+      // Drop blob preview first, then show server URLs (versioned R2 keys).
       this.photoFile = null;
       this.revokePreview();
       this.applyCompany(updated);
