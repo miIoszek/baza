@@ -209,15 +209,15 @@ Single-row writes; public list is unpaginated MVP — acceptable until volume gr
 
 #### Automated
 
-- [x] 1.1 Migration applies on linked Supabase (`supabase db push`) without error
-- [x] 1.2 `npm run lint` passes
-- [x] 1.3 `npm run test` passes (api + frontend)
-- [x] 1.4 `npm run build` passes
+- [x] 1.1 Migration applies on linked Supabase (`supabase db push`) without error — f840a9c
+- [x] 1.2 `npm run lint` passes — f840a9c
+- [x] 1.3 `npm run test` passes (api + frontend) — f840a9c
+- [x] 1.4 `npm run build` passes — f840a9c
 
 #### Manual
 
-- [x] 1.5 Set company lat/lng; publish offer with routes, cadence, transport, optional salary
-- [x] 1.6 Publish blocked with clear Polish error when coords missing
-- [x] 1.7 Edit + soft-unpublish hide from public surfaces; owner sees unpublished state
-- [x] 1.8 Logged-out `/job-offers` list; desktop map pins; mobile list-first
-- [x] 1.9 Public `/companies/:id` shows published offers only
+- [x] 1.5 Set company lat/lng; publish offer with routes, cadence, transport, optional salary — f840a9c
+- [x] 1.6 Publish blocked with clear Polish error when coords missing — f840a9c
+- [x] 1.7 Edit + soft-unpublish hide from public surfaces; owner sees unpublished state — f840a9c
+- [x] 1.8 Logged-out `/job-offers` list; desktop map pins; mobile list-first — f840a9c
+- [x] 1.9 Public `/companies/:id` shows published offers only — f840a9c
