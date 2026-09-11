@@ -7,6 +7,26 @@ export const APPLICATION_FIELD_LIMITS = {
 
 export const APPLICATION_CV_MAX_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Phone: optional leading +, then digits with spaces / dashes / parentheses.
+ * Digit count must be 9–15 (E.164).
+ */
+export const APPLICATION_PHONE_PATTERN =
+  /^\+?[0-9][0-9\s()/.-]{7,30}$/;
+
+export function isValidApplicationPhone(phone: string): boolean {
+  const trimmed = phone.trim();
+  if (
+    trimmed.length < 3 ||
+    trimmed.length > APPLICATION_FIELD_LIMITS.phone ||
+    !APPLICATION_PHONE_PATTERN.test(trimmed)
+  ) {
+    return false;
+  }
+  const digits = trimmed.replace(/\D/g, '');
+  return digits.length >= 9 && digits.length <= 15;
+}
+
 /** Internal / company-facing application row (S-05). */
 export interface JobApplication {
   id: string;

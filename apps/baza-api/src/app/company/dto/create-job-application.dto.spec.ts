@@ -46,4 +46,14 @@ describe('CreateJobApplicationDto', () => {
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'message')).toBe(true);
   });
+
+  it('rejects non-numeric phone', async () => {
+    const dto = plainToInstance(CreateJobApplicationDto, {
+      email: 'driver@example.com',
+      phone: 'abcdefghi',
+      consentAccepted: true,
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'phone')).toBe(true);
+  });
 });

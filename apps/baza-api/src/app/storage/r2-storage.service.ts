@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
@@ -43,6 +44,7 @@ type PrivateR2Config = {
 
 @Injectable()
 export class R2StorageService {
+  private readonly logger = new Logger(R2StorageService.name);
   private publicClient: S3Client | null = null;
   private privateClient: S3Client | null = null;
 
@@ -261,6 +263,15 @@ export class R2StorageService {
       if (err instanceof BadRequestException) {
         throw err;
       }
+      const detail =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'string'
+            ? err
+            : 'unknown';
+      this.logger.error(
+        `Private R2 PutObject failed (bucket=${cfg.bucket}): ${detail}`
+      );
       throw new BadRequestException('Nie udało się wgrać pliku CV');
     }
   }

@@ -155,12 +155,20 @@
           <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
             <mat-label>Status</mat-label>
             <mat-select formControlName="published">
-              <mat-option [value]="true">Opublikowana</mat-option>
+              <mat-option [value]="true" [disabled]="!canPublish()"
+                >Opublikowana</mat-option
+              >
               <mat-option [value]="false">Szkic / wycofana</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
-        @if (form.touched && form.hasError('salaryRange')) {
+        @if (!canPublish()) {
+        <p class="offer-form__publish-hint">
+          Aby opublikować ofertę, ustaw współrzędne bazy (szer./dł.) w
+          <a routerLink="/company/profile">profilu firmy</a>. Szkic możesz
+          zapisać bez współrzędnych.
+        </p>
+        } @if (form.touched && form.hasError('salaryRange')) {
         <p class="auth-field-error">
           Minimalne wynagrodzenie nie może być większe od maksymalnego
         </p>
