@@ -280,8 +280,8 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass (geo + map helpers)
+- [x] 2.1 `npm run lint` passes — 3578918
+- [x] 2.2 `npx nx test baza-api` and `npx nx test baza-frontend` pass (geo + map helpers) — 3578918
 
 #### Manual
 
