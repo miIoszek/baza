@@ -142,7 +142,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 | Roadmap ID | Change ID               | Suggested issue title                              | Ready for `/10x-plan` | Notes                                      |
 | ---------- | ----------------------- | -------------------------------------------------- | --------------------- | ------------------------------------------ |
-| F-01       | gate-company-routes     | Gate company routes behind login                   | — (done)              | Merged; archive when closing change folder |
+| F-01       | gate-company-routes     | Gate company routes behind login                   | — (done)              | Archived                                 |
 | S-01       | company-public-profile  | Company public profile view and edit               | — (done)              | Archived; next is S-02                     |
 | S-02       | publish-job-offer       | Publish job offer with map pin on Job Offers       | yes                   | After S-01 done                            |
 | S-03       | driver-browse-job-offers| Driver Job Offers browse and route/cadence filters | no                    | After S-02                                 |
@@ -169,6 +169,6 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-- **F-01** `gate-company-routes` — 2026-09-08 — Company FE routes + `/api/company/*` require session (PR #3). Formal `/10x-archive` still pending for the change folder.
+- **F-01: (foundation) Company-only frontend routes and API endpoints require a valid Supabase session; anonymous users cannot reach employer dashboard, profile edit, or inbox paths.** — Archived 2026-09-11 → `context/archive/2026-09-08-gate-company-routes/`. Lesson: —.
 - **S-01: User can view and edit their public company profile after registration, including landing on the profile flow post-signup.** — Archived 2026-09-10 → `context/archive/2026-09-08-company-public-profile/` (impl-reviewed + triage). Lesson: —.
 - **S-02: User can create and publish a free job offer with route countries, home-return cadence, and requirements, and see it on their company profile and in Job Offers as a list entry and map pin at base location.** — Archived 2026-09-11 → `context/archive/2026-09-10-publish-job-offer/`. Lesson: —.
