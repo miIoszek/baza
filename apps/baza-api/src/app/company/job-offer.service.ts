@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -410,12 +411,7 @@ export class JobOfferService {
           }
         : undefined;
 
-    const licenseRaw = row.license_category ?? 'C';
-    const licenseCategory: DriverLicenseCategory = isDriverLicenseCategory(
-      licenseRaw
-    )
-      ? licenseRaw
-      : 'C';
+    const licenseCategory = this.resolveLicenseCategory(row);
 
     return {
       id: row.id,
@@ -433,5 +429,20 @@ export class JobOfferService {
       published: row.published,
       publishedAt: row.created_at,
     };
+  }
+
+  /** Legacy rows without a category default to C; unknown non-empty values fail loud. */
+  private resolveLicenseCategory(row: OfferRow): DriverLicenseCategory {
+    const raw = row.license_category;
+    if (raw == null || raw === '') {
+      return 'C';
+    }
+    if (isDriverLicenseCategory(raw)) {
+      return raw;
+    }
+    this.logger.error(
+      `Unexpected license_category on job_offers.id=${row.id}: ${JSON.stringify(raw)}`
+    );
+    throw new InternalServerErrorException('Nieprawidłowe dane oferty');
   }
 }

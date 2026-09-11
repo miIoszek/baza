@@ -29,4 +29,29 @@ describe('ListOffersQueryDto', () => {
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'cadence')).toBe(true);
   });
+
+  it('maps empty nearLat/nearLng to null instead of 0', async () => {
+    const dto = plainToInstance(ListOffersQueryDto, {
+      nearLat: '',
+      nearLng: '',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.nearLat).toBeNull();
+    expect(dto.nearLng).toBeNull();
+  });
+
+  it('rejects country codes outside the allowlist', async () => {
+    const dto = plainToInstance(ListOffersQueryDto, { countries: 'PL,XX' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'countries')).toBe(true);
+  });
+
+  it('rejects oversized countries query', async () => {
+    const dto = plainToInstance(ListOffersQueryDto, {
+      countries: 'PL,'.repeat(80) + 'DE',
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'countries')).toBe(true);
+  });
 });

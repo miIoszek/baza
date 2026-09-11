@@ -1,14 +1,15 @@
 import {
   Component,
+  DestroyRef,
   OnInit,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +22,7 @@ import {
   TRANSPORT_TYPES,
   type JobOffer,
 } from '@baza/shared-types';
-import { map } from 'rxjs';
+import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { OffersMapComponent, type OfferMapMarker } from './offers-map';
 
@@ -128,6 +129,7 @@ export class JobOffersPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly breakpoint = inject(BreakpointObserver);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly countries = COUNTRIES;
   protected readonly cadences = HOME_RETURN_CADENCES;
@@ -172,11 +174,33 @@ export class JobOffersPage implements OnInit {
   });
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
-      const model = parseJobOffersQueryParams((k) => params.get(k));
-      this.filters.set(model);
-      this.loadOffers(model);
-    });
+    this.route.queryParamMap
+      .pipe(
+        tap((params) => {
+          this.filters.set(parseJobOffersQueryParams((k) => params.get(k)));
+        }),
+        debounceTime(200),
+        switchMap((params) => {
+          const model = parseJobOffersQueryParams((k) => params.get(k));
+          this.loading.set(true);
+          this.error.set(null);
+          return this.http
+            .get<JobOffer[]>(`${environment.apiBaseUrl}/api/offers`, {
+              params: jobOffersQueryToHttpParams(model),
+            })
+            .pipe(
+              catchError((err: unknown) => {
+                this.error.set(this.extractError(err));
+                return of([] as JobOffer[]);
+              })
+            );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((list) => {
+        this.offers.set(list);
+        this.loading.set(false);
+      });
   }
 
   protected onCountriesChange(codes: string[]): void {
@@ -244,27 +268,15 @@ export class JobOffersPage implements OnInit {
     });
   }
 
-  private loadOffers(model: JobOffersQueryModel): void {
-    this.loading.set(true);
-    this.error.set(null);
-    const params = jobOffersQueryToHttpParams(model);
-    this.http
-      .get<JobOffer[]>(`${environment.apiBaseUrl}/api/offers`, { params })
-      .subscribe({
-        next: (list) => {
-          this.offers.set(list);
-          this.loading.set(false);
-        },
-        error: (err: unknown) => {
-          this.loading.set(false);
-          this.error.set(this.extractError(err));
-        },
-      });
-  }
-
   private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse && typeof err.error?.message === 'string') {
-      return err.error.message;
+    if (err instanceof HttpErrorResponse) {
+      const msg = err.error?.message;
+      if (typeof msg === 'string') {
+        return msg;
+      }
+      if (Array.isArray(msg)) {
+        return msg.join(', ');
+      }
     }
     return 'Nie udało się pobrać ofert';
   }

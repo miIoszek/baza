@@ -93,7 +93,6 @@ export class CreateJobOfferDto {
   @IsBoolean()
   published?: boolean;
 
-  /** Optional until company-form phase — Phase 3 makes this required. */
   @IsString()
   @IsIn([...DRIVER_LICENSE_CODES])
   licenseCategory!: string;

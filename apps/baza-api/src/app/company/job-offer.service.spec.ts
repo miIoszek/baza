@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { JobOffer } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
@@ -175,6 +179,77 @@ describe('JobOfferService', () => {
     expect(list).toHaveLength(1);
     expect(list[0].baseLocation).toEqual({ lat: 52.2, lng: 21.0 });
     expect(list[0].licenseCategory).toBe('CE');
+  });
+
+  it('listPublished defaults missing license_category to C for legacy rows', async () => {
+    from.mockImplementationOnce(() => ({
+      select: () => ({
+        eq: () => ({
+          order: async () => ({
+            data: [
+              {
+                id: 'offer-legacy',
+                company_id: 'company-1',
+                title: 'Legacy',
+                description: 'd',
+                home_return_cadence: 'weekly',
+                required_years_experience: 1,
+                required_transport_type: 'van',
+                license_category: null,
+                routes: baseDto.routes,
+                salary_min: null,
+                salary_max: null,
+                salary_currency: null,
+                published: true,
+                created_at: '2026-01-01T00:00:00Z',
+                updated_at: '2026-01-01T00:00:00Z',
+                companies: null,
+              },
+            ],
+            error: null,
+          }),
+        }),
+      }),
+    }));
+
+    const list = await service.listPublished();
+    expect(list[0].licenseCategory).toBe('C');
+  });
+
+  it('listPublished fails loud on unexpected license_category', async () => {
+    from.mockImplementationOnce(() => ({
+      select: () => ({
+        eq: () => ({
+          order: async () => ({
+            data: [
+              {
+                id: 'offer-bad',
+                company_id: 'company-1',
+                title: 'Bad',
+                description: 'd',
+                home_return_cadence: 'weekly',
+                required_years_experience: 1,
+                required_transport_type: 'van',
+                license_category: 'ZZ',
+                routes: baseDto.routes,
+                salary_min: null,
+                salary_max: null,
+                salary_currency: null,
+                published: true,
+                created_at: '2026-01-01T00:00:00Z',
+                updated_at: '2026-01-01T00:00:00Z',
+                companies: null,
+              },
+            ],
+            error: null,
+          }),
+        }),
+      }),
+    }));
+
+    await expect(service.listPublished()).rejects.toBeInstanceOf(
+      InternalServerErrorException
+    );
   });
 
   it('matches country on from OR to', () => {
