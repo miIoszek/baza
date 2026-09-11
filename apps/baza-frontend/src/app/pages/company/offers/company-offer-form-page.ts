@@ -26,6 +26,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth.service';
+import { hasPublishableBaseCoords } from '../../job-offers/application-form.helpers';
 
 const CADENCE_LABELS: Record<string, string> = {
   daily: 'Codziennie',
@@ -85,6 +86,7 @@ export class CompanyOfferFormPage implements OnInit {
   protected readonly loading = signal(true);
   protected readonly submitting = signal(false);
   protected readonly editId = signal<string | null>(null);
+  protected readonly canPublish = signal(false);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -118,10 +120,15 @@ export class CompanyOfferFormPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.auth.whenReady();
+    await this.auth.refreshMe();
+    this.canPublish.set(hasPublishableBaseCoords(this.auth.company()));
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editId.set(id);
       await this.loadOffer(id);
+    }
+    if (!this.canPublish() && this.form.controls.published.value) {
+      this.form.controls.published.setValue(false);
     }
     this.loading.set(false);
   }
@@ -154,6 +161,14 @@ export class CompanyOfferFormPage implements OnInit {
       return;
     }
     const raw = this.form.getRawValue();
+    if (raw.published && !this.canPublish()) {
+      this.snackBar.open(
+        'Aby opublikować ofertę, ustaw współrzędne bazy w profilu firmy',
+        'OK',
+        { duration: 7000 }
+      );
+      return;
+    }
     const body = {
       title: raw.title,
       description: raw.description,

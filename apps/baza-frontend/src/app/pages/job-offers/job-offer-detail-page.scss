@@ -1,5 +1,5 @@
 .offer-detail {
-  max-width: 40rem;
+  max-width: 64rem;
   margin: 2rem auto;
   padding: 0 1rem 3rem;
 }
@@ -9,8 +9,55 @@
   opacity: 0.85;
 }
 
+.offer-detail__layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.offer-detail__layout--map {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+  align-items: start;
+}
+
+.offer-detail__main {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
 .offer-detail__card {
   background: rgba(15, 23, 42, 0.55);
+}
+
+.offer-detail__apply-form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.offer-detail__field {
+  width: 100%;
+}
+
+.offer-detail__file {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.offer-detail__consent {
+  white-space: normal;
+}
+
+.offer-detail__field-error {
+  margin: 0;
+  color: #f87171;
+  font-size: 0.8125rem;
+}
+
+.offer-detail__success {
+  margin: 0.5rem 0 0;
+  line-height: 1.45;
 }
 
 .offer-detail__fields {
@@ -50,4 +97,21 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 1rem 1rem !important;
+}
+
+.offer-detail__map-pane {
+  position: sticky;
+  top: 1rem;
+  height: min(70vh, 32rem);
+}
+
+@media (max-width: 767px) {
+  .offer-detail__layout--map {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-detail__map-pane {
+    position: static;
+    height: 16rem;
+  }
 }

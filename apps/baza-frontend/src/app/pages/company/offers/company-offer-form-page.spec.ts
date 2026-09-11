@@ -8,11 +8,21 @@ import { AuthService } from '../../../core/auth.service';
 import { CompanyOfferFormPage } from './company-offer-form-page';
 
 describe('CompanyOfferFormPage', () => {
-  let auth: { whenReady: Mock };
+  let auth: {
+    whenReady: Mock;
+    refreshMe: Mock;
+    company: Mock;
+  };
 
   beforeEach(async () => {
     auth = {
       whenReady: vi.fn().mockResolvedValue(undefined),
+      refreshMe: vi.fn().mockResolvedValue(undefined),
+      company: vi.fn().mockReturnValue({
+        id: 'c1',
+        baseLat: 52.2,
+        baseLng: 21.0,
+      }),
     };
 
     await TestBed.configureTestingModule({
@@ -89,5 +99,19 @@ describe('CompanyOfferFormPage', () => {
     expect(page['routes'].length).toBe(1);
     page['removeRoute'](0);
     expect(page['routes'].length).toBe(1);
+  });
+
+  it('disables publish when company coords are missing', async () => {
+    auth.company.mockReturnValue({
+      id: 'c1',
+      baseLat: null,
+      baseLng: null,
+    });
+    const fixture = TestBed.createComponent(CompanyOfferFormPage);
+    const page = fixture.componentInstance;
+    await page.ngOnInit();
+
+    expect(page['canPublish']()).toBe(false);
+    expect(page['form'].controls.published.value).toBe(false);
   });
 });

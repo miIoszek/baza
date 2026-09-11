@@ -12,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import type { AuthMeResponse } from '@baza/shared-types';
 import { AuthService } from './auth.service';
@@ -31,6 +32,7 @@ export class AuthController {
   // TODO(error-system): see context/changes/auth-company-logo-r2/follow-ups/backend-error-handling.md
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: memoryStorage(),

@@ -31,7 +31,8 @@
           "apps/baza-frontend/src/styles.scss"
         ],
         "allowedCommonJsDependencies": [
-          "leaflet"
+          "leaflet",
+          "leaflet-polylinedecorator"
         ]
       },
       "configurations": {

@@ -35,3 +35,14 @@
   align-self: flex-start;
   margin-left: -0.5rem;
 }
+
+.offer-form__publish-hint {
+  margin: 0 0 0.75rem;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.45;
+}
+
+.offer-form__publish-hint a {
+  color: var(--mat-sys-primary);
+}

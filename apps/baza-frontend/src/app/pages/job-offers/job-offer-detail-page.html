@@ -12,58 +12,230 @@
     </mat-card-content>
   </mat-card>
   } @else if (offer(); as o) {
-  <mat-card appearance="outlined" class="offer-detail__card">
-    <mat-card-header>
-      <mat-card-title>{{ o.title }}</mat-card-title>
-      <mat-card-subtitle>
-        {{ transportLabel(o.requiredTransportType) }} ·
-        {{ cadenceLabel(o.homeReturnCadence) }}
-      </mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <dl class="offer-detail__fields">
-        <div>
-          <dt>Trasy</dt>
-          <dd>
-            <ul class="offer-detail__routes">
-              @for (r of o.routes; track $index) {
-              <li>{{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{ r.to.code }})</li>
+  <div
+    class="offer-detail__layout"
+    [class.offer-detail__layout--map]="showMapPane() && hasMapGeometry()"
+  >
+    <div class="offer-detail__main">
+      <mat-card appearance="outlined" class="offer-detail__card">
+        <mat-card-header>
+          <mat-card-title>{{ o.title }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ transportLabel(o.requiredTransportType) }} ·
+            {{ cadenceLabel(o.homeReturnCadence) }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <dl class="offer-detail__fields">
+            <div>
+              <dt>Trasy</dt>
+              <dd>
+                <ul class="offer-detail__routes">
+                  @for (r of o.routes; track $index) {
+                  <li>
+                    {{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{
+                      r.to.code
+                    }})
+                  </li>
+                  }
+                </ul>
+              </dd>
+            </div>
+            <div>
+              <dt>Wymagane doświadczenie</dt>
+              <dd>{{ o.requiredYearsExperience }} lat</dd>
+            </div>
+            <div>
+              <dt>Prawo jazdy</dt>
+              <dd>
+                {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
+              </dd>
+            </div>
+            @if (salaryText(o); as salary) {
+            <div>
+              <dt>Wynagrodzenie</dt>
+              <dd>{{ salary }}</dd>
+            </div>
+            } @if (o.companyBaseLocationText) {
+            <div>
+              <dt>Lokalizacja bazy</dt>
+              <dd>{{ o.companyBaseLocationText }}</dd>
+            </div>
+            }
+            <div>
+              <dt>Opis</dt>
+              <dd class="offer-detail__description">{{ o.description }}</dd>
+            </div>
+          </dl>
+        </mat-card-content>
+        <mat-card-actions class="offer-detail__actions">
+          <a mat-button routerLink="/job-offers">← Oferty</a>
+          <a
+            mat-flat-button
+            color="primary"
+            [routerLink]="['/companies', o.companyId]"
+            >Profil firmy</a
+          >
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="offer-detail__card offer-detail__apply">
+        @if (applySuccess()) {
+        <mat-card-header>
+          <mat-card-title>Aplikacja wysłana</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="offer-detail__success" role="status">
+            Dziękujemy. Twoja aplikacja została przekazana firmie.
+          </p>
+        </mat-card-content>
+        } @else {
+        <mat-card-header>
+          <mat-card-title>Aplikuj</mat-card-title>
+          <mat-card-subtitle
+            >Bez konta — e-mail, telefon i CV (PDF)</mat-card-subtitle
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <form
+            class="offer-detail__apply-form"
+            [formGroup]="applyForm"
+            (ngSubmit)="onApply()"
+          >
+            <mat-form-field
+              appearance="outline"
+              class="offer-detail__field"
+              subscriptSizing="dynamic"
+            >
+              <mat-label>E-mail</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                [attr.maxlength]="fieldLimits.email"
+                autocomplete="email"
+              />
+              @if (
+                applyForm.controls.email.touched &&
+                applyForm.controls.email.hasError('required')
+              ) {
+              <mat-error>E-mail jest wymagany</mat-error>
+              } @else if (
+                applyForm.controls.email.touched &&
+                applyForm.controls.email.hasError('email')
+              ) {
+              <mat-error>Podaj poprawny adres e-mail</mat-error>
+              } @else if (
+                applyForm.controls.email.touched &&
+                applyForm.controls.email.hasError('maxlength')
+              ) {
+              <mat-error>Max. {{ fieldLimits.email }} znaków</mat-error>
               }
-            </ul>
-          </dd>
-        </div>
-        <div>
-          <dt>Wymagane doświadczenie</dt>
-          <dd>{{ o.requiredYearsExperience }} lat</dd>
-        </div>
-        <div>
-          <dt>Prawo jazdy</dt>
-          <dd>{{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}</dd>
-        </div>
-        @if (salaryText(o); as salary) {
-        <div>
-          <dt>Wynagrodzenie</dt>
-          <dd>{{ salary }}</dd>
-        </div>
+            </mat-form-field>
+
+            <mat-form-field
+              appearance="outline"
+              class="offer-detail__field"
+              subscriptSizing="dynamic"
+            >
+              <mat-label>Telefon</mat-label>
+              <input
+                matInput
+                type="tel"
+                formControlName="phone"
+                [attr.maxlength]="fieldLimits.phone"
+                autocomplete="tel"
+                placeholder="+48 123 456 789"
+              />
+              @if (
+                applyForm.controls.phone.touched &&
+                applyForm.controls.phone.hasError('required')
+              ) {
+              <mat-error>Telefon jest wymagany</mat-error>
+              } @else if (
+                applyForm.controls.phone.touched &&
+                (applyForm.controls.phone.hasError('phoneFormat') ||
+                  applyForm.controls.phone.hasError('maxlength'))
+              ) {
+              <mat-error>Podaj prawidłowy numer telefonu</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field
+              appearance="outline"
+              class="offer-detail__field"
+              subscriptSizing="dynamic"
+            >
+              <mat-label>Wiadomość (opcjonalnie)</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                formControlName="message"
+                [attr.maxlength]="fieldLimits.message"
+              ></textarea>
+              @if (
+                applyForm.controls.message.touched &&
+                applyForm.controls.message.hasError('maxlength')
+              ) {
+              <mat-error>Max. {{ fieldLimits.message }} znaków</mat-error>
+              }
+            </mat-form-field>
+
+            <label class="offer-detail__file">
+              <span>CV (PDF, max. 5 MB)</span>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                (change)="onCvSelected($event)"
+              />
+            </label>
+            @if (cvError()) {
+            <p class="offer-detail__field-error">{{ cvError() }}</p>
+            }
+
+            <mat-checkbox
+              class="offer-detail__consent"
+              formControlName="consentAccepted"
+            >
+              Wyrażam zgodę na przetwarzanie danych osobowych w celu rekrutacji
+            </mat-checkbox>
+            @if (
+              applyForm.controls.consentAccepted.touched &&
+              applyForm.controls.consentAccepted.hasError('required')
+            ) {
+            <p class="offer-detail__field-error">
+              Wymagana jest zgoda na przetwarzanie danych
+            </p>
+            }
+
+            @if (applyError()) {
+            <p class="offer-detail__field-error" role="alert">
+              {{ applyError() }}
+            </p>
+            }
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="applying()"
+            >
+              {{ applying() ? 'Wysyłanie…' : 'Wyślij aplikację' }}
+            </button>
+          </form>
+        </mat-card-content>
         }
-        @if (o.companyBaseLocationText) {
-        <div>
-          <dt>Lokalizacja bazy</dt>
-          <dd>{{ o.companyBaseLocationText }}</dd>
-        </div>
-        }
-        <div>
-          <dt>Opis</dt>
-          <dd class="offer-detail__description">{{ o.description }}</dd>
-        </div>
-      </dl>
-    </mat-card-content>
-    <mat-card-actions class="offer-detail__actions">
-      <a mat-button routerLink="/job-offers">← Oferty</a>
-      <a mat-flat-button color="primary" [routerLink]="['/companies', o.companyId]"
-        >Profil firmy</a
-      >
-    </mat-card-actions>
-  </mat-card>
+      </mat-card>
+    </div>
+
+    @if (hasMapGeometry()) {
+    <div class="offer-detail__map-pane">
+      <baza-offer-route-map
+        [baseLocation]="o.baseLocation"
+        [legs]="routeLegs()"
+      />
+    </div>
+    }
+  </div>
   }
 </section>
