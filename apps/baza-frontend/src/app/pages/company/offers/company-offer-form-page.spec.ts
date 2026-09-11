@@ -30,13 +30,15 @@ describe('CompanyOfferFormPage', () => {
     }).compileComponents();
   });
 
-  it('requires title with min length 2', async () => {
+  it('requires license category', async () => {
     const fixture = TestBed.createComponent(CompanyOfferFormPage);
     const page = fixture.componentInstance;
     await page.ngOnInit();
 
-    page['form'].controls.title.setValue('A');
-    expect(page['form'].controls.title.hasError('minlength')).toBe(true);
+    page['form'].controls.licenseCategory.setValue('' as never);
+    expect(page['form'].controls.licenseCategory.hasError('required')).toBe(
+      true
+    );
   });
 
   it('rejects negative years of experience', async () => {

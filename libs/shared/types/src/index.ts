@@ -1,6 +1,7 @@
 export * from './lib/home-return-cadence';
 export * from './lib/country';
 export * from './lib/transport-type';
+export * from './lib/driver-license';
 export * from './lib/route-direction';
 export * from './lib/company';
 export * from './lib/job-offer';

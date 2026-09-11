@@ -14,6 +14,34 @@
   opacity: 0.8;
 }
 
+.job-offers__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.job-offers__field {
+  min-width: 11rem;
+  flex: 1 1 11rem;
+}
+
+.job-offers__filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding-top: 0.35rem;
+}
+
+.job-offers__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
 .job-offers__status {
   opacity: 0.85;
 }

@@ -36,6 +36,10 @@
           <dt>Wymagane doświadczenie</dt>
           <dd>{{ o.requiredYearsExperience }} lat</dd>
         </div>
+        <div>
+          <dt>Prawo jazdy</dt>
+          <dd>{{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}</dd>
+        </div>
         @if (salaryText(o); as salary) {
         <div>
           <dt>Wynagrodzenie</dt>

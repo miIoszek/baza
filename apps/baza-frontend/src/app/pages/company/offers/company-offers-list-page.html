@@ -37,6 +37,7 @@
               <strong>{{ o.title }}</strong>
               <span class="offers-list__meta">
                 {{ o.published ? 'Opublikowana' : 'Wycofana' }} ·
+                Prawo jazdy {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }} ·
                 {{ o.routes.length }} tras
               </span>
             </div>

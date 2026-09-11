@@ -2,6 +2,7 @@ import type { HomeReturnCadence } from './home-return-cadence';
 import type { RouteDirection } from './route-direction';
 import type { GeoPoint } from './company';
 import type { TransportType } from './transport-type';
+import type { DriverLicenseCategory } from './driver-license';
 
 export interface SalaryRange {
   min?: number;
@@ -17,6 +18,8 @@ export interface JobOffer {
   homeReturnCadence: HomeReturnCadence;
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
+  /** Wire code (`C_E` not `C+E`). */
+  licenseCategory: DriverLicenseCategory;
   description: string;
   salary?: SalaryRange;
   /** Map pin = company base location for MVP (null if company has no coords). */
@@ -34,6 +37,7 @@ export interface CreateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
+  licenseCategory: DriverLicenseCategory;
   /** Wire format matches Nest DTO (flat fields, not nested SalaryRange). */
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -49,15 +53,18 @@ export interface UpdateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
+  licenseCategory: DriverLicenseCategory;
   salaryMin?: number | null;
   salaryMax?: number | null;
   salaryCurrency?: string | null;
   published: boolean;
 }
 
+/** Public list query shape (Nest `GET /api/offers`). */
 export interface JobOfferFilters {
-  routesToCountries?: string[];
+  countries?: string[];
   homeReturnCadence?: HomeReturnCadence;
+  licenseCategory?: DriverLicenseCategory;
   /** Optional: nearest-first when driver shares location. */
   near?: GeoPoint;
 }

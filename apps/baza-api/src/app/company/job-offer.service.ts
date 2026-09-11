@@ -1,21 +1,26 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type {
+  DriverLicenseCategory,
   GeoPoint,
+  HomeReturnCadence,
   JobOffer,
+  JobOfferFilters,
   RouteDirection,
   TransportType,
-  HomeReturnCadence,
 } from '@baza/shared-types';
+import { isDriverLicenseCategory } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 import {
   CreateJobOfferDto,
   UpdateJobOfferDto,
 } from './dto/job-offer.dto';
+import { ListOffersQueryDto } from './dto/list-offers-query.dto';
 
 type OfferRow = {
   id: string;
@@ -25,6 +30,7 @@ type OfferRow = {
   home_return_cadence: string;
   required_years_experience: number;
   required_transport_type: string;
+  license_category?: string | null;
   routes: RouteDirection[];
   salary_min: number | null;
   salary_max: number | null;
@@ -45,6 +51,41 @@ export class JobOfferService {
 
   constructor(private readonly supabaseAuth: SupabaseAuthService) {}
 
+  parseListQuery(query: ListOffersQueryDto): JobOfferFilters {
+    const hasLat = query.nearLat != null && !Number.isNaN(query.nearLat);
+    const hasLng = query.nearLng != null && !Number.isNaN(query.nearLng);
+    if (hasLat !== hasLng) {
+      throw new BadRequestException(
+        'Podaj obie współrzędne nearLat i nearLng albo żadnej'
+      );
+    }
+
+    const countries = query.countries
+      ? query.countries
+          .split(',')
+          .map((c) => c.trim().toUpperCase())
+          .filter(Boolean)
+      : undefined;
+
+    const filters: JobOfferFilters = {};
+    if (countries?.length) {
+      filters.countries = countries;
+    }
+    if (query.cadence) {
+      filters.homeReturnCadence = query.cadence as HomeReturnCadence;
+    }
+    if (query.license) {
+      if (!isDriverLicenseCategory(query.license)) {
+        throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
+      }
+      filters.licenseCategory = query.license;
+    }
+    if (hasLat && hasLng) {
+      filters.near = { lat: query.nearLat as number, lng: query.nearLng as number };
+    }
+    return filters;
+  }
+
   async createForUser(
     userId: string,
     dto: CreateJobOfferDto
@@ -59,9 +100,7 @@ export class JobOfferService {
       .getClient()
       .from('job_offers')
       .insert(row)
-      .select(
-        '*, companies(base_lat, base_lng, base_location)'
-      )
+      .select('*, companies(base_lat, base_lng, base_location)')
       .single();
 
     if (error || !data) {
@@ -145,7 +184,7 @@ export class JobOfferService {
     return ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
   }
 
-  async listPublished(): Promise<JobOffer[]> {
+  async listPublished(filters: JobOfferFilters = {}): Promise<JobOffer[]> {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
@@ -157,7 +196,13 @@ export class JobOfferService {
       this.logger.warn(`Public offers list failed: ${error.message}`);
       throw new BadRequestException('Nie udało się pobrać ofert');
     }
-    return ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
+
+    let offers = ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
+    offers = offers.filter((o) => this.matchesFilters(o, filters));
+    if (filters.near) {
+      offers = this.sortByNear(offers, filters.near);
+    }
+    return offers;
   }
 
   async listPublishedByCompany(companyId: string): Promise<JobOffer[]> {
@@ -188,6 +233,65 @@ export class JobOfferService {
       throw new NotFoundException('Oferta nie znaleziona');
     }
     return this.mapOffer(data as OfferRow);
+  }
+
+  /** Exposed for unit tests of matching rules. */
+  matchesFilters(offer: JobOffer, filters: JobOfferFilters): boolean {
+    if (filters.countries?.length) {
+      const set = new Set(filters.countries.map((c) => c.toUpperCase()));
+      const hit = offer.routes.some(
+        (leg) => set.has(leg.from.code) || set.has(leg.to.code)
+      );
+      if (!hit) {
+        return false;
+      }
+    }
+
+    if (filters.homeReturnCadence) {
+      const f = filters.homeReturnCadence;
+      const o = offer.homeReturnCadence;
+      const ok = f === 'flexible' || o === 'flexible' || f === o;
+      if (!ok) {
+        return false;
+      }
+    }
+
+    if (filters.licenseCategory) {
+      if (offer.licenseCategory !== filters.licenseCategory) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /** Exposed for unit tests of near sort. */
+  sortByNear(offers: JobOffer[], near: GeoPoint): JobOffer[] {
+    return [...offers].sort((a, b) => {
+      const da = a.baseLocation
+        ? this.haversineKm(near, a.baseLocation)
+        : Number.POSITIVE_INFINITY;
+      const db = b.baseLocation
+        ? this.haversineKm(near, b.baseLocation)
+        : Number.POSITIVE_INFINITY;
+      if (da === db) {
+        return 0;
+      }
+      return da < db ? -1 : 1;
+    });
+  }
+
+  private haversineKm(a: GeoPoint, b: GeoPoint): number {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
   }
 
   private async requireCompanyForUser(userId: string): Promise<{
@@ -273,19 +377,22 @@ export class JobOfferService {
       dto.salaryMax != null ||
       !!dto.salaryCurrency;
 
-    return {
+    const row: Record<string, unknown> = {
       company_id: companyId,
       title: dto.title,
       description: dto.description,
       home_return_cadence: dto.homeReturnCadence,
       required_years_experience: dto.requiredYearsExperience,
       required_transport_type: dto.requiredTransportType,
+      license_category: dto.licenseCategory,
       routes: dto.routes,
       salary_min: hasSalary ? (dto.salaryMin ?? null) : null,
       salary_max: hasSalary ? (dto.salaryMax ?? null) : null,
       salary_currency: hasSalary ? (dto.salaryCurrency ?? null) : null,
       published,
     };
+
+    return row;
   }
 
   private mapOffer(row: OfferRow): JobOffer {
@@ -304,6 +411,8 @@ export class JobOfferService {
           }
         : undefined;
 
+    const licenseCategory = this.resolveLicenseCategory(row);
+
     return {
       id: row.id,
       companyId: row.company_id,
@@ -312,6 +421,7 @@ export class JobOfferService {
       homeReturnCadence: row.home_return_cadence as HomeReturnCadence,
       requiredYearsExperience: row.required_years_experience,
       requiredTransportType: row.required_transport_type as TransportType,
+      licenseCategory,
       routes: row.routes,
       salary,
       baseLocation,
@@ -319,5 +429,20 @@ export class JobOfferService {
       published: row.published,
       publishedAt: row.created_at,
     };
+  }
+
+  /** Legacy rows without a category default to C; unknown non-empty values fail loud. */
+  private resolveLicenseCategory(row: OfferRow): DriverLicenseCategory {
+    const raw = row.license_category;
+    if (raw == null || raw === '') {
+      return 'C';
+    }
+    if (isDriverLicenseCategory(raw)) {
+      return raw;
+    }
+    this.logger.error(
+      `Unexpected license_category on job_offers.id=${row.id}: ${JSON.stringify(raw)}`
+    );
+    throw new InternalServerErrorException('Nieprawidłowe dane oferty');
   }
 }

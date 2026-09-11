@@ -15,6 +15,7 @@ import {
 } from 'class-validator';
 import {
   COUNTRY_CODES,
+  DRIVER_LICENSE_CODES,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPE_CODES,
 } from '@baza/shared-types';
@@ -91,6 +92,10 @@ export class CreateJobOfferDto {
   @IsOptional()
   @IsBoolean()
   published?: boolean;
+
+  @IsString()
+  @IsIn([...DRIVER_LICENSE_CODES])
+  licenseCategory!: string;
 }
 
 export class UpdateJobOfferDto extends CreateJobOfferDto {
