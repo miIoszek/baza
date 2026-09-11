@@ -5,6 +5,7 @@ status: draft
 created: 2026-09-08
 updated: 2026-09-11
 prd_version: 1
+
 main_goal: speed
 top_blocker: time
 ---
@@ -33,7 +34,7 @@ Transport companies lose drivers when job boards ignore route geography and home
 | F-01 | gate-company-routes     | (foundation) Company-only routes and API paths require login      | —             | Access Control        | done     |
 | S-01 | company-public-profile  | View and edit public company profile after registration           | F-01          | FR-001, FR-002        | done     |
 | S-02 | publish-job-offer       | Publish a free offer; see it on profile, Job Offers list, map pin | S-01          | FR-003, FR-004, US-01 | done |
-| S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | proposed |
+| S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | in-progress |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | proposed |
 | S-05 | company-application-inbox | See driver applications in employer inbox                         | S-04, F-01    | FR-005, US-01         | proposed |
 
@@ -110,7 +111,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Driver license category as MVP filter vs deferred — Owner: user. Block: no.
 - **Risk:** Exercises core matching UX (route + cadence filters) on real published data; list-first on small screens per NFR without blocking the must-have path.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-04: Driver apply via map
 
