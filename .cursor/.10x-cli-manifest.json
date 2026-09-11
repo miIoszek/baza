@@ -2,7 +2,7 @@
   "package": "@przeprogramowani/10x-cli",
   "version": "1.20.0",
   "manifestVersion": 3,
-  "lastApplied": "2026-09-11T12:51:56.764Z",
+  "lastApplied": "2026-09-11T18:13:35.025Z",
   "lessonId": "m2l4",
   "course": "10xdevs3",
   "tool": "cursor",
@@ -844,7 +844,7 @@
       "configs": []
     },
     "m2l4": {
-      "appliedAt": "2026-09-11T12:51:56.763Z",
+      "appliedAt": "2026-09-11T18:13:35.024Z",
       "skills": {
         "10x-init": {
           "files": [
