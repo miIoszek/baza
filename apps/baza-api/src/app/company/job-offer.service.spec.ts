@@ -16,6 +16,7 @@ describe('JobOfferService', () => {
     homeReturnCadence: 'weekly',
     requiredYearsExperience: 2,
     requiredTransportType: 'curtain',
+    licenseCategory: 'C',
     routes: [
       {
         from: { code: 'PL', name: 'Polska' },

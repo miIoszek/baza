@@ -227,24 +227,24 @@ MVP filters in Nest after fetching all published offers (current volume assumpti
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx nx test baza-frontend` passes (filter/URL/empty coverage)
+- [x] 2.1 `npm run lint` passes — c88b9c5
+- [x] 2.2 `npx nx test baza-frontend` passes (filter/URL/empty coverage) — c88b9c5
 
 #### Manual
 
-- [x] 2.3 Browser: set country + cadence + license; list and map update together; refresh keeps filters via URL
-- [x] 2.4 Browser: grant location → nearest-first; deny → message, list still filtered without distance sort
-- [x] 2.5 Browser: force zero matches → empty state + clear restores unfiltered browse
+- [x] 2.3 Browser: set country + cadence + license; list and map update together; refresh keeps filters via URL — c88b9c5
+- [x] 2.4 Browser: grant location → nearest-first; deny → message, list still filtered without distance sort — c88b9c5
+- [x] 2.5 Browser: force zero matches → empty state + clear restores unfiltered browse — c88b9c5
 
 ### Phase 3: Company offer form license field
 
 #### Automated
 
-- [ ] 3.1 `npm run lint` passes
-- [ ] 3.2 `npm run test` passes (both apps)
-- [ ] 3.3 `npm run build` passes
+- [x] 3.1 `npm run lint` passes
+- [x] 3.2 `npm run test` passes (both apps)
+- [x] 3.3 `npm run build` passes
 
 #### Manual
 
-- [ ] 3.4 Create/edit offer with each license value; published offer appears under matching public filter
-- [ ] 3.5 Attempt submit without license → FE error; raw API without field → 400
+- [x] 3.4 Create/edit offer with each license value; published offer appears under matching public filter
+- [x] 3.5 Attempt submit without license → FE error; raw API without field → 400

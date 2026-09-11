@@ -17,6 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   COUNTRIES,
+  DRIVER_LICENSES,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPES,
   countryNamePl,
@@ -78,6 +79,7 @@ export class CompanyOfferFormPage implements OnInit {
 
   protected readonly countries = COUNTRIES;
   protected readonly transportTypes = TRANSPORT_TYPES;
+  protected readonly licenses = DRIVER_LICENSES;
   protected readonly cadences = HOME_RETURN_CADENCES;
   protected readonly cadenceLabels = CADENCE_LABELS;
   protected readonly loading = signal(true);
@@ -97,6 +99,7 @@ export class CompanyOfferFormPage implements OnInit {
       homeReturnCadence: ['weekly' as string, Validators.required],
       requiredYearsExperience: [0, [Validators.required, Validators.min(0)]],
       requiredTransportType: ['curtain' as string, Validators.required],
+      licenseCategory: ['C' as string, Validators.required],
       routes: this.fb.array([this.newRouteGroup()]),
       salaryMin: [null as number | null, [Validators.min(0)]],
       salaryMax: [null as number | null, [Validators.min(0)]],
@@ -157,6 +160,7 @@ export class CompanyOfferFormPage implements OnInit {
       homeReturnCadence: raw.homeReturnCadence,
       requiredYearsExperience: Number(raw.requiredYearsExperience),
       requiredTransportType: raw.requiredTransportType,
+      licenseCategory: raw.licenseCategory,
       routes: raw.routes.map((r) => ({
         from: { code: r.fromCode, name: r.fromName },
         to: { code: r.toCode, name: r.toName },
@@ -239,6 +243,7 @@ export class CompanyOfferFormPage implements OnInit {
         homeReturnCadence: offer.homeReturnCadence,
         requiredYearsExperience: offer.requiredYearsExperience,
         requiredTransportType: offer.requiredTransportType,
+        licenseCategory: offer.licenseCategory,
         salaryMin: offer.salary?.min ?? null,
         salaryMax: offer.salary?.max ?? null,
         salaryCurrency: offer.salary?.currency ?? 'PLN',

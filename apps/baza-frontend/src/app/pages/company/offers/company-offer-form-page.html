@@ -67,6 +67,18 @@
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-label>Wymagane prawo jazdy</mat-label>
+          <mat-select formControlName="licenseCategory">
+            @for (l of licenses; track l.code) {
+            <mat-option [value]="l.code">{{ l.label }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.licenseCategory.touched && form.controls.licenseCategory.hasError('required')) {
+          <mat-error>Wybierz kategorię prawa jazdy</mat-error>
+          }
+        </mat-form-field>
+
         <p class="offer-form__section-hint">Trasy</p>
         <div formArrayName="routes" class="offer-routes">
           @for (r of routes.controls; track $index; let i = $index) {

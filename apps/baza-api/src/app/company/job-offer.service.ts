@@ -383,16 +383,13 @@ export class JobOfferService {
       home_return_cadence: dto.homeReturnCadence,
       required_years_experience: dto.requiredYearsExperience,
       required_transport_type: dto.requiredTransportType,
+      license_category: dto.licenseCategory,
       routes: dto.routes,
       salary_min: hasSalary ? (dto.salaryMin ?? null) : null,
       salary_max: hasSalary ? (dto.salaryMax ?? null) : null,
       salary_currency: hasSalary ? (dto.salaryCurrency ?? null) : null,
       published,
     };
-
-    if (dto.licenseCategory) {
-      row['license_category'] = dto.licenseCategory;
-    }
 
     return row;
   }

@@ -10,6 +10,7 @@ describe('CreateJobOfferDto', () => {
     homeReturnCadence: 'weekly',
     requiredYearsExperience: 1,
     requiredTransportType: 'car_transporter',
+    licenseCategory: 'C',
     routes: [
       {
         from: { code: 'PL', name: 'Polska' },
@@ -22,6 +23,22 @@ describe('CreateJobOfferDto', () => {
     const dto = plainToInstance(CreateJobOfferDto, valid);
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
+  });
+
+  it('rejects missing licenseCategory', async () => {
+    const { licenseCategory: _omit, ...withoutLicense } = valid;
+    const dto = plainToInstance(CreateJobOfferDto, withoutLicense);
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'licenseCategory')).toBe(true);
+  });
+
+  it('rejects C+E wire value (use C_E)', async () => {
+    const dto = plainToInstance(CreateJobOfferDto, {
+      ...valid,
+      licenseCategory: 'C+E',
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'licenseCategory')).toBe(true);
   });
 
   it('rejects unknown country code', async () => {

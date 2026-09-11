@@ -37,8 +37,7 @@ export interface CreateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
-  /** Optional until company-form phase; DB DEFAULT `'C'`. */
-  licenseCategory?: DriverLicenseCategory;
+  licenseCategory: DriverLicenseCategory;
   /** Wire format matches Nest DTO (flat fields, not nested SalaryRange). */
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -54,8 +53,7 @@ export interface UpdateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
-  /** Optional until company-form phase; DB DEFAULT `'C'`. */
-  licenseCategory?: DriverLicenseCategory;
+  licenseCategory: DriverLicenseCategory;
   salaryMin?: number | null;
   salaryMax?: number | null;
   salaryCurrency?: string | null;
