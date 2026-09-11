@@ -34,7 +34,7 @@ Transport companies lose drivers when job boards ignore route geography and home
 | F-01 | gate-company-routes     | (foundation) Company-only routes and API paths require login      | —             | Access Control        | done     |
 | S-01 | company-public-profile  | View and edit public company profile after registration           | F-01          | FR-001, FR-002        | done     |
 | S-02 | publish-job-offer       | Publish a free offer; see it on profile, Job Offers list, map pin | S-01          | FR-003, FR-004, US-01 | done |
-| S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | in-progress |
+| S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | done |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | proposed |
 | S-05 | company-application-inbox | See driver applications in employer inbox                         | S-04, F-01    | FR-005, US-01         | proposed |
 
@@ -111,7 +111,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Driver license category as MVP filter vs deferred — Owner: user. Block: no.
 - **Risk:** Exercises core matching UX (route + cadence filters) on real published data; list-first on small screens per NFR without blocking the must-have path.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-04: Driver apply via map
 
@@ -173,3 +173,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **F-01: (foundation) Company-only frontend routes and API endpoints require a valid Supabase session; anonymous users cannot reach employer dashboard, profile edit, or inbox paths.** — Archived 2026-09-11 → `context/archive/2026-09-08-gate-company-routes/`. Lesson: —.
 - **S-01: User can view and edit their public company profile after registration, including landing on the profile flow post-signup.** — Archived 2026-09-10 → `context/archive/2026-09-08-company-public-profile/` (impl-reviewed + triage). Lesson: —.
 - **S-02: User can create and publish a free job offer with route countries, home-return cadence, and requirements, and see it on their company profile and in Job Offers as a list entry and map pin at base location.** — Archived 2026-09-11 → `context/archive/2026-09-10-publish-job-offer/`. Lesson: —.
+- **S-03: User can open Job Offers without creating an account and filter offers by route countries/directions and home-return cadence, seeing matches in a list (mobile-first) and on a map where screen size allows.** — Archived 2026-09-11 → `context/archive/2026-09-11-driver-browse-job-offers/`. Lesson: —.
