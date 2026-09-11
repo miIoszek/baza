@@ -6,6 +6,8 @@ import {
   FormBuilder,
   ReactiveFormsModule,
   Validators,
+  type AbstractControl,
+  type ValidationErrors,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +33,24 @@ const CADENCE_LABELS: Record<string, string> = {
   monthly: 'Co miesiąc',
   flexible: 'Elastycznie',
 };
+
+function salaryRangeValidator(
+  group: AbstractControl
+): ValidationErrors | null {
+  const min = group.get('salaryMin')?.value;
+  const max = group.get('salaryMax')?.value;
+  const currency = group.get('salaryCurrency')?.value as string | null;
+  const hasAmount = min != null || max != null;
+  if (hasAmount) {
+    if (!currency || currency.length !== 3) {
+      return { salaryCurrencyRequired: true };
+    }
+    if (min != null && max != null && Number(min) > Number(max)) {
+      return { salaryRange: true };
+    }
+  }
+  return null;
+}
 
 @Component({
   selector: 'baza-company-offer-form-page',
@@ -64,21 +84,30 @@ export class CompanyOfferFormPage implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly editId = signal<string | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
-    description: [
-      '',
-      [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
-    ],
-    homeReturnCadence: ['weekly' as string, Validators.required],
-    requiredYearsExperience: [0, [Validators.required, Validators.min(0)]],
-    requiredTransportType: ['curtain' as string, Validators.required],
-    routes: this.fb.array([this.newRouteGroup()]),
-    salaryMin: [null as number | null],
-    salaryMax: [null as number | null],
-    salaryCurrency: ['PLN'],
-    published: [true],
-  });
+  protected readonly form = this.fb.nonNullable.group(
+    {
+      title: [
+        '',
+        [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
+      ],
+      description: [
+        '',
+        [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
+      ],
+      homeReturnCadence: ['weekly' as string, Validators.required],
+      requiredYearsExperience: [0, [Validators.required, Validators.min(0)]],
+      requiredTransportType: ['curtain' as string, Validators.required],
+      routes: this.fb.array([this.newRouteGroup()]),
+      salaryMin: [null as number | null, [Validators.min(0)]],
+      salaryMax: [null as number | null, [Validators.min(0)]],
+      salaryCurrency: [
+        'PLN',
+        [Validators.minLength(3), Validators.maxLength(3)],
+      ],
+      published: [true],
+    },
+    { validators: [salaryRangeValidator] }
+  );
 
   protected get routes(): FormArray {
     return this.form.controls.routes;

@@ -34,7 +34,10 @@ export interface CreateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
-  salary?: SalaryRange;
+  /** Wire format matches Nest DTO (flat fields, not nested SalaryRange). */
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
   /** Defaults to true. Requires company base_lat/base_lng when true. */
   published?: boolean;
 }
@@ -46,7 +49,9 @@ export interface UpdateJobOfferRequest {
   requiredYearsExperience: number;
   requiredTransportType: TransportType;
   description: string;
-  salary?: SalaryRange | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
   published: boolean;
 }
 

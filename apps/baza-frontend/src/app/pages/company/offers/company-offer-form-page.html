@@ -116,16 +116,29 @@
           <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
             <mat-label>Od</mat-label>
             <input matInput type="number" formControlName="salaryMin" />
+            @if (form.controls.salaryMin.touched && form.controls.salaryMin.hasError('min')) {
+            <mat-error>Min. 0</mat-error>
+            }
           </mat-form-field>
           <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
             <mat-label>Do</mat-label>
             <input matInput type="number" formControlName="salaryMax" />
+            @if (form.controls.salaryMax.touched && form.controls.salaryMax.hasError('min')) {
+            <mat-error>Min. 0</mat-error>
+            }
           </mat-form-field>
         </div>
         <div class="auth-row">
           <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
             <mat-label>Waluta</mat-label>
             <input matInput formControlName="salaryCurrency" maxlength="3" />
+            @if (
+              form.controls.salaryCurrency.touched &&
+              (form.controls.salaryCurrency.hasError('minlength') ||
+                form.controls.salaryCurrency.hasError('maxlength'))
+            ) {
+            <mat-error>Waluta: 3 znaki (np. PLN)</mat-error>
+            }
           </mat-form-field>
           <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
             <mat-label>Status</mat-label>
@@ -135,6 +148,13 @@
             </mat-select>
           </mat-form-field>
         </div>
+        @if (form.touched && form.hasError('salaryRange')) {
+        <p class="auth-field-error">
+          Minimalne wynagrodzenie nie może być większe od maksymalnego
+        </p>
+        } @else if (form.touched && form.hasError('salaryCurrencyRequired')) {
+        <p class="auth-field-error">Przy wynagrodzeniu podaj walutę (3 znaki)</p>
+        }
 
         <button
           mat-flat-button

@@ -1,7 +1,7 @@
 ---
 change_id: publish-job-offer
 title: Publish job offer
-status: implemented
+status: impl_reviewed
 created: 2026-09-10
 updated: 2026-09-11
 archived_at: null
@@ -17,3 +17,5 @@ Decisions (2026-09-10):
 - Map: Leaflet + OSM for S-02.
 - Routes: ISO 3166-1 alpha-2 + full country name (curated EU + corridors).
 - Plan Q: 1A one E2E delivery · 2A coords required to publish · 3A curated countries · 4A transport enum (incl. autowóz) · 5B create+edit+soft-unpublish · 6A mobile list-first / desktop list+map.
+
+Impl-review: `reviews/impl-review.md` (2026-09-11) — verdict NEEDS ATTENTION.

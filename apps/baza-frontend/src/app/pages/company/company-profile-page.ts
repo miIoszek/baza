@@ -5,6 +5,8 @@ import {
   FormBuilder,
   ReactiveFormsModule,
   Validators,
+  type AbstractControl,
+  type ValidationErrors,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +22,19 @@ import { AuthService } from '../../core/auth.service';
 const NIP_PATTERN = /^\d{10}$/;
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+function coordsPairValidator(
+  group: AbstractControl
+): ValidationErrors | null {
+  const lat = group.get('baseLat')?.value;
+  const lng = group.get('baseLng')?.value;
+  const hasLat = lat != null && lat !== '';
+  const hasLng = lng != null && lng !== '';
+  if (hasLat !== hasLng) {
+    return { coordsPair: true };
+  }
+  return null;
+}
 
 @Component({
   selector: 'baza-company-profile-page',
@@ -49,23 +64,32 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
   protected readonly photoPreview = signal<string | null>(null);
   private photoFile: File | null = null;
 
-  protected readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
-    nip: [
-      '',
-      [Validators.required, Validators.pattern(NIP_PATTERN)],
-    ],
-    baseLocation: [
-      '',
-      [Validators.required, Validators.minLength(1), Validators.maxLength(200)],
-    ],
-    baseLat: [null as number | null],
-    baseLng: [null as number | null],
-    description: [
-      '',
-      [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
-    ],
-  });
+  protected readonly form = this.fb.nonNullable.group(
+    {
+      name: [
+        '',
+        [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
+      ],
+      nip: ['', [Validators.required, Validators.pattern(NIP_PATTERN)]],
+      baseLocation: [
+        '',
+        [Validators.required, Validators.minLength(1), Validators.maxLength(200)],
+      ],
+      baseLat: [
+        null as number | null,
+        [Validators.min(-90), Validators.max(90)],
+      ],
+      baseLng: [
+        null as number | null,
+        [Validators.min(-180), Validators.max(180)],
+      ],
+      description: [
+        '',
+        [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
+      ],
+    },
+    { validators: [coordsPairValidator] }
+  );
 
   async ngOnInit(): Promise<void> {
     await this.auth.whenReady();

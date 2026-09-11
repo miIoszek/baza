@@ -21,6 +21,9 @@ export class CompanyPublicProfilePage implements OnInit {
   protected readonly notFound = signal(false);
   protected readonly profile = signal<CompanyPublicProfile | null>(null);
   protected readonly offers = signal<JobOffer[]>([]);
+  protected readonly offersLoading = signal(false);
+  protected readonly offersError = signal<string | null>(null);
+  private companyId: string | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -29,6 +32,7 @@ export class CompanyPublicProfilePage implements OnInit {
       this.notFound.set(true);
       return;
     }
+    this.companyId = id;
 
     this.http
       .get<CompanyPublicProfile>(
@@ -53,6 +57,12 @@ export class CompanyPublicProfilePage implements OnInit {
       });
   }
 
+  protected retryOffers(): void {
+    if (this.companyId) {
+      this.loadOffers(this.companyId);
+    }
+  }
+
   protected logoUrl(profile: CompanyPublicProfile): string | null {
     const urls = profile.photoUrls;
     if (!urls) {
@@ -72,13 +82,22 @@ export class CompanyPublicProfilePage implements OnInit {
   }
 
   private loadOffers(companyId: string): void {
+    this.offersLoading.set(true);
+    this.offersError.set(null);
     this.http
       .get<JobOffer[]>(
         `${environment.apiBaseUrl}/api/companies/${companyId}/offers`
       )
       .subscribe({
-        next: (list) => this.offers.set(list),
-        error: () => this.offers.set([]),
+        next: (list) => {
+          this.offers.set(list);
+          this.offersLoading.set(false);
+        },
+        error: () => {
+          this.offers.set([]);
+          this.offersLoading.set(false);
+          this.offersError.set('Nie udało się pobrać ofert. Spróbuj ponownie.');
+        },
       });
   }
 }

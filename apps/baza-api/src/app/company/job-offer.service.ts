@@ -78,14 +78,16 @@ export class JobOfferService {
   ): Promise<JobOffer> {
     this.assertSalary(dto);
     const company = await this.requireCompanyForUser(userId);
-    this.assertCanPublish(dto.published, company.base_lat, company.base_lng);
 
     const existing = await this.getOwnedOffer(company.id, offerId);
     if (!existing) {
       throw new NotFoundException('Oferta nie znaleziona');
     }
 
-    const patch = this.dtoToInsert(company.id, dto, dto.published);
+    const nextPublished = dto.published ?? existing.published;
+    this.assertCanPublish(nextPublished, company.base_lat, company.base_lng);
+
+    const patch = this.dtoToInsert(company.id, dto, nextPublished);
     delete (patch as { company_id?: string }).company_id;
     patch['updated_at'] = new Date().toISOString();
 
@@ -213,15 +215,15 @@ export class JobOfferService {
   private async getOwnedOffer(
     companyId: string,
     offerId: string
-  ): Promise<OfferRow | null> {
+  ): Promise<Pick<OfferRow, 'id' | 'published'> | null> {
     const { data } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
-      .select('id')
+      .select('id, published')
       .eq('id', offerId)
       .eq('company_id', companyId)
       .maybeSingle();
-    return (data as OfferRow | null) ?? null;
+    return (data as Pick<OfferRow, 'id' | 'published'> | null) ?? null;
   }
 
   private assertSalary(dto: CreateJobOfferDto | UpdateJobOfferDto): void {
@@ -251,7 +253,7 @@ export class JobOfferService {
     lat: number | null,
     lng: number | null
   ): void {
-    if (!published) {
+    if (published !== true) {
       return;
     }
     if (lat == null || lng == null) {

@@ -94,8 +94,14 @@ export class OffersMapComponent implements AfterViewInit, OnDestroy {
         fillColor: '#38bdf8',
         fillOpacity: 0.9,
       });
-      const link = pin.href
-        ? `<a href="${pin.href}">${escapeHtml(pin.title)}</a>`
+      const safeHref =
+        pin.href &&
+        pin.href.startsWith('/') &&
+        !pin.href.startsWith('//')
+          ? escapeHtml(pin.href)
+          : null;
+      const link = safeHref
+        ? `<a href="${safeHref}">${escapeHtml(pin.title)}</a>`
         : escapeHtml(pin.title);
       marker.bindPopup(link);
       marker.addTo(this.layer);

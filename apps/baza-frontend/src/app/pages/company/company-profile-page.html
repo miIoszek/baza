@@ -111,6 +111,11 @@
               step="any"
               placeholder="52.2297"
             />
+            @if (form.controls.baseLat.touched && form.controls.baseLat.hasError('min')) {
+            <mat-error>Min. −90</mat-error>
+            } @else if (form.controls.baseLat.touched && form.controls.baseLat.hasError('max')) {
+            <mat-error>Max. 90</mat-error>
+            }
           </mat-form-field>
           <mat-form-field
             appearance="outline"
@@ -125,8 +130,16 @@
               step="any"
               placeholder="21.0122"
             />
+            @if (form.controls.baseLng.touched && form.controls.baseLng.hasError('min')) {
+            <mat-error>Min. −180</mat-error>
+            } @else if (form.controls.baseLng.touched && form.controls.baseLng.hasError('max')) {
+            <mat-error>Max. 180</mat-error>
+            }
           </mat-form-field>
         </div>
+        @if (form.touched && form.hasError('coordsPair')) {
+        <p class="auth-field-error">Podaj obie współrzędne albo żadnej</p>
+        }
 
         <mat-form-field
           appearance="outline"
