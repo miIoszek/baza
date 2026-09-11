@@ -272,9 +272,9 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 
 #### Manual
 
-- [ ] 1.4 HTTP: multipart apply to published offer → 201; row in DB; CV object exists under private key (not fetchable via public R2 URL)
-- [ ] 1.5 HTTP: missing consent / non-PDF / unpublished offer → Polish 400/404
-- [ ] 1.6 Confirm register + apply are rate-limited under burst
+- [x] 1.4 HTTP: multipart apply to published offer → 201; row in DB; CV object exists under private key (not fetchable via public R2 URL) — 8997eaf
+- [x] 1.5 HTTP: missing consent / non-PDF / unpublished offer → Polish 400/404 — 8997eaf
+- [x] 1.6 Confirm register + apply are rate-limited under burst — 8997eaf
 
 ### Phase 2: Geo centroids API + detail route map
 
@@ -285,10 +285,10 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 
 #### Manual
 
-- [ ] 2.3 Detail desktop: pin at company base + arrowed lines for legs; text routes still visible
-- [ ] 2.4 Missing centroid for a code: that leg omitted, others still draw
-- [ ] 2.5 Mobile: usable layout without broken map chrome
-- [ ] 2.6 `GET /api/geo/countries` returns PL/DE/… with finite lat/lng
+- [x] 2.3 Detail desktop: pin at company base + arrowed lines for legs; text routes still visible — 3578918
+- [x] 2.4 Missing centroid for a code: that leg omitted, others still draw — 3578918
+- [x] 2.5 Mobile: usable layout without broken map chrome — 3578918
+- [x] 2.6 `GET /api/geo/countries` returns PL/DE/… with finite lat/lng — 3578918
 
 ### Phase 3: Apply form + publish-gate UX
 
@@ -301,5 +301,5 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 #### Manual
 
 - [x] 3.4 Full driver path: browse → detail → see map → apply with PDF → inline success; second apply same email succeeds — fa730fb
-- [ ] 3.5 Reject apply without consent / non-PDF with clear errors
-- [ ] 3.6 Company: publish control disabled without profile coords; guidance + profile link; after setting coords, publish works; Nest gate still enforced
+- [x] 3.5 Reject apply without consent / non-PDF with clear errors — fa730fb
+- [x] 3.6 Company: publish control disabled without profile coords; guidance + profile link; after setting coords, publish works; Nest gate still enforced — fa730fb
