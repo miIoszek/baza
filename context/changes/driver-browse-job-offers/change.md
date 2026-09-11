@@ -1,7 +1,7 @@
 ---
 change_id: driver-browse-job-offers
 title: Driver browse job offers
-status: implementing
+status: implemented
 created: 2026-09-11
 updated: 2026-09-11
 archived_at: null

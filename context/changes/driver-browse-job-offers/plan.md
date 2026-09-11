@@ -240,11 +240,11 @@ MVP filters in Nest after fetching all published offers (current volume assumpti
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run test` passes (both apps)
-- [x] 3.3 `npm run build` passes
+- [x] 3.1 `npm run lint` passes — 75e2891
+- [x] 3.2 `npm run test` passes (both apps) — 75e2891
+- [x] 3.3 `npm run build` passes — 75e2891
 
 #### Manual
 
-- [x] 3.4 Create/edit offer with each license value; published offer appears under matching public filter
-- [x] 3.5 Attempt submit without license → FE error; raw API without field → 400
+- [x] 3.4 Create/edit offer with each license value; published offer appears under matching public filter — 75e2891
+- [x] 3.5 Attempt submit without license → FE error; raw API without field → 400 — 75e2891
