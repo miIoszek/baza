@@ -4,10 +4,79 @@
     <p>Darmowe oferty transportu dla kierowców</p>
   </header>
 
+  <div class="job-offers__filters">
+    <mat-form-field appearance="outline" class="job-offers__field">
+      <mat-label>Kraje trasy</mat-label>
+      <mat-select
+        multiple
+        [ngModel]="filters().countries"
+        (ngModelChange)="onCountriesChange($event)"
+      >
+        @for (c of countries; track c.code) {
+        <mat-option [value]="c.code">{{ c.namePl }} ({{ c.code }})</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="job-offers__field">
+      <mat-label>Powrót do domu</mat-label>
+      <mat-select
+        [ngModel]="filters().cadence"
+        (ngModelChange)="onCadenceChange($event)"
+      >
+        <mat-option value="">Dowolna</mat-option>
+        @for (c of cadences; track c) {
+        <mat-option [value]="c">{{ cadenceLabels[c] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="job-offers__field">
+      <mat-label>Prawo jazdy</mat-label>
+      <mat-select
+        [ngModel]="filters().license"
+        (ngModelChange)="onLicenseChange($event)"
+      >
+        <mat-option value="">Dowolna</mat-option>
+        @for (l of licenses; track l.code) {
+        <mat-option [value]="l.code">{{ l.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="job-offers__filter-actions">
+      <button mat-stroked-button type="button" (click)="useMyLocation()">
+        Użyj mojej lokalizacji
+      </button>
+      @if (hasFilters()) {
+      <button mat-button type="button" (click)="clearFilters()">
+        Wyczyść filtry
+      </button>
+      }
+    </div>
+  </div>
+
+  @if (geoError(); as geo) {
+  <p class="job-offers__status job-offers__status--error">{{ geo }}</p>
+  } @if (filters().nearLat !== null && filters().nearLng !== null) {
+  <p class="job-offers__status">
+    Sortowanie: najbliższe bazy względem Twojej lokalizacji
+  </p>
+  }
+
   @if (loading()) {
   <p class="job-offers__status">Ładowanie ofert…</p>
   } @else if (error(); as err) {
   <p class="job-offers__status job-offers__status--error">{{ err }}</p>
+  } @else if (offers().length === 0 && hasFilters()) {
+  <div class="job-offers__empty">
+    <p class="job-offers__status">
+      Brak ofert dla wybranych filtrów. Spróbuj poluzować kraj lub kadencję.
+    </p>
+    <button mat-flat-button color="primary" type="button" (click)="clearFilters()">
+      Wyczyść filtry
+    </button>
+  </div>
   } @else if (offers().length === 0) {
   <p class="job-offers__status">Brak opublikowanych ofert.</p>
   } @else {
@@ -23,8 +92,10 @@
             </mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
-            <p>{{ transportLabel(o.requiredTransportType) }} · min.
-              {{ o.requiredYearsExperience }} lat</p>
+            <p>
+              {{ transportLabel(o.requiredTransportType) }} · min.
+              {{ o.requiredYearsExperience }} lat · PJ {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
+            </p>
             @if (o.companyBaseLocationText) {
             <p class="job-offers__loc">{{ o.companyBaseLocationText }}</p>
             }

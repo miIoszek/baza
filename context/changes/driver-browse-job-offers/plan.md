@@ -214,27 +214,27 @@ MVP filters in Nest after fetching all published offers (current volume assumpti
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npx nx test baza-api` passes (filter matching + validation cases)
-- [x] 1.3 Migration SQL present and applies cleanly (`supabase db push` / linked project)
+- [x] 1.1 `npm run lint` passes — 8bb7fa8
+- [x] 1.2 `npx nx test baza-api` passes (filter matching + validation cases) — 8bb7fa8
+- [x] 1.3 Migration SQL present and applies cleanly (`supabase db push` / linked project) — 8bb7fa8
 
 #### Manual
 
-- [x] 1.4 HTTP: unfiltered `GET /api/offers` still returns published offers including `licenseCategory`
-- [x] 1.5 HTTP: filtered calls return only matching offers; clearing params restores full published set
+- [x] 1.4 HTTP: unfiltered `GET /api/offers` still returns published offers including `licenseCategory` — 8bb7fa8
+- [x] 1.5 HTTP: filtered calls return only matching offers; clearing params restores full published set — 8bb7fa8
 
 ### Phase 2: Job Offers browse UI (filters + near + URL)
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx nx test baza-frontend` passes (filter/URL/empty coverage)
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx nx test baza-frontend` passes (filter/URL/empty coverage)
 
 #### Manual
 
-- [ ] 2.3 Browser: set country + cadence + license; list and map update together; refresh keeps filters via URL
-- [ ] 2.4 Browser: grant location → nearest-first; deny → message, list still filtered without distance sort
-- [ ] 2.5 Browser: force zero matches → empty state + clear restores unfiltered browse
+- [x] 2.3 Browser: set country + cadence + license; list and map update together; refresh keeps filters via URL
+- [x] 2.4 Browser: grant location → nearest-first; deny → message, list still filtered without distance sort
+- [x] 2.5 Browser: force zero matches → empty state + clear restores unfiltered browse
 
 ### Phase 3: Company offer form license field
 
