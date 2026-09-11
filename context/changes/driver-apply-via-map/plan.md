@@ -266,9 +266,9 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 
 #### Automated
 
-- [x] 1.1 Migration file present; `supabase db push` (or project equivalent) applies cleanly
-- [x] 1.2 `npm run lint` passes
-- [x] 1.3 `npx nx test baza-api` passes (apply + storage-related cases)
+- [x] 1.1 Migration file present; `supabase db push` (or project equivalent) applies cleanly — 8997eaf
+- [x] 1.2 `npm run lint` passes — 8997eaf
+- [x] 1.3 `npx nx test baza-api` passes (apply + storage-related cases) — 8997eaf
 
 #### Manual
 
