@@ -43,11 +43,15 @@ describe('application phone', () => {
   });
 
   it('accepts PL-style numbers', () => {
-    expect(isValidApplicationPhone('123123123')).toBe(true);
+    expect(isValidApplicationPhone('123456789')).toBe(true);
     expect(isValidApplicationPhone('+48 123 456 789')).toBe(true);
     expect(applicationPhoneValidator()(new FormControl('+48123456789'))).toBe(
       null
     );
+  });
+
+  it('rejects numbers longer than the field max', () => {
+    expect(isValidApplicationPhone('+48 123 456 789 012')).toBe(false);
   });
 });
 

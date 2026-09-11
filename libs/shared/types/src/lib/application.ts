@@ -1,30 +1,38 @@
 /** Field length limits — lock FE + Nest DTO + DB CHECKs together. */
 export const APPLICATION_FIELD_LIMITS = {
   email: 254,
-  phone: 32,
+  /** National 9 digits + optional country code / light formatting (e.g. +48 123 456 789). */
+  phone: 16,
   message: 2000,
 } as const;
 
 export const APPLICATION_CV_MAX_BYTES = 5 * 1024 * 1024;
 
+/** Digit count after stripping non-digits (national 9 … E.164 max 15). */
+export const APPLICATION_PHONE_DIGIT_MIN = 9;
+export const APPLICATION_PHONE_DIGIT_MAX = 15;
+
 /**
  * Phone: optional leading +, then digits with spaces / dashes / parentheses.
- * Digit count must be 9–15 (E.164).
+ * Digit count must be 9–15; total length ≤ APPLICATION_FIELD_LIMITS.phone.
  */
 export const APPLICATION_PHONE_PATTERN =
-  /^\+?[0-9][0-9\s()/.-]{7,30}$/;
+  /^\+?[0-9][0-9\s()/.-]{7,14}$/;
 
 export function isValidApplicationPhone(phone: string): boolean {
   const trimmed = phone.trim();
   if (
-    trimmed.length < 3 ||
+    trimmed.length < APPLICATION_PHONE_DIGIT_MIN ||
     trimmed.length > APPLICATION_FIELD_LIMITS.phone ||
     !APPLICATION_PHONE_PATTERN.test(trimmed)
   ) {
     return false;
   }
   const digits = trimmed.replace(/\D/g, '');
-  return digits.length >= 9 && digits.length <= 15;
+  return (
+    digits.length >= APPLICATION_PHONE_DIGIT_MIN &&
+    digits.length <= APPLICATION_PHONE_DIGIT_MAX
+  );
 }
 
 /** Internal / company-facing application row (S-05). */

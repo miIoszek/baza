@@ -4,7 +4,7 @@
 - **Plan**: context/changes/driver-apply-via-map/plan.md
 - **Scope**: Phases 1–3 of 3 (full plan)
 - **Date**: 2026-09-11
-- **Verdict**: NEEDS ATTENTION
+- **Verdict**: NEEDS ATTENTION → triaged (warnings addressed / F7 deferred)
 - **Findings**: 0 critical 4 warnings 3 observations
 
 ## Verdicts
@@ -37,9 +37,7 @@
   - Tradeoff: Easy to forget on future sensitive routes.
   - Confidence: HIGH.
   - Blind spot: None significant.
-- **Decision**: PENDING
-
-### F2 — Private R2 bucket can equal public bucket
+- **Decision**: FIXED via Fix A — plan addendum: high default APP_GUARD per-IP is intentional; apply/register stay at 10/min
 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
@@ -51,9 +49,7 @@
   - Tradeoff: One guard + test.
   - Confidence: HIGH.
   - Blind spot: Shared credentials across buckets are still OK when names differ.
-- **Decision**: PENDING
-
-### F3 — Oversized CV may become HTTP 500
+- **Decision**: FIXED — reject private config when `R2_PRIVATE_BUCKET === R2_BUCKET` (log + treat as not configured)
 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
@@ -61,9 +57,7 @@
 - **Location**: apps/baza-api/src/app/company/offers-public.controller.ts (FileInterceptor limits)
 - **Detail**: Multer `LIMIT_FILE_SIZE` often surfaces as non-HttpException → global filter 500, not Polish 400. FE gates help; raw API callers do not.
 - **Fix**: Map `MulterError` / `LIMIT_FILE_SIZE` to `BadRequestException('Plik CV jest zbyt duży (max 5 MB)')`.
-- **Decision**: PENDING
-
-### F4 — Orphan CV cleanup failures are silent
+- **Decision**: FIXED — AllExceptionsFilter maps Multer LIMIT_FILE_SIZE to Polish 400 (CV-specific message when field=`cv`)
 
 - **Severity**: ⚠️ WARNING
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
@@ -71,9 +65,7 @@
 - **Location**: apps/baza-api/src/app/storage/r2-storage.service.ts (`deletePrefixInBucket`)
 - **Detail**: Best-effort private prefix delete swallows errors with no log, so failed insert + failed cleanup leaves PII orphans without signal.
 - **Fix**: Log delete failures (bucket + prefix); keep best-effort semantics.
-- **Decision**: PENDING
-
-### F5 — FE apply form success/consent specs incomplete vs plan
+- **Decision**: FIXED — log deletePrefix failures with bucket + prefix; keep best-effort
 
 - **Severity**: 💬 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
@@ -81,9 +73,7 @@
 - **Location**: apps/baza-frontend/.../application-form.helpers.spec.ts; no detail-page HTTP mock
 - **Detail**: Plan asked FE specs for consent/PDF/size and success-path HTTP mock. Helpers cover PDF/size/phone; company publish gate has a unit test. Detail-page apply success + consent `requiredTrue` are not component-tested.
 - **Fix**: Add a thin detail-page (or form) spec with HttpTestingController happy path + consent invalid; or document helper coverage as sufficient.
-- **Decision**: PENDING
-
-### F6 — Phone format rules beyond original plan lengths
+- **Decision**: FIXED — added `job-offer-detail-page.spec.ts` (consent blocks POST; happy-path multipart → success)
 
 - **Severity**: 💬 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
@@ -91,9 +81,7 @@
 - **Location**: libs/shared/types/.../application.ts; migration `20260911220000_job_applications_phone_format.sql`
 - **Detail**: Plan locked phone to length ≤32; product follow-up added digit/format validation FE+BE+DB (lesson-aligned). Extra migration deletes rows that fail the new CHECK.
 - **Fix**: Keep as intentional product hardening (already shipped); no rollback needed for MVP.
-- **Decision**: PENDING
-
-### F7 — In-memory throttle only (multi-instance)
+- **Decision**: FIXED — tightened phone to max 16 chars / 9–15 digits everywhere (shared + Nest + DB migration); was product follow-up beyond original ≤32 plan
 
 - **Severity**: 💬 OBSERVATION
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
@@ -101,4 +89,9 @@
 - **Location**: ThrottlerModule.forRoot (default storage)
 - **Detail**: Apply/register limits are per process; Railway multi-replica weakens caps.
 - **Fix**: Defer until multi-replica; then shared store (Redis) if needed.
-- **Decision**: PENDING
+- **Decision**: SKIPPED — defer shared throttle store until multi-replica; in-memory per-process OK for MVP
+
+## Triage summary
+
+- Fixed: F1 (Fix A), F2, F3, F4, F5, F6
+- Skipped: F7 (defer Redis/shared store)

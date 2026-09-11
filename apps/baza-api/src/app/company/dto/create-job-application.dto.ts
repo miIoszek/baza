@@ -1,4 +1,11 @@
 import {
+  APPLICATION_FIELD_LIMITS,
+  APPLICATION_PHONE_DIGIT_MIN,
+  APPLICATION_PHONE_PATTERN,
+  isValidApplicationPhone,
+} from '@baza/shared-types';
+import { Transform } from 'class-transformer';
+import {
   Equals,
   IsEmail,
   IsOptional,
@@ -10,12 +17,6 @@ import {
   ValidatorConstraint,
   type ValidatorConstraintInterface,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
-import {
-  APPLICATION_FIELD_LIMITS,
-  APPLICATION_PHONE_PATTERN,
-  isValidApplicationPhone,
-} from '@baza/shared-types';
 
 function toConsentAccepted(value: unknown): boolean {
   return value === true || value === 'true' || value === '1';
@@ -38,8 +39,12 @@ export class CreateJobApplicationDto {
   email!: string;
 
   @IsString()
-  @MinLength(9, { message: 'Podaj prawidłowy numer telefonu' })
-  @MaxLength(APPLICATION_FIELD_LIMITS.phone)
+  @MinLength(APPLICATION_PHONE_DIGIT_MIN, {
+    message: 'Podaj prawidłowy numer telefonu',
+  })
+  @MaxLength(APPLICATION_FIELD_LIMITS.phone, {
+    message: 'Podaj prawidłowy numer telefonu',
+  })
   @Matches(APPLICATION_PHONE_PATTERN, {
     message: 'Podaj prawidłowy numer telefonu',
   })

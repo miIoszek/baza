@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { MulterError } from 'multer';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -15,6 +16,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
+    if (exception instanceof MulterError) {
+      const message =
+        exception.code === 'LIMIT_FILE_SIZE'
+          ? exception.field === 'cv'
+            ? 'Plik CV jest zbyt duży (max 5 MB)'
+            : 'Plik jest zbyt duży (max 5 MB)'
+          : 'Nieprawidłowy plik';
+      response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message,
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
 
     const status =
       exception instanceof HttpException

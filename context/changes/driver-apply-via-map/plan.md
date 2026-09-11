@@ -38,7 +38,7 @@ A driver can open `/job-offers/:id`, see offer details beside (desktop) or above
 - Public CV URLs or public Cache-Control on CV objects
 - Changing browse pin-only map semantics
 - Pin clustering, paid listings, chat
-- Global API throttling beyond apply + register
+- Strict per-route-only throttling without a high default safety net (see Addendum)
 - DOCX/other non-PDF CVs
 
 ## Implementation Approach
@@ -53,6 +53,7 @@ Three phases matching S-03: (1) schema + private CV + public apply POST + thrott
 
 **Publish gate:** backend already throws on publish without coords — Phase 3 ensures company offer form surfaces that error and guides profile lat/lng; do not weaken `assertCanPublish`.
 
+**Addendum (impl-review F1):** Nest uses a global `ThrottlerGuard` with a **high per-IP default** (120/min) as a safety net on all routes. Apply and register keep a **stricter** `@Throttle(10/min)`. This is intentional — not a shared global quota across all users.
 ---
 
 ## Phase 1: Apply API + private CV storage
@@ -69,7 +70,7 @@ Persist driver applications via public multipart POST, private R2 CV keys, Nest-
 
 **Intent**: Extend apply contracts for consent and wire-safe create/response shapes used by Nest and Angular.
 
-**Contract**: `CreateJobApplicationRequest` includes `email` (≤254), `phone` (≤32), optional `message` (≤2000 when present), required consent via multipart (`'true'` / `'1'` / boolean true only). `JobApplication` (or create response) includes ids, contact fields, optional message, `createdAt` — **no** public CV URL; may omit `cvFileKey` from public create response if preferred (company-only later). Keep `cvFileKey` on internal/company-facing type for S-05. Mirror the same max lengths in Nest `class-validator` DTOs and DB CHECKs (lesson: FE + BE + DB).
+**Contract**: `CreateJobApplicationRequest` includes `email` (≤254), `phone` (≤16 chars, 9–15 digits after strip; optional country prefix), optional `message` (≤2000 when present), required consent via multipart (`'true'` / `'1'` / boolean true only). `JobApplication` (or create response) includes ids, contact fields, optional message, `createdAt` — **no** public CV URL; may omit `cvFileKey` from public create response if preferred (company-only later). Keep `cvFileKey` on internal/company-facing type for S-05. Mirror the same max lengths in Nest `class-validator` DTOs and DB CHECKs (lesson: FE + BE + DB).
 
 #### 2. Migration
 
@@ -77,7 +78,7 @@ Persist driver applications via public multipart POST, private R2 CV keys, Nest-
 
 **Intent**: Create Nest-only `job_applications` (or `applications`) table with FKs to offer + company, length CHECKs, revoke anon/authenticated like offers.
 
-**Contract**: Columns at minimum: `id`, `job_offer_id`, `company_id`, `email` (varchar ≤254), `phone` (varchar ≤32), `message` nullable (≤2000), `cv_file_key`, `consent_accepted_at` (timestamptz, required — set only when consent accepted), `created_at`. CHECKs enforce those lengths. No unique on `(offer_id, email)`. Indexes for company/offer lookups for S-05.
+**Contract**: Columns at minimum: `id`, `job_offer_id`, `company_id`, `email` (varchar ≤254), `phone` (varchar ≤16), `message` nullable (≤2000), `cv_file_key`, `consent_accepted_at` (timestamptz, required — set only when consent accepted), `created_at`. CHECKs enforce those lengths plus phone digit/format rules. No unique on `(offer_id, email)`. Indexes for company/offer lookups for S-05.
 
 #### 3. Private CV upload
 

@@ -77,8 +77,17 @@ export class R2StorageService {
       process.env['R2_PRIVATE_SECRET_ACCESS_KEY']?.trim() ||
       process.env['R2_SECRET_ACCESS_KEY']?.trim();
     const bucket = process.env['R2_PRIVATE_BUCKET']?.trim();
+    const publicBucket = process.env['R2_BUCKET']?.trim() || 'baza-uploads';
 
     if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+      return null;
+    }
+
+    // CV must never share the public logo bucket (custom domain / public URL).
+    if (bucket === publicBucket) {
+      this.logger.error(
+        `R2_PRIVATE_BUCKET must differ from R2_BUCKET (both="${bucket}")`
+      );
       return null;
     }
 
@@ -322,8 +331,11 @@ export class R2StorageService {
           Delete: { Objects: keys.map((Key) => ({ Key })) },
         })
       );
-    } catch {
-      // best-effort
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `R2 deletePrefix failed (bucket=${bucket}, prefix=${prefix}): ${detail}`
+      );
     }
   }
 

@@ -65,4 +65,12 @@ describe('R2StorageService private CV', () => {
       )
     ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
+
+  it('is not private-configured when private bucket equals public bucket', () => {
+    withPrivateEnv();
+    process.env['R2_BUCKET'] = 'baza-uploads';
+    process.env['R2_PRIVATE_BUCKET'] = 'baza-uploads';
+    const svc = new R2StorageService();
+    expect(svc.isPrivateConfigured()).toBe(false);
+  });
 });
