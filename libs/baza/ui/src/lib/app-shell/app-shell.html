@@ -4,6 +4,13 @@
     <span class="baza-app-shell__brand-text">Baza</span>
   </a>
   <span class="baza-app-shell__spacer"></span>
+  <a
+    mat-button
+    routerLink="/job-offers"
+    routerLinkActive="baza-app-shell__active"
+  >
+    Oferty pracy
+  </a>
   @if (accountLabel()) {
     <a
       mat-button
@@ -11,6 +18,20 @@
       routerLinkActive="baza-app-shell__active"
     >
       Profil firmy
+    </a>
+    <a
+      mat-button
+      routerLink="/company/offers"
+      routerLinkActive="baza-app-shell__active"
+    >
+      Moje oferty
+    </a>
+    <a
+      mat-button
+      routerLink="/company/offers/new"
+      routerLinkActive="baza-app-shell__active"
+    >
+      Dodaj ofertę
     </a>
     <div class="baza-app-shell__account-wrap">
       @if (accountAvatarUrl()) {

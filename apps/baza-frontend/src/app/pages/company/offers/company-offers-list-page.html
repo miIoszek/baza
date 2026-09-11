@@ -1,0 +1,64 @@
+<section class="auth-page">
+  <mat-card class="auth-card baza-glass-card" appearance="outlined">
+    <div class="auth-brand">
+      <img
+        class="auth-brand__logo"
+        src="/baza-logo.png"
+        alt=""
+        width="48"
+        height="59"
+      />
+      <span class="auth-brand__name">Baza</span>
+    </div>
+    <mat-card-header>
+      <mat-card-title>Moje oferty</mat-card-title>
+      <mat-card-subtitle>Zarządzaj ogłoszeniami firmy</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loading()) {
+      <p class="auth-form offers-list__status">Ładowanie…</p>
+      } @else {
+      <div class="auth-form">
+        <a
+          mat-flat-button
+          color="primary"
+          class="baza-btn-premium full-width"
+          routerLink="/company/offers/new"
+          >Dodaj ofertę</a
+        >
+
+        @if (offers().length === 0) {
+        <p class="offers-list__empty">Brak ofert. Utwórz pierwszą.</p>
+        } @else {
+        <ul class="offers-list">
+          @for (o of offers(); track o.id) {
+          <li class="offers-list__item">
+            <div>
+              <strong>{{ o.title }}</strong>
+              <span class="offers-list__meta">
+                {{ o.published ? 'Opublikowana' : 'Wycofana' }} ·
+                {{ o.routes.length }} tras
+              </span>
+            </div>
+            <div class="offers-list__actions">
+              <a mat-button [routerLink]="['/company/offers', o.id, 'edit']"
+                >Edytuj</a
+              >
+              @if (o.published) {
+              <button mat-button type="button" (click)="unpublish(o.id)">
+                Wycofaj
+              </button>
+              }
+            </div>
+          </li>
+          }
+        </ul>
+        }
+      </div>
+      }
+    </mat-card-content>
+    <mat-card-footer class="auth-footer">
+      <a routerLink="/company/profile">← Profil firmy</a>
+    </mat-card-footer>
+  </mat-card>
+</section>

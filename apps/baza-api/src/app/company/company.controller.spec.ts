@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthedRequest } from '../auth/jwt-auth.guard';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
+import { JobOfferService } from './job-offer.service';
 
 describe('CompanyController', () => {
   let controller: CompanyController;
@@ -25,6 +26,15 @@ describe('CompanyController', () => {
         {
           provide: CompanyService,
           useValue: { updateProfile },
+        },
+        {
+          provide: JobOfferService,
+          useValue: {
+            listForOwner: jest.fn(),
+            createForUser: jest.fn(),
+            updateForUser: jest.fn(),
+            unpublishForUser: jest.fn(),
+          },
         },
       ],
     })

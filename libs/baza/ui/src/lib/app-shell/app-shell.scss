@@ -84,3 +84,10 @@
   display: block;
   background: transparent;
 }
+
+a.baza-app-shell__active.mat-mdc-button {
+  --mdc-text-button-label-text-color: var(--mat-sys-on-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
+  color: var(--mat-sys-primary) !important;
+  border-radius: 999px;
+}

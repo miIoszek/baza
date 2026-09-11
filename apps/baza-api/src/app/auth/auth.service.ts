@@ -141,11 +141,17 @@ export class AuthService {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('companies')
-      .select('id, name, nip, description, base_location, photo_urls')
+      .select('id, name, nip, description, base_location, base_lat, base_lng, photo_urls')
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      this.logger.warn(
+        `getCompanyForUser failed for ${userId}: ${error.message}`
+      );
+      return null;
+    }
+    if (!data) {
       return null;
     }
 
@@ -155,6 +161,8 @@ export class AuthService {
       nip: data.nip as string,
       description: data.description as string,
       baseLocation: data.base_location as string,
+      baseLat: (data.base_lat as number | null) ?? null,
+      baseLng: (data.base_lng as number | null) ?? null,
       photoUrls: rewriteR2PhotoUrls(
         (data.photo_urls as Record<string, string> | null) ?? null
       ),

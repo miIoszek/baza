@@ -48,6 +48,8 @@ export class CompanyService {
       nip: dto.nip,
       description: dto.description,
       base_location: dto.baseLocation,
+      base_lat: dto.baseLat ?? null,
+      base_lng: dto.baseLng ?? null,
     };
 
     const previousPhotoKey =

@@ -36,6 +36,32 @@
             <dd>{{ company.description }}</dd>
           </div>
         </dl>
+
+        <section class="company-public__offers">
+          <h2>Oferty pracy</h2>
+          @if (offersLoading()) {
+          <p>Ładowanie ofert…</p>
+          } @else if (offersError(); as err) {
+          <p class="company-public__offers-error">{{ err }}</p>
+          <button mat-button type="button" (click)="retryOffers()">
+            Spróbuj ponownie
+          </button>
+          } @else if (offers().length === 0) {
+          <p>Brak opublikowanych ofert.</p>
+          } @else {
+          <ul class="company-public__offers-list">
+            @for (o of offers(); track o.id) {
+            <li>
+              <a [routerLink]="['/job-offers', o.id]">
+                <strong>{{ o.title }}</strong>
+              </a>
+              <span>{{ routesSummary(o) }}</span>
+            </li>
+            }
+          </ul>
+          }
+          <a mat-button routerLink="/job-offers">Wszystkie oferty</a>
+        </section>
       </mat-card-content>
     </mat-card>
   }

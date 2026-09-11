@@ -1,8 +1,13 @@
-/** ISO 3166-1 alpha-2 country code used for route matching. */
-export type CountryCode = string;
+import type { CountryCode } from './country';
+
+/** One endpoint of a route leg (ISO code + display name). */
+export interface RouteCountry {
+  code: CountryCode;
+  name: string;
+}
 
 /** A route direction the company operates (e.g. Poland → Italy). */
 export interface RouteDirection {
-  fromCountry: CountryCode;
-  toCountry: CountryCode;
+  from: RouteCountry;
+  to: RouteCountry;
 }

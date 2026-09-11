@@ -7,9 +7,23 @@ import { RegisterPage } from './pages/register/register';
 import { CompanyInboxPlaceholder } from './pages/company/company-inbox-placeholder';
 import { CompanyProfilePage } from './pages/company/company-profile-page';
 import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
+import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
+import { CompanyOfferFormPage } from './pages/company/offers/company-offer-form-page';
 
 export const appRoutes: Route[] = [
   { path: '', component: HomePage },
+  {
+    path: 'job-offers',
+    loadComponent: () =>
+      import('./pages/job-offers/job-offers-page').then((m) => m.JobOffersPage),
+  },
+  {
+    path: 'job-offers/:id',
+    loadComponent: () =>
+      import('./pages/job-offers/job-offer-detail-page').then(
+        (m) => m.JobOfferDetailPage
+      ),
+  },
   {
     path: 'companies/:id',
     component: CompanyPublicProfilePage,
@@ -32,6 +46,21 @@ export const appRoutes: Route[] = [
   {
     path: 'company/profile',
     component: CompanyProfilePage,
+    canActivate: [companyAuthGuard],
+  },
+  {
+    path: 'company/offers',
+    component: CompanyOffersListPage,
+    canActivate: [companyAuthGuard],
+  },
+  {
+    path: 'company/offers/new',
+    component: CompanyOfferFormPage,
+    canActivate: [companyAuthGuard],
+  },
+  {
+    path: 'company/offers/:id/edit',
+    component: CompanyOfferFormPage,
     canActivate: [companyAuthGuard],
   },
   {

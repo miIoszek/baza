@@ -24,6 +24,8 @@ describe('CompanyProfilePage', () => {
         nip: '1234567890',
         description: 'Fleet',
         baseLocation: 'Warsaw',
+        baseLat: null,
+        baseLng: null,
         photoUrls: null,
       }),
     };
@@ -72,8 +74,33 @@ describe('CompanyProfilePage', () => {
       name: 'Acme Transport',
       nip: '1234567890',
       baseLocation: 'Warsaw',
+      baseLat: null,
+      baseLng: null,
       description: 'Fleet',
     });
     expect(page['companyId']()).toBe('company-1');
+  });
+
+  it('marks form invalid when only one coordinate is set', async () => {
+    const fixture = TestBed.createComponent(CompanyProfilePage);
+    const page = fixture.componentInstance;
+    await page.ngOnInit();
+    fixture.detectChanges();
+
+    page['form'].controls.baseLat.setValue(52.2);
+    page['form'].controls.baseLng.setValue(null);
+    page['form'].markAllAsTouched();
+
+    expect(page['form'].hasError('coordsPair')).toBe(true);
+  });
+
+  it('rejects latitude outside [-90, 90]', async () => {
+    const fixture = TestBed.createComponent(CompanyProfilePage);
+    const page = fixture.componentInstance;
+    await page.ngOnInit();
+
+    page['form'].controls.baseLat.setValue(91);
+
+    expect(page['form'].controls.baseLat.hasError('max')).toBe(true);
   });
 });

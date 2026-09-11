@@ -10,5 +10,8 @@ export interface CompanyPublicProfile {
   nip: string;
   description: string;
   baseLocation: string;
+  /** Manual map pin; null until set (Places later). */
+  baseLat: number | null;
+  baseLng: number | null;
   photoUrls: Record<string, string> | null;
 }

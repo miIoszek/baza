@@ -1,6 +1,7 @@
 import type { HomeReturnCadence } from './home-return-cadence';
 import type { RouteDirection } from './route-direction';
 import type { GeoPoint } from './company';
+import type { TransportType } from './transport-type';
 
 export interface SalaryRange {
   min?: number;
@@ -15,11 +16,14 @@ export interface JobOffer {
   routes: RouteDirection[];
   homeReturnCadence: HomeReturnCadence;
   requiredYearsExperience: number;
-  requiredTransportType: string;
+  requiredTransportType: TransportType;
   description: string;
   salary?: SalaryRange;
-  /** Map pin = company base location for MVP. */
-  baseLocation: GeoPoint;
+  /** Map pin = company base location for MVP (null if company has no coords). */
+  baseLocation: GeoPoint | null;
+  /** Text address from company (always available when company exists). */
+  companyBaseLocationText: string | null;
+  published: boolean;
   publishedAt: string;
 }
 
@@ -28,9 +32,27 @@ export interface CreateJobOfferRequest {
   routes: RouteDirection[];
   homeReturnCadence: HomeReturnCadence;
   requiredYearsExperience: number;
-  requiredTransportType: string;
+  requiredTransportType: TransportType;
   description: string;
-  salary?: SalaryRange;
+  /** Wire format matches Nest DTO (flat fields, not nested SalaryRange). */
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
+  /** Defaults to true. Requires company base_lat/base_lng when true. */
+  published?: boolean;
+}
+
+export interface UpdateJobOfferRequest {
+  title: string;
+  routes: RouteDirection[];
+  homeReturnCadence: HomeReturnCadence;
+  requiredYearsExperience: number;
+  requiredTransportType: TransportType;
+  description: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
+  published: boolean;
 }
 
 export interface JobOfferFilters {

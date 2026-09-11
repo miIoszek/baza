@@ -1,0 +1,67 @@
+.job-offers {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.job-offers__header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.75rem;
+}
+
+.job-offers__header p {
+  margin: 0 0 1.5rem;
+  opacity: 0.8;
+}
+
+.job-offers__status {
+  opacity: 0.85;
+}
+
+.job-offers__status--error {
+  color: #f87171;
+}
+
+.job-offers__layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.job-offers__layout--map {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+  align-items: start;
+}
+
+.job-offers__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.job-offers__card {
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.job-offers__loc {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.job-offers__map-pane {
+  position: sticky;
+  top: 1rem;
+  height: min(70vh, 32rem);
+}
+
+@media (max-width: 767px) {
+  .job-offers__layout--map {
+    grid-template-columns: 1fr;
+  }
+
+  .job-offers__map-pane {
+    display: none;
+  }
+}
