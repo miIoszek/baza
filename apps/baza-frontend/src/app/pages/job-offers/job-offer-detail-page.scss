@@ -1,5 +1,5 @@
 .offer-detail {
-  max-width: 40rem;
+  max-width: 64rem;
   margin: 2rem auto;
   padding: 0 1rem 3rem;
 }
@@ -7,6 +7,16 @@
 .offer-detail__status {
   text-align: center;
   opacity: 0.85;
+}
+
+.offer-detail__layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.offer-detail__layout--map {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+  align-items: start;
 }
 
 .offer-detail__card {
@@ -50,4 +60,21 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 1rem 1rem !important;
+}
+
+.offer-detail__map-pane {
+  position: sticky;
+  top: 1rem;
+  height: min(70vh, 32rem);
+}
+
+@media (max-width: 767px) {
+  .offer-detail__layout--map {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-detail__map-pane {
+    position: static;
+    height: 16rem;
+  }
 }

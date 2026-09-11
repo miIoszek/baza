@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
+import { GeoModule } from './geo/geo.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CompanyModule } from './company/company.module';
     ApiDataAccessModule,
     AuthModule,
     CompanyModule,
+    GeoModule,
     // High default so browse is unaffected; register/apply set stricter @Throttle.
     ThrottlerModule.forRoot([
       {

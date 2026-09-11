@@ -12,58 +12,80 @@
     </mat-card-content>
   </mat-card>
   } @else if (offer(); as o) {
-  <mat-card appearance="outlined" class="offer-detail__card">
-    <mat-card-header>
-      <mat-card-title>{{ o.title }}</mat-card-title>
-      <mat-card-subtitle>
-        {{ transportLabel(o.requiredTransportType) }} ·
-        {{ cadenceLabel(o.homeReturnCadence) }}
-      </mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <dl class="offer-detail__fields">
-        <div>
-          <dt>Trasy</dt>
-          <dd>
-            <ul class="offer-detail__routes">
-              @for (r of o.routes; track $index) {
-              <li>{{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{ r.to.code }})</li>
-              }
-            </ul>
-          </dd>
-        </div>
-        <div>
-          <dt>Wymagane doświadczenie</dt>
-          <dd>{{ o.requiredYearsExperience }} lat</dd>
-        </div>
-        <div>
-          <dt>Prawo jazdy</dt>
-          <dd>{{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}</dd>
-        </div>
-        @if (salaryText(o); as salary) {
-        <div>
-          <dt>Wynagrodzenie</dt>
-          <dd>{{ salary }}</dd>
-        </div>
-        }
-        @if (o.companyBaseLocationText) {
-        <div>
-          <dt>Lokalizacja bazy</dt>
-          <dd>{{ o.companyBaseLocationText }}</dd>
-        </div>
-        }
-        <div>
-          <dt>Opis</dt>
-          <dd class="offer-detail__description">{{ o.description }}</dd>
-        </div>
-      </dl>
-    </mat-card-content>
-    <mat-card-actions class="offer-detail__actions">
-      <a mat-button routerLink="/job-offers">← Oferty</a>
-      <a mat-flat-button color="primary" [routerLink]="['/companies', o.companyId]"
-        >Profil firmy</a
-      >
-    </mat-card-actions>
-  </mat-card>
+  <div
+    class="offer-detail__layout"
+    [class.offer-detail__layout--map]="showMapPane() && hasMapGeometry()"
+  >
+    <mat-card appearance="outlined" class="offer-detail__card">
+      <mat-card-header>
+        <mat-card-title>{{ o.title }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ transportLabel(o.requiredTransportType) }} ·
+          {{ cadenceLabel(o.homeReturnCadence) }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <dl class="offer-detail__fields">
+          <div>
+            <dt>Trasy</dt>
+            <dd>
+              <ul class="offer-detail__routes">
+                @for (r of o.routes; track $index) {
+                <li>
+                  {{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{
+                    r.to.code
+                  }})
+                </li>
+                }
+              </ul>
+            </dd>
+          </div>
+          <div>
+            <dt>Wymagane doświadczenie</dt>
+            <dd>{{ o.requiredYearsExperience }} lat</dd>
+          </div>
+          <div>
+            <dt>Prawo jazdy</dt>
+            <dd>
+              {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
+            </dd>
+          </div>
+          @if (salaryText(o); as salary) {
+          <div>
+            <dt>Wynagrodzenie</dt>
+            <dd>{{ salary }}</dd>
+          </div>
+          } @if (o.companyBaseLocationText) {
+          <div>
+            <dt>Lokalizacja bazy</dt>
+            <dd>{{ o.companyBaseLocationText }}</dd>
+          </div>
+          }
+          <div>
+            <dt>Opis</dt>
+            <dd class="offer-detail__description">{{ o.description }}</dd>
+          </div>
+        </dl>
+      </mat-card-content>
+      <mat-card-actions class="offer-detail__actions">
+        <a mat-button routerLink="/job-offers">← Oferty</a>
+        <a
+          mat-flat-button
+          color="primary"
+          [routerLink]="['/companies', o.companyId]"
+          >Profil firmy</a
+        >
+      </mat-card-actions>
+    </mat-card>
+
+    @if (hasMapGeometry()) {
+    <div class="offer-detail__map-pane">
+      <baza-offer-route-map
+        [baseLocation]="o.baseLocation"
+        [legs]="routeLegs()"
+      />
+    </div>
+    }
+  </div>
   }
 </section>
