@@ -37,6 +37,7 @@ Transport companies lose drivers when job boards ignore route geography and home
 | S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | done |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | done |
 | S-05 | company-application-inbox | See driver applications in employer inbox                         | S-04, F-01    | FR-005, US-01         | proposed |
+| S-06 | ux-improvements           | Clearer empty/loading/error states on browse + company offer list | F-01          | UX polish             | proposed |
 
 ## Streams
 
@@ -46,6 +47,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | ---------------- | ------------------------------------------ | -------------------------------------------------------------------- |
 | A      | Company supply   | `F-01` → `S-01` → `S-02`                   | Unblocks public offers; sequenced first under `main_goal: speed`.    |
 | B      | Marketplace loop | `S-02` → `S-03` → `S-04` → `S-05`          | North star `S-05` closes US-01; joins Stream A at `S-02`.            |
+| C      | Parallel polish  | `S-06` ∥ `S-05`                            | UX improvements discovered during S-01–S-04; independent of inbox.  |
 
 ## Baseline
 
@@ -133,10 +135,22 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** company-application-inbox
 - **PRD refs:** FR-005, US-01
 - **Prerequisites:** S-04, F-01
-- **Parallel with:** —
+- **Parallel with:** S-06
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** North star validation milestone — if inbox delivery fails, US-01 fails regardless of polish elsewhere; depends on applications persistence and company-scoped access from S-04.
+- **Status:** proposed
+
+### S-06: UX improvements
+
+- **Outcome:** User sees clearer empty, loading, and error states on Job Offers browse and the company offer list (and related polish discovered during S-01–S-04), without changing marketplace business rules.
+- **Change ID:** ux-improvements
+- **PRD refs:** UX polish (discovered during implementation; not a new FR)
+- **Prerequisites:** F-01
+- **Parallel with:** S-05
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** Low — presentation-layer polish on existing pages; keep out of inbox/application download and schema changes so it can ship beside S-05 without merge fights.
 - **Status:** proposed
 
 ## Backlog Handoff
@@ -148,7 +162,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-02       | publish-job-offer       | Publish job offer with map pin on Job Offers       | yes                   | After S-01 done                            |
 | S-03       | driver-browse-job-offers| Driver Job Offers browse and route/cadence filters | no                    | After S-02                                 |
 | S-04       | driver-apply-via-map    | Driver apply with route map and CV upload          | no                    | After S-03                                 |
-| S-05       | company-application-inbox | Company inbox for driver applications            | no                    | North star; after S-04                     |
+| S-05       | company-application-inbox | Company inbox for driver applications            | yes                   | North star; after S-04                     |
+| S-06       | ux-improvements           | Empty/loading/error UX on browse + offer list    | yes                   | Parallel with S-05; FE polish only         |
 
 ## Open Roadmap Questions
 
