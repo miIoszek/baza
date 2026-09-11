@@ -294,12 +294,12 @@ Wire apply form on detail (inline success) and ensure company publish UX clearly
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run test` passes (both apps)
-- [x] 3.3 `npm run build` passes
+- [x] 3.1 `npm run lint` passes — fa730fb
+- [x] 3.2 `npm run test` passes (both apps) — fa730fb
+- [x] 3.3 `npm run build` passes — fa730fb
 
 #### Manual
 
-- [x] 3.4 Full driver path: browse → detail → see map → apply with PDF → inline success; second apply same email succeeds
+- [x] 3.4 Full driver path: browse → detail → see map → apply with PDF → inline success; second apply same email succeeds — fa730fb
 - [ ] 3.5 Reject apply without consent / non-PDF with clear errors
 - [ ] 3.6 Company: publish control disabled without profile coords; guidance + profile link; after setting coords, publish works; Nest gate still enforced
