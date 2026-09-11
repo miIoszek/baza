@@ -5,6 +5,7 @@ import { CompanyController } from './company.controller';
 import { CompanyPublicController } from './company-public.controller';
 import { CompanyPublicService } from './company-public.service';
 import { CompanyService } from './company.service';
+import { JobApplicationService } from './job-application.service';
 import { JobOfferService } from './job-offer.service';
 import { OffersPublicController } from './offers-public.controller';
 
@@ -15,6 +16,11 @@ import { OffersPublicController } from './offers-public.controller';
     CompanyPublicController,
     OffersPublicController,
   ],
-  providers: [CompanyPublicService, CompanyService, JobOfferService],
+  providers: [
+    CompanyPublicService,
+    CompanyService,
+    JobOfferService,
+    JobApplicationService,
+  ],
 })
 export class CompanyModule {}

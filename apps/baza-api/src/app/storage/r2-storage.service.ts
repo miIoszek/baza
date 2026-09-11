@@ -11,10 +11,12 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import sharp, { type Metadata } from 'sharp';
+import { APPLICATION_CV_MAX_BYTES } from '@baza/shared-types';
 
 const VARIANT_SIZES = [48, 96, 192, 512] as const;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_PIXELS = 40_000_000; // ~6k x 6k
+const CV_MIME = 'application/pdf';
 
 export type CompanyPhotoUrls = {
   original: string;
@@ -24,11 +26,27 @@ export type CompanyPhotoUrls = {
   s512: string;
 };
 
+type PublicR2Config = {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+  publicUrl: string;
+};
+
+type PrivateR2Config = {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+};
+
 @Injectable()
 export class R2StorageService {
-  private client: S3Client | null = null;
+  private publicClient: S3Client | null = null;
+  private privateClient: S3Client | null = null;
 
-  private getConfig() {
+  private getPublicConfig(): PublicR2Config | null {
     const accountId = process.env['R2_ACCOUNT_ID']?.trim();
     const accessKeyId = process.env['R2_ACCESS_KEY_ID']?.trim();
     const secretAccessKey = process.env['R2_SECRET_ACCESS_KEY']?.trim();
@@ -46,19 +64,42 @@ export class R2StorageService {
     return { accountId, accessKeyId, secretAccessKey, bucket, publicUrl };
   }
 
-  isConfigured(): boolean {
-    return this.getConfig() !== null;
+  private getPrivateConfig(): PrivateR2Config | null {
+    const accountId =
+      process.env['R2_PRIVATE_ACCOUNT_ID']?.trim() ||
+      process.env['R2_ACCOUNT_ID']?.trim();
+    const accessKeyId =
+      process.env['R2_PRIVATE_ACCESS_KEY_ID']?.trim() ||
+      process.env['R2_ACCESS_KEY_ID']?.trim();
+    const secretAccessKey =
+      process.env['R2_PRIVATE_SECRET_ACCESS_KEY']?.trim() ||
+      process.env['R2_SECRET_ACCESS_KEY']?.trim();
+    const bucket = process.env['R2_PRIVATE_BUCKET']?.trim();
+
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+      return null;
+    }
+
+    return { accountId, accessKeyId, secretAccessKey, bucket };
   }
 
-  private getClient(): S3Client {
-    if (this.client) {
-      return this.client;
+  isConfigured(): boolean {
+    return this.getPublicConfig() !== null;
+  }
+
+  isPrivateConfigured(): boolean {
+    return this.getPrivateConfig() !== null;
+  }
+
+  private getPublicClient(): S3Client {
+    if (this.publicClient) {
+      return this.publicClient;
     }
-    const cfg = this.getConfig();
+    const cfg = this.getPublicConfig();
     if (!cfg) {
       throw new ServiceUnavailableException('R2 is not configured');
     }
-    this.client = new S3Client({
+    this.publicClient = new S3Client({
       region: 'auto',
       endpoint: `https://${cfg.accountId}.r2.cloudflarestorage.com`,
       credentials: {
@@ -66,20 +107,38 @@ export class R2StorageService {
         secretAccessKey: cfg.secretAccessKey,
       },
     });
-    return this.client;
+    return this.publicClient;
+  }
+
+  private getPrivateClient(): S3Client {
+    if (this.privateClient) {
+      return this.privateClient;
+    }
+    const cfg = this.getPrivateConfig();
+    if (!cfg) {
+      throw new ServiceUnavailableException('Private R2 is not configured');
+    }
+    this.privateClient = new S3Client({
+      region: 'auto',
+      endpoint: `https://${cfg.accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: cfg.accessKeyId,
+        secretAccessKey: cfg.secretAccessKey,
+      },
+    });
+    return this.privateClient;
   }
 
   /**
    * Upload logo under a unique versioned prefix:
    * `companies/{companyId}/logos/{versionId}/…`
-   * (legacy keys may still be `companies/{userId}/logo` or `…/logos/…` until replaced).
    */
   async uploadCompanyLogo(
     companyId: string,
     buffer: Buffer,
     claimedMime: string
   ): Promise<{ photoKey: string; photoUrls: CompanyPhotoUrls }> {
-    const cfg = this.getConfig();
+    const cfg = this.getPublicConfig();
     if (!cfg) {
       throw new ServiceUnavailableException('R2 is not configured');
     }
@@ -121,7 +180,6 @@ export class R2StorageService {
 
     const versionId = randomUUID();
     const baseKey = `companies/${companyId}/logos/${versionId}`;
-    const uploadedKeys: string[] = [];
 
     try {
       const ext =
@@ -132,8 +190,7 @@ export class R2StorageService {
             : 'jpg';
 
       const originalKey = `${baseKey}/original.${ext}`;
-      await this.put(cfg.bucket, originalKey, buffer, detectedMime);
-      uploadedKeys.push(originalKey);
+      await this.putPublic(cfg.bucket, originalKey, buffer, detectedMime);
 
       const urls: CompanyPhotoUrls = {
         original: `${cfg.publicUrl}/${originalKey}`,
@@ -150,8 +207,7 @@ export class R2StorageService {
           .webp({ quality: 82 })
           .toBuffer();
         const key = `${baseKey}/s${size}.webp`;
-        await this.put(cfg.bucket, key, webp, 'image/webp');
-        uploadedKeys.push(key);
+        await this.putPublic(cfg.bucket, key, webp, 'image/webp');
         urls[`s${size}` as keyof CompanyPhotoUrls] =
           `${cfg.publicUrl}/${key}`;
       }
@@ -166,17 +222,80 @@ export class R2StorageService {
     }
   }
 
-  /** Best-effort cleanup of all objects under a photo_key prefix. */
+  /**
+   * Upload CV to the private bucket. Returns storage key only — never a public URL.
+   * Does not require `R2_PUBLIC_URL`.
+   */
+  async uploadApplicationCv(
+    companyId: string,
+    offerId: string,
+    buffer: Buffer,
+    claimedMime: string
+  ): Promise<{ key: string; prefix: string }> {
+    const cfg = this.getPrivateConfig();
+    if (!cfg) {
+      throw new ServiceUnavailableException('Private R2 is not configured');
+    }
+
+    if (claimedMime !== CV_MIME) {
+      throw new BadRequestException('Dozwolone są tylko pliki PDF');
+    }
+
+    if (buffer.length > APPLICATION_CV_MAX_BYTES) {
+      throw new BadRequestException('Plik CV jest zbyt duży (max 5 MB)');
+    }
+
+    if (buffer.length < 5 || buffer.subarray(0, 5).toString('utf8') !== '%PDF-') {
+      throw new BadRequestException('Nieprawidłowy plik PDF');
+    }
+
+    const versionId = randomUUID();
+    const prefix = `applications/${companyId}/${offerId}/${versionId}`;
+    const key = `${prefix}/cv.pdf`;
+
+    try {
+      await this.putPrivate(cfg.bucket, key, buffer, CV_MIME);
+      return { key, prefix };
+    } catch (err) {
+      await this.deletePrivatePrefix(prefix);
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException('Nie udało się wgrać pliku CV');
+    }
+  }
+
+  /** Best-effort cleanup of all objects under a photo_key prefix (public bucket). */
   async deletePrefix(prefix: string): Promise<void> {
-    const cfg = this.getConfig();
+    const cfg = this.getPublicConfig();
     if (!cfg) {
       return;
     }
+    await this.deletePrefixInBucket(this.getPublicClient(), cfg.bucket, prefix);
+  }
 
+  /** Best-effort cleanup under a CV prefix (private bucket). */
+  async deletePrivatePrefix(prefix: string): Promise<void> {
+    const cfg = this.getPrivateConfig();
+    if (!cfg) {
+      return;
+    }
+    await this.deletePrefixInBucket(
+      this.getPrivateClient(),
+      cfg.bucket,
+      prefix
+    );
+  }
+
+  private async deletePrefixInBucket(
+    client: S3Client,
+    bucket: string,
+    prefix: string
+  ): Promise<void> {
     try {
-      const listed = await this.getClient().send(
+      const listed = await client.send(
         new ListObjectsV2Command({
-          Bucket: cfg.bucket,
+          Bucket: bucket,
           Prefix: prefix.endsWith('/') ? prefix : `${prefix}/`,
         })
       );
@@ -186,9 +305,9 @@ export class R2StorageService {
       if (!keys.length) {
         return;
       }
-      await this.getClient().send(
+      await client.send(
         new DeleteObjectsCommand({
-          Bucket: cfg.bucket,
+          Bucket: bucket,
           Delete: { Objects: keys.map((Key) => ({ Key })) },
         })
       );
@@ -197,20 +316,36 @@ export class R2StorageService {
     }
   }
 
-  private async put(
+  private async putPublic(
     bucket: string,
     key: string,
     body: Buffer,
     contentType: string
   ): Promise<void> {
-    await this.getClient().send(
+    await this.getPublicClient().send(
       new PutObjectCommand({
         Bucket: bucket,
         Key: key,
         Body: body,
         ContentType: contentType,
-        // Versioned keys are immutable; long cache is safe.
         CacheControl: 'public, max-age=31536000, immutable',
+      })
+    );
+  }
+
+  private async putPrivate(
+    bucket: string,
+    key: string,
+    body: Buffer,
+    contentType: string
+  ): Promise<void> {
+    await this.getPrivateClient().send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+        CacheControl: 'private, no-store',
       })
     );
   }
