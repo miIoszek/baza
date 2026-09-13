@@ -261,12 +261,12 @@ None — pure FE presentation.
 
 #### Automated
 
-- [x] 3.1 `npx nx test baza-frontend` passes (or targeted specs for touched pages)
-- [x] 3.2 `npx nx lint baza-frontend` passes
-- [x] 3.3 `npm run build` (or `npx nx build baza-frontend`) succeeds with the new `@baza/ui` export
+- [x] 3.1 `npx nx test baza-frontend` passes (or targeted specs for touched pages) — 409758b
+- [x] 3.2 `npx nx lint baza-frontend` passes — 409758b
+- [x] 3.3 `npm run build` (or `npx nx build baza-frontend`) succeeds with the new `@baza/ui` export — 409758b
 
 #### Manual
 
-- [x] 3.4 Logged-in company with zero offers: empty state, not error; „Dodaj ofertę” works
-- [x] 3.5 Simulate GET failure: inline error + retry recovers; does not look like „Brak ofert”
-- [x] 3.6 Unpublish still shows snackbar on success/failure
+- [x] 3.4 Logged-in company with zero offers: empty state, not error; „Dodaj ofertę” works — 409758b
+- [x] 3.5 Simulate GET failure: inline error + retry recovers; does not look like „Brak ofert” — 409758b
+- [x] 3.6 Unpublish still shows snackbar on success/failure — 409758b

@@ -1,7 +1,7 @@
 ---
 change_id: ux-improvements
 title: Clearer empty/loading/error states on Job Offers browse and company offer list
-status: implementing
+status: implemented
 created: 2026-09-13
 updated: 2026-09-13
 archived_at: null
