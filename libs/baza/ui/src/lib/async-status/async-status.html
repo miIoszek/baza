@@ -1,0 +1,6 @@
+<p class="baza-async-status__message">{{ message }}</p>
+@if (kind !== 'loading') {
+  <div class="baza-async-status__actions">
+    <ng-content />
+  </div>
+}
