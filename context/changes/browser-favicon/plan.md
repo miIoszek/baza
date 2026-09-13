@@ -116,12 +116,12 @@ Same URL `/favicon.ico`. Users with a cached Nx icon need a hard refresh. No DB 
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-frontend` passes
-- [x] 1.2 `npx nx lint baza-frontend` passes
-- [x] 1.3 `npx nx build baza-frontend` emits `favicon.ico` under the browser output and the built `index.html` contains `<title>Baza</title>`
+- [x] 1.1 `npx nx test baza-frontend` passes — 67dd4e3
+- [x] 1.2 `npx nx lint baza-frontend` passes — 67dd4e3
+- [x] 1.3 `npx nx build baza-frontend` emits `favicon.ico` under the browser output and the built `index.html` contains `<title>Baza</title>` — 67dd4e3
 
 #### Manual
 
-- [x] 1.4 Hard-refresh the app: tab icon is the navy-padded truck, not the Nx A
-- [x] 1.5 Tab title is `Baza`
-- [x] 1.6 `/favicon.ico` and `/baza-logo.png` still load; navbar logo unchanged
+- [x] 1.4 Hard-refresh the app: tab icon is the navy-padded truck, not the Nx A — 67dd4e3
+- [x] 1.5 Tab title is `Baza` — 67dd4e3
+- [x] 1.6 `/favicon.ico` and `/baza-logo.png` still load; navbar logo unchanged — 67dd4e3
