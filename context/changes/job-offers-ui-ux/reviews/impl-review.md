@@ -37,7 +37,7 @@
   - Tradeoff: Undoes a UX call the user already accepted.
   - Confidence: LOW — contradicts later product direction.
   - Blind spot: `offers-map.ts` still exists and could be wired back.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — plan addendum + Desired End State / 2.3 / 2.7 retargeted to list-only browse
 
 ### F2 — Post-plan extras: transport filter, global forms, public profile, nav
 
@@ -56,7 +56,7 @@
   - Tradeoff: Loses forms, profile, and nav work the user already liked.
   - Confidence: LOW — user asked for this polish.
   - Blind spot: Hard to revert without also undoing shared tokens used by offers pages.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — addendum lists transport filter, form/shell tokens, public profile, nav avatar, country canvas
 
 ### F3 — Unescaped GeoJSON country names from a live `master` URL
 
@@ -66,7 +66,7 @@
 - **Location**: apps/baza-frontend/src/app/pages/job-offers/country-basemap.ts:3, :40
 - **Detail**: `bindTooltip(name)` passes Natural Earth `NAME` into Leaflet, which treats string tooltip content as HTML. Offer popups already use `escapeHtml`. The file is fetched from `raw.githubusercontent.com/.../master/...` (moving branch, not a commit SHA). Official names are benign today; a swapped file is an XSS vector on every detail map.
 - **Fix**: Escape tooltip text (same helper as popups, or a text node) and pin the GeoJSON URL to a commit SHA — or vendor the file in the app.
-- **Decision**: PENDING
+- **Decision**: FIXED — tooltip uses a text node; GeoJSON URL pinned to Natural Earth commit `9380cca`
 
 ### F4 — Country layer can attach after map destroy; failed fetch is sticky
 
@@ -76,7 +76,7 @@
 - **Location**: apps/baza-frontend/src/app/pages/job-offers/country-basemap.ts:30–62
 - **Detail**: `loadCountries().then(...)` calls `L.geoJSON(...).addTo(map)` with no “map still alive” check. `ngOnDestroy` removes the map but not this pending layer. Fast leave of detail can addTo a dead map. The module-level `countriesGeojson` promise is assigned before success, so a 4xx/network failure is cached for the SPA lifetime.
 - **Fix**: Skip `addTo` if the map container is gone; on fetch failure set `countriesGeojson = null` so the next map can retry.
-- **Decision**: PENDING
+- **Decision**: FIXED — skip `addTo` if map container is gone; reset cached promise on fetch failure
 
 ### F5 — Unused `OffersMapComponent` still carries the new basemap
 
@@ -86,7 +86,7 @@
 - **Location**: apps/baza-frontend/src/app/pages/job-offers/offers-map.ts
 - **Detail**: Browse no longer mounts the list map. The component remains, now calling `addCountryBasemap`. Dead code that would reintroduce F3/F4 if remounted.
 - **Fix**: Delete `offers-map.ts` (+ scss) until a list map is planned again.
-- **Decision**: PENDING
+- **Decision**: FIXED — deleted `offers-map.ts` and `offers-map.scss`
 
 ### F6 — Manual Progress rows still unchecked
 
@@ -96,7 +96,7 @@
 - **Location**: context/changes/job-offers-ui-ux/plan.md ## Progress (1.3, 2.3–2.7, 3.3–3.5, 4.3–4.4, 5.5–5.8)
 - **Detail**: Automated p1–p5 rows are `[x]` with SHAs. All Manual rows remain `[ ]`. User visually signed off (“jestem zadowolony”) but 2.7 still describes a browse map that HEAD no longer has. Automated this run: baza-api 81 tests passed, baza-frontend 47 passed, lint passed, `nx build baza-frontend` succeeded (style-budget warnings).
 - **Fix**: After F1 decision, tick manuals that match HEAD (and rewrite 2.7 / 4.3 OSM wording).
-- **Decision**: PENDING
+- **Decision**: FIXED — manuals ticked; 4.3 wording is country canvas not OSM
 
 ### F7 — job-offers-page.scss over the 4 kB style budget
 
@@ -106,4 +106,10 @@
 - **Location**: apps/baza-frontend/src/app/pages/job-offers/job-offers-page.scss (build warning: 4.10 kB vs 4.00 kB)
 - **Detail**: Production build succeeded with a component style-budget miss of 104 bytes. Initial JS budget was already over before this change.
 - **Fix**: Trim a few unused list-map/layout rules, or raise the component budget slightly.
-- **Decision**: PENDING
+- **Decision**: FIXED — dropped duplicated sticky-filter gradient (opaque `#020617` is enough)
+
+## Triage summary
+
+- **Fixed:** F1 (Fix A), F2 (Fix A), F3, F4, F5, F6, F7
+- **Skipped:** none
+- **Accepted:** none

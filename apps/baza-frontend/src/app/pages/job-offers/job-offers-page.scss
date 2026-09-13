@@ -25,13 +25,7 @@
   align-items: flex-start;
   margin: 0 0 0.75rem;
   padding: 0.65rem 0 0.85rem;
-  // Opaque — list must not show through while scrolling
   background-color: #020617;
-  background-image: var(--baza-page-bg);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center top;
   border-bottom: 1px solid var(--mat-sys-outline-variant, #475569);
 }
 

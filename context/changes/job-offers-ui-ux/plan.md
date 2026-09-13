@@ -14,18 +14,19 @@ Redesign Job Offers browse and offer detail for scanability and apply conversion
 
 ## Desired End State
 
-Drivers landing on `/` see a 50/50 browse (filters+list | map) with company-branded, clickable cards and pill metadata. Offer detail is two equal columns (description with “Aplikuj teraz” scroll CTA above apply form | map). Route map shows clear A/B markers and a strong dashed line colored from theme CSS variables. Old home lives at `/health`; `/job-offers` redirects to `/`. Public offer JSON includes `companyName` + `companyPhotoUrls`.
+Drivers landing on `/` see a filters+list browse with company-branded, clickable cards and pill metadata (no list map). Offer detail is two equal columns (description with “Aplikuj teraz” scroll CTA above apply form | map). Route map shows country outlines plus clear A/B markers and a strong dashed line colored from theme CSS variables. Old home lives at `/health`; `/job-offers` redirects to `/`. Public offer JSON includes `companyName` + `companyPhotoUrls`.
 
 ### Key Discoveries:
 
 - Company branding requires Nest select/join + `mapOffer` enrichment with `rewriteR2PhotoUrls` (`job-offer.service.ts`, `company-public.service.ts`) — not FE-only.
-- Browse map stays base pins only (frame 3A); A/B work is detail `offer-route-map` only.
+- Browse list has no map (dropped after Phase 2 shipped 50/50); A/B country-scale work is detail `offer-route-map` only.
 - Leaflet pathOptions need resolved colors via `getComputedStyle` from CSS variables — document tokens in `_theme.scss`.
 
 ## What We're NOT Doing
 
 - S-05 inbox, applications schema, CV download changes
 - Street-level routing / real road geometries (keep country centroids)
+- Browse list map (detail map only)
 - Drawing A/B routes on the browse list map
 - Full design-system rewrite beyond these surfaces
 - Removing `/job-offers/:id` (detail URLs stay)
@@ -263,6 +264,23 @@ Job Offers list becomes `/`; health HomePage moves to `/health`; redirect `/job-
 
 ---
 
+## Addenda (post-implementation)
+
+### 2026-09-13 — List-only browse
+
+After Phase 2 shipped equal columns with base pins, product direction dropped the marketplace map. `/` is filters + list only. The country-scale route map lives on offer detail (`offer-route-map` + Natural Earth canvas). Progress 2.3 and 2.7 retargeted to match HEAD.
+
+### 2026-09-13 — Post-plan UX extras
+
+User-requested after Phase 5, kept in this change:
+
+- Public `?transport=` filter (`JobOfferFilters.requiredTransportType`)
+- Shared page inset / content max-width; filled Material fields with always-float labels
+- Public company profile restyle; AppShell avatar → `/company/profile`
+- Dark Natural Earth country canvas on offer detail (no raster tiles)
+
+---
+
 ## Testing Strategy
 
 ### Unit Tests:
@@ -312,7 +330,7 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Manual
 
-- [ ] 1.3 `GET /api/offers` JSON includes `companyName` and `companyPhotoUrls` for a published offer with logo
+- [x] 1.3 `GET /api/offers` JSON includes `companyName` and `companyPhotoUrls` for a published offer with logo
 
 ### Phase 2: Browse layout + cards + filter label
 
@@ -324,11 +342,11 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Manual
 
-- [ ] 2.3 Desktop: equal columns; filters in left column with list
-- [ ] 2.4 Card click → detail; company name/logo → company profile
-- [ ] 2.5 Pills visible for license/cadence/etc.
-- [ ] 2.6 Countries label floated when empty
-- [ ] 2.7 Map still shows base pins on the right
+- [x] 2.3 Desktop: filters + list fill the page (no map column)
+- [x] 2.4 Card click → detail; company name/logo → company profile
+- [x] 2.5 Pills visible for license/cadence/etc.
+- [x] 2.6 Countries label floated when empty
+- [x] 2.7 Map is on offer detail only (no browse pins)
 
 ### Phase 3: Detail two-column layout + Aplikuj teraz
 
@@ -339,9 +357,9 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Manual
 
-- [ ] 3.3 Desktop two equal columns; map on right
-- [ ] 3.4 “Aplikuj teraz” scrolls to form
-- [ ] 3.5 Apply still submits successfully
+- [x] 3.3 Desktop two equal columns; map on right
+- [x] 3.4 “Aplikuj teraz” scrolls to form
+- [x] 3.5 Apply still submits successfully
 
 ### Phase 4: Detail map A/B + theme tokens
 
@@ -352,8 +370,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Manual
 
-- [ ] 4.3 Detail map: clear A vs B colors matching theme; dashed strong line readable on OSM tiles
-- [ ] 4.4 Changing tokens in theme (dev check) affects map after reload
+- [x] 4.3 Detail map: clear A vs B colors matching theme; dashed strong line readable on the country canvas
+- [x] 4.4 Changing tokens in theme (dev check) affects map after reload
 
 ### Phase 5: Make offers the home route
 
@@ -366,7 +384,7 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Manual
 
-- [ ] 5.5 `/` shows offers list; `/health` shows old health page
-- [ ] 5.6 `/job-offers` redirects to `/`
-- [ ] 5.7 `/job-offers/:id` still works; apply + map OK
-- [ ] 5.8 AppShell brand and Oferty nav behave correctly
+- [x] 5.5 `/` shows offers list; `/health` shows old health page
+- [x] 5.6 `/job-offers` redirects to `/`
+- [x] 5.7 `/job-offers/:id` still works; apply + map OK
+- [x] 5.8 AppShell brand and Oferty nav behave correctly
