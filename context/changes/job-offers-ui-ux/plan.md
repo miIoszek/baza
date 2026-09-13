@@ -359,10 +359,10 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [x] 5.1 `npx nx test baza-frontend` passes
-- [x] 5.2 `npx nx test baza-api` passes
-- [x] 5.3 `npm run lint` / project lints pass
-- [x] 5.4 `npx nx build baza-frontend` (or `npm run build`) succeeds
+- [x] 5.1 `npx nx test baza-frontend` passes — 840433a
+- [x] 5.2 `npx nx test baza-api` passes — 840433a
+- [x] 5.3 `npm run lint` / project lints pass — 840433a
+- [x] 5.4 `npx nx build baza-frontend` (or `npm run build`) succeeds — 840433a
 
 #### Manual
 
