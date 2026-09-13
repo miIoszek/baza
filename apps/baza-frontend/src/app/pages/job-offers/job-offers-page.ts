@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +22,8 @@ import {
   TRANSPORT_TYPES,
   type JobOffer,
 } from '@baza/shared-types';
-import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { AsyncStatus } from '@baza/ui';
+import { catchError, combineLatest, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { OffersMapComponent, type OfferMapMarker } from './offers-map';
 
@@ -120,6 +121,7 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
     MatFormFieldModule,
     MatSelectModule,
     OffersMapComponent,
+    AsyncStatus,
   ],
   templateUrl: './job-offers-page.html',
   styleUrl: './job-offers-page.scss',
@@ -148,6 +150,10 @@ export class JobOffersPage implements OnInit {
     nearLng: null,
   });
 
+  /** Bumped by retryLoad() so refetch shares the queryParamMap → switchMap pipe. */
+  private readonly reloadTick = signal(0);
+  private readonly reloadTick$ = toObservable(this.reloadTick);
+
   protected readonly hasFilters = computed(() =>
     hasActiveJobOfferFilters(this.filters())
   );
@@ -174,13 +180,13 @@ export class JobOffersPage implements OnInit {
   });
 
   ngOnInit(): void {
-    this.route.queryParamMap
+    combineLatest([this.route.queryParamMap, this.reloadTick$])
       .pipe(
-        tap((params) => {
+        tap(([params]) => {
           this.filters.set(parseJobOffersQueryParams((k) => params.get(k)));
         }),
         debounceTime(200),
-        switchMap((params) => {
+        switchMap(([params]) => {
           const model = parseJobOffersQueryParams((k) => params.get(k));
           this.loading.set(true);
           this.error.set(null);
@@ -201,6 +207,10 @@ export class JobOffersPage implements OnInit {
         this.offers.set(list);
         this.loading.set(false);
       });
+  }
+
+  protected retryLoad(): void {
+    this.reloadTick.update((n) => n + 1);
   }
 
   protected onCountriesChange(codes: string[]): void {

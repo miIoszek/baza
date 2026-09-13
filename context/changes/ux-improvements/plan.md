@@ -236,26 +236,26 @@ None — pure FE presentation.
 
 #### Automated
 
-- [x] 1.1 `npx nx lint ui` passes
-- [x] 1.2 `npx nx build ui` passes (or frontend build resolves the new export)
+- [x] 1.1 `npx nx lint ui` passes — a7b885d
+- [x] 1.2 `npx nx build ui` passes (or frontend build resolves the new export) — a7b885d
 
 #### Manual
 
-- [x] 1.3 Component API is usable from a page template with projected button (eyeball in Phase 2)
+- [x] 1.3 Component API is usable from a page template with projected button (eyeball in Phase 2) — a7b885d
 
 ### Phase 2: Wire Job Offers browse
 
 #### Automated
 
-- [ ] 2.1 `npx nx test baza-frontend --include=src/app/pages/job-offers/job-offers-page.spec.ts` passes
-- [ ] 2.2 `npx nx lint baza-frontend` passes (or project lint for touched files)
+- [x] 2.1 `npx nx test baza-frontend --include=src/app/pages/job-offers/job-offers-page.spec.ts` passes
+- [x] 2.2 `npx nx lint baza-frontend` passes (or project lint for touched files)
 
 #### Manual
 
-- [ ] 2.3 Force API failure: error + „Spróbuj ponownie” recovers when API is back
-- [ ] 2.4 Zero matches with filters: empty + „Wyczyść filtry” restores list
-- [ ] 2.5 Unfiltered empty marketplace: empty message, no false error
-- [ ] 2.6 Loading text visible briefly on filter change
+- [x] 2.3 Force API failure: error + „Spróbuj ponownie” recovers when API is back
+- [x] 2.4 Zero matches with filters: empty + „Wyczyść filtry” restores list
+- [x] 2.5 Unfiltered empty marketplace: empty message, no false error
+- [x] 2.6 Loading text visible briefly on filter change
 
 ### Phase 3: Wire company offer list
 

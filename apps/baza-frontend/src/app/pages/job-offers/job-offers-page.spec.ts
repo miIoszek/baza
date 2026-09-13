@@ -80,6 +80,18 @@ describe('job-offers query helpers', () => {
     ).toBe(true);
   });
 
+  it('treats near-only query as active filters for empty-state CTA', () => {
+    expect(
+      hasActiveJobOfferFilters({
+        countries: [],
+        cadence: '',
+        license: '',
+        nearLat: 52,
+        nearLng: 21,
+      })
+    ).toBe(true);
+  });
+
   it('HttpParams instance is usable', () => {
     const params = jobOffersQueryToHttpParams({
       countries: ['PL'],
