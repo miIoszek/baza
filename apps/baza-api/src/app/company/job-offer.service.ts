@@ -14,7 +14,7 @@ import type {
   RouteDirection,
   TransportType,
 } from '@baza/shared-types';
-import { isDriverLicenseCategory } from '@baza/shared-types';
+import { isDriverLicenseCategory, isTransportType } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import {
@@ -86,6 +86,12 @@ export class JobOfferService {
         throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
       }
       filters.licenseCategory = query.license;
+    }
+    if (query.transport) {
+      if (!isTransportType(query.transport)) {
+        throw new BadRequestException('Nieprawidłowy typ transportu');
+      }
+      filters.requiredTransportType = query.transport;
     }
     if (hasLat && hasLng) {
       filters.near = { lat: query.nearLat as number, lng: query.nearLng as number };
@@ -265,6 +271,12 @@ export class JobOfferService {
 
     if (filters.licenseCategory) {
       if (offer.licenseCategory !== filters.licenseCategory) {
+        return false;
+      }
+    }
+
+    if (filters.requiredTransportType) {
+      if (offer.requiredTransportType !== filters.requiredTransportType) {
         return false;
       }
     }

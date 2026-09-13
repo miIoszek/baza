@@ -69,6 +69,7 @@ export interface JobOfferFilters {
   countries?: string[];
   homeReturnCadence?: HomeReturnCadence;
   licenseCategory?: DriverLicenseCategory;
+  requiredTransportType?: TransportType;
   /** Optional: nearest-first when driver shares location. */
   near?: GeoPoint;
 }

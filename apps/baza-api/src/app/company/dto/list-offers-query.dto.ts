@@ -13,6 +13,7 @@ import {
   COUNTRY_CODES,
   DRIVER_LICENSE_CODES,
   HOME_RETURN_CADENCES,
+  TRANSPORT_TYPE_CODES,
 } from '@baza/shared-types';
 
 /** Max length of a comma-joined allowlist (no duplicates required). */
@@ -71,6 +72,11 @@ export class ListOffersQueryDto {
   @IsString()
   @IsIn([...DRIVER_LICENSE_CODES])
   license?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...TRANSPORT_TYPE_CODES])
+  transport?: string;
 
   @IsOptional()
   @Transform(({ value }) => toOptionalNumber(value))

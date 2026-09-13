@@ -298,6 +298,16 @@ describe('JobOfferService', () => {
     expect(service.matchesFilters(offer, { licenseCategory: 'C' })).toBe(false);
   });
 
+  it('matches transport type exactly', () => {
+    const offer = baseOffer({ requiredTransportType: 'silo' });
+    expect(
+      service.matchesFilters(offer, { requiredTransportType: 'silo' })
+    ).toBe(true);
+    expect(
+      service.matchesFilters(offer, { requiredTransportType: 'curtain' })
+    ).toBe(false);
+  });
+
   it('sortByNear puts null baseLocation last', () => {
     const near = { lat: 52.0, lng: 21.0 };
     const nearOffer = baseOffer({
