@@ -99,3 +99,25 @@ baza-root {
     background: transparent;
   }
 }
+
+.leaflet-container {
+  background: #020617;
+}
+
+.leaflet-tooltip.baza-country-label {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.9);
+  padding: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.leaflet-tooltip.baza-country-label::before {
+  display: none;
+}

@@ -10,6 +10,7 @@ import {
 import type { GeoPoint } from '@baza/shared-types';
 import * as L from 'leaflet';
 import 'leaflet-polylinedecorator';
+import { addCountryBasemap } from './country-basemap';
 import type { RouteMapLeg } from './route-map-geometry';
 
 const FALLBACK_FROM = '#90caf9';
@@ -59,12 +60,8 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const el = this.mapHost().nativeElement;
-    this.map = L.map(el, { scrollWheelZoom: false }).setView([52.1, 19.4], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18,
-    }).addTo(this.map);
+    this.map = L.map(el, { scrollWheelZoom: false }).setView([52.1, 19.4], 5);
+    addCountryBasemap(this.map);
     this.layer = L.layerGroup().addTo(this.map);
     setTimeout(() => this.map?.invalidateSize(), 0);
   }
@@ -183,7 +180,7 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     if (!hasPoint) {
       this.map.setView([52.1, 19.4], 6);
     } else {
-      this.map.fitBounds(bounds.pad(0.25), { maxZoom: 8 });
+      this.map.fitBounds(bounds.pad(0.25), { maxZoom: 6 });
     }
     setTimeout(() => this.map?.invalidateSize(), 0);
   }

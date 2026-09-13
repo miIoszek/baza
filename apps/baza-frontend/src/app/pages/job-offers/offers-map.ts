@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import type { GeoPoint } from '@baza/shared-types';
 import * as L from 'leaflet';
+import { addCountryBasemap } from './country-basemap';
 
 export interface OfferMapMarker {
   id: string;
@@ -60,13 +61,9 @@ export class OffersMapComponent implements AfterViewInit, OnDestroy {
     const el = this.mapHost().nativeElement;
     this.map = L.map(el, {
       scrollWheelZoom: false,
-    }).setView([52.1, 19.4], 6);
+    }).setView([52.1, 19.4], 5);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18,
-    }).addTo(this.map);
+    addCountryBasemap(this.map);
 
     this.layer = L.layerGroup().addTo(this.map);
     setTimeout(() => this.map?.invalidateSize(), 0);
@@ -107,7 +104,7 @@ export class OffersMapComponent implements AfterViewInit, OnDestroy {
       marker.addTo(this.layer);
       bounds.extend([pin.point.lat, pin.point.lng]);
     }
-    this.map.fitBounds(bounds.pad(0.2), { maxZoom: 10 });
+    this.map.fitBounds(bounds.pad(0.2), { maxZoom: 6 });
     setTimeout(() => this.map?.invalidateSize(), 0);
   }
 }
