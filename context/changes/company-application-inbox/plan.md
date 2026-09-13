@@ -198,11 +198,11 @@ Replace placeholder with real inbox page; add shell link; wire authenticated lis
 
 #### Automated
 
-- [x] 2.1 CompanyInboxPage with loading/empty/error/list
-- [x] 2.2 Wire route; remove placeholder
-- [x] 2.3 App shell inbox nav link
-- [x] 2.4 Authenticated blob CV download
-- [x] 2.5 Frontend lint + test + build green
+- [x] 2.1 CompanyInboxPage with loading/empty/error/list — 1463a34
+- [x] 2.2 Wire route; remove placeholder — 1463a34
+- [x] 2.3 App shell inbox nav link — 1463a34
+- [x] 2.4 Authenticated blob CV download — 1463a34
+- [x] 2.5 Frontend lint + test + build green — 1463a34
 
 #### Manual
 
