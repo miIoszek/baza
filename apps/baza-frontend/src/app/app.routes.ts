@@ -11,11 +11,16 @@ import { CompanyOffersListPage } from './pages/company/offers/company-offers-lis
 import { CompanyOfferFormPage } from './pages/company/offers/company-offer-form-page';
 
 export const appRoutes: Route[] = [
-  { path: '', component: HomePage },
   {
-    path: 'job-offers',
+    path: '',
     loadComponent: () =>
       import('./pages/job-offers/job-offers-page').then((m) => m.JobOffersPage),
+  },
+  { path: 'health', component: HomePage },
+  {
+    path: 'job-offers',
+    pathMatch: 'full',
+    redirectTo: '',
   },
   {
     path: 'job-offers/:id',

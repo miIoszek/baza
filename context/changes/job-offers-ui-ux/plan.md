@@ -347,8 +347,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [x] 4.1 `npx nx test baza-frontend` passes (or targeted specs)
-- [x] 4.2 `npx nx lint baza-frontend` passes
+- [x] 4.1 `npx nx test baza-frontend` passes (or targeted specs) — cb412b8
+- [x] 4.2 `npx nx lint baza-frontend` passes — cb412b8
 
 #### Manual
 

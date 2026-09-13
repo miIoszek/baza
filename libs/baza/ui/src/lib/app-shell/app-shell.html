@@ -6,8 +6,9 @@
   <span class="baza-app-shell__spacer"></span>
   <a
     mat-button
-    routerLink="/job-offers"
+    routerLink="/"
     routerLinkActive="baza-app-shell__active"
+    [routerLinkActiveOptions]="{ exact: true }"
   >
     Oferty pracy
   </a>
