@@ -1,68 +1,81 @@
 <section class="company-public">
   @if (loading()) {
-    <p class="company-public__status">Ładowanie profilu…</p>
+  <p class="company-public__status">Ładowanie profilu…</p>
   } @else if (notFound()) {
-    <mat-card appearance="outlined" class="company-public__card">
-      <mat-card-header>
-        <mat-card-title>Nie znaleziono firmy</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Ten profil nie istnieje lub adres jest nieprawidłowy.</p>
-      </mat-card-content>
-    </mat-card>
+  <mat-card appearance="outlined" class="company-public__card">
+    <mat-card-header>
+      <mat-card-title>Nie znaleziono firmy</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>Ten profil nie istnieje lub adres jest nieprawidłowy.</p>
+      <a mat-button routerLink="/">← Oferty</a>
+    </mat-card-content>
+  </mat-card>
   } @else if (profile(); as company) {
-    <mat-card appearance="outlined" class="company-public__card">
-      <mat-card-header>
-        @if (logoUrl(company); as logo) {
-          <img
-            class="company-public__logo"
-            [src]="logo"
-            alt=""
-            width="96"
-            height="96"
-          />
-        }
-        <mat-card-title>{{ company.name }}</mat-card-title>
-        <mat-card-subtitle>NIP: {{ company.nip }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <dl class="company-public__fields">
-          <div>
-            <dt>Lokalizacja bazy</dt>
-            <dd>{{ company.baseLocation }}</dd>
-          </div>
-          <div>
-            <dt>O firmie</dt>
-            <dd>{{ company.description }}</dd>
-          </div>
-        </dl>
+  <mat-card appearance="outlined" class="company-public__card">
+    <div class="company-public__actions">
+      <a mat-button routerLink="/">← Oferty</a>
+    </div>
 
-        <section class="company-public__offers">
-          <h2>Oferty pracy</h2>
-          @if (offersLoading()) {
-          <p>Ładowanie ofert…</p>
-          } @else if (offersError(); as err) {
-          <p class="company-public__offers-error">{{ err }}</p>
-          <button mat-button type="button" (click)="retryOffers()">
-            Spróbuj ponownie
-          </button>
-          } @else if (offers().length === 0) {
-          <p>Brak opublikowanych ofert.</p>
-          } @else {
-          <ul class="company-public__offers-list">
-            @for (o of offers(); track o.id) {
-            <li>
-              <a [routerLink]="['/job-offers', o.id]">
-                <strong>{{ o.title }}</strong>
-              </a>
-              <span>{{ routesSummary(o) }}</span>
-            </li>
-            }
-          </ul>
+    <div class="company-public__identity">
+      @if (logoUrl(company); as logo) {
+      <img
+        class="company-public__logo"
+        [src]="logo"
+        alt=""
+        width="96"
+        height="96"
+      />
+      } @else {
+      <span
+        class="company-public__logo company-public__logo--placeholder"
+        aria-hidden="true"
+        >{{ company.name.charAt(0).toUpperCase() }}</span
+      >
+      }
+      <h1 class="company-public__name">{{ company.name }}</h1>
+      <p class="company-public__nip">NIP: {{ company.nip }}</p>
+    </div>
+
+    <mat-card-content>
+      <dl class="company-public__fields">
+        <div class="company-public__field-row">
+          <dt>Lokalizacja bazy</dt>
+          <dd>{{ company.baseLocation }}</dd>
+        </div>
+        <div class="company-public__field-row company-public__field-row--description">
+          <dt>O firmie</dt>
+          <dd class="company-public__description">{{ company.description }}</dd>
+        </div>
+      </dl>
+
+      <section class="company-public__offers">
+        <h2 class="company-public__offers-title">Oferty pracy</h2>
+        @if (offersLoading()) {
+        <p class="company-public__offers-status">Ładowanie ofert…</p>
+        } @else if (offersError(); as err) {
+        <p class="company-public__offers-error">{{ err }}</p>
+        <button mat-button type="button" (click)="retryOffers()">
+          Spróbuj ponownie
+        </button>
+        } @else if (offers().length === 0) {
+        <p class="company-public__offers-status">Brak opublikowanych ofert.</p>
+        } @else {
+        <ul class="company-public__offers-list">
+          @for (o of offers(); track o.id) {
+          <li>
+            <a class="company-public__offer" [routerLink]="['/job-offers', o.id]">
+              <strong class="company-public__offer-title">{{ o.title }}</strong>
+              <span class="company-public__offer-routes">{{
+                routesSummary(o)
+              }}</span>
+            </a>
+          </li>
           }
-          <a mat-button routerLink="/job-offers">Wszystkie oferty</a>
-        </section>
-      </mat-card-content>
-    </mat-card>
+        </ul>
+        }
+      </section>
+    </mat-card-content>
+  </mat-card>
   }
 </section>

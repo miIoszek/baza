@@ -10,7 +10,12 @@ import {
 import type { GeoPoint } from '@baza/shared-types';
 import * as L from 'leaflet';
 import 'leaflet-polylinedecorator';
+import { addCountryBasemap } from './country-basemap';
 import type { RouteMapLeg } from './route-map-geometry';
+
+const FALLBACK_FROM = '#90caf9';
+const FALLBACK_TO = '#6ee7b7';
+const FALLBACK_LINE = '#fbbf24';
 
 @Component({
   selector: 'baza-offer-route-map',
@@ -55,14 +60,23 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const el = this.mapHost().nativeElement;
-    this.map = L.map(el, { scrollWheelZoom: false }).setView([52.1, 19.4], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18,
-    }).addTo(this.map);
+    this.map = L.map(el, { scrollWheelZoom: false }).setView([52.1, 19.4], 5);
+    addCountryBasemap(this.map);
     this.layer = L.layerGroup().addTo(this.map);
     setTimeout(() => this.map?.invalidateSize(), 0);
+  }
+
+  private resolveThemeColors(): {
+    from: string;
+    to: string;
+    line: string;
+  } {
+    const el = this.mapHost().nativeElement;
+    return {
+      from: resolveCssColor(el, '--baza-map-route-from', FALLBACK_FROM),
+      to: resolveCssColor(el, '--baza-map-route-to', FALLBACK_TO),
+      line: resolveCssColor(el, '--baza-map-route-line', FALLBACK_LINE),
+    };
   }
 
   private render(
@@ -73,16 +87,17 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.layer.clearLayers();
+    const colors = this.resolveThemeColors();
     const bounds = L.latLngBounds([]);
     let hasPoint = false;
 
     if (base && Number.isFinite(base.lat) && Number.isFinite(base.lng)) {
       const pin = L.circleMarker([base.lat, base.lng], {
-        radius: 9,
-        color: '#0ea5e9',
+        radius: 8,
+        color: colors.from,
         weight: 2,
-        fillColor: '#38bdf8',
-        fillOpacity: 0.95,
+        fillColor: colors.from,
+        fillOpacity: 0.35,
       });
       pin.bindPopup('Baza firmy');
       pin.addTo(this.layer);
@@ -91,17 +106,38 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     }
 
     for (const leg of routeLegs) {
-      const latlngs: L.LatLngExpression[] = [
-        [leg.from.lat, leg.from.lng],
-        [leg.to.lat, leg.to.lng],
-      ];
+      const fromLL: L.LatLngExpression = [leg.from.lat, leg.from.lng];
+      const toLL: L.LatLngExpression = [leg.to.lat, leg.to.lng];
+      const latlngs: L.LatLngExpression[] = [fromLL, toLL];
+
       const line = L.polyline(latlngs, {
-        color: '#f59e0b',
-        weight: 3,
-        opacity: 0.9,
+        color: colors.line,
+        weight: 5,
+        opacity: 0.95,
+        dashArray: '10 8',
       });
       line.bindPopup(escapeHtml(leg.label));
       line.addTo(this.layer);
+
+      const fromMarker = L.circleMarker(fromLL, {
+        radius: 10,
+        color: '#0f172a',
+        weight: 2,
+        fillColor: colors.from,
+        fillOpacity: 1,
+      });
+      fromMarker.bindPopup(`A · ${escapeHtml(leg.label)}`);
+      fromMarker.addTo(this.layer);
+
+      const toMarker = L.circleMarker(toLL, {
+        radius: 10,
+        color: '#0f172a',
+        weight: 2,
+        fillColor: colors.to,
+        fillOpacity: 1,
+      });
+      toMarker.bindPopup(`B · ${escapeHtml(leg.label)}`);
+      toMarker.addTo(this.layer);
 
       const decorator = (
         L as unknown as {
@@ -122,9 +158,14 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
                 };
               }
             ).Symbol.arrowHead({
-              pixelSize: 14,
+              pixelSize: 12,
               polygon: false,
-              pathOptions: { stroke: true, color: '#f59e0b', weight: 2 },
+              pathOptions: {
+                stroke: true,
+                color: colors.line,
+                weight: 2,
+                opacity: 0.7,
+              },
             }),
           },
         ],
@@ -139,10 +180,26 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     if (!hasPoint) {
       this.map.setView([52.1, 19.4], 6);
     } else {
-      this.map.fitBounds(bounds.pad(0.25), { maxZoom: 8 });
+      this.map.fitBounds(bounds.pad(0.25), { maxZoom: 6 });
     }
     setTimeout(() => this.map?.invalidateSize(), 0);
   }
+}
+
+function resolveCssColor(
+  host: HTMLElement,
+  varName: string,
+  fallback: string
+): string {
+  const probe = document.createElement('span');
+  probe.style.color = `var(${varName})`;
+  host.appendChild(probe);
+  const color = getComputedStyle(probe).color;
+  host.removeChild(probe);
+  if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'transparent') {
+    return fallback;
+  }
+  return color;
 }
 
 function escapeHtml(text: string): string {

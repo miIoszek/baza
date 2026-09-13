@@ -4,18 +4,22 @@ import { guestAuthGuard } from './core/guards/guest-auth.guard';
 import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
-import { CompanyInboxPage } from './pages/company/company-inbox-page';
 import { CompanyProfilePage } from './pages/company/company-profile-page';
 import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
 import { CompanyOfferFormPage } from './pages/company/offers/company-offer-form-page';
 
 export const appRoutes: Route[] = [
-  { path: '', component: HomePage },
   {
-    path: 'job-offers',
+    path: '',
     loadComponent: () =>
       import('./pages/job-offers/job-offers-page').then((m) => m.JobOffersPage),
+  },
+  { path: 'health', component: HomePage },
+  {
+    path: 'job-offers',
+    pathMatch: 'full',
+    redirectTo: '',
   },
   {
     path: 'job-offers/:id',
@@ -65,7 +69,10 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'company/inbox',
-    component: CompanyInboxPage,
+    loadComponent: () =>
+      import('./pages/company/company-inbox-page').then(
+        (m) => m.CompanyInboxPage
+      ),
     canActivate: [companyAuthGuard],
   },
   { path: '**', redirectTo: '' },

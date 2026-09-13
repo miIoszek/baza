@@ -20,7 +20,7 @@
       <p class="auth-form offer-form__status">Ładowanie…</p>
       } @else {
       <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+        <mat-form-field class="auth-field">
           <mat-label>Tytuł</mat-label>
           <input matInput formControlName="title" maxlength="120" />
           @if (form.controls.title.touched && form.controls.title.hasError('required')) {
@@ -30,7 +30,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+        <mat-form-field class="auth-field">
           <mat-label>Opis</mat-label>
           <textarea matInput rows="4" formControlName="description" maxlength="2000"></textarea>
           @if (form.controls.description.touched && form.controls.description.hasError('required')) {
@@ -39,7 +39,7 @@
         </mat-form-field>
 
         <div class="auth-row">
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Powrót do domu</mat-label>
             <mat-select formControlName="homeReturnCadence">
               @for (c of cadences; track c) {
@@ -47,7 +47,7 @@
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Lata doświadczenia</mat-label>
             <input
               matInput
@@ -58,7 +58,7 @@
           </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+        <mat-form-field class="auth-field">
           <mat-label>Typ transportu</mat-label>
           <mat-select formControlName="requiredTransportType">
             @for (t of transportTypes; track t.code) {
@@ -67,7 +67,7 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+        <mat-form-field class="auth-field">
           <mat-label>Wymagane prawo jazdy</mat-label>
           <mat-select formControlName="licenseCategory">
             @for (l of licenses; track l.code) {
@@ -84,7 +84,7 @@
           @for (r of routes.controls; track $index; let i = $index) {
           <div class="offer-route" [formGroupName]="i">
             <div class="auth-row">
-              <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+              <mat-form-field class="auth-field">
                 <mat-label>Z kraju</mat-label>
                 <mat-select
                   formControlName="fromCode"
@@ -95,7 +95,7 @@
                   }
                 </mat-select>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+              <mat-form-field class="auth-field">
                 <mat-label>Do kraju</mat-label>
                 <mat-select
                   formControlName="toCode"
@@ -125,14 +125,14 @@
 
         <p class="offer-form__section-hint">Wynagrodzenie (opcjonalnie)</p>
         <div class="auth-row">
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Od</mat-label>
             <input matInput type="number" formControlName="salaryMin" />
             @if (form.controls.salaryMin.touched && form.controls.salaryMin.hasError('min')) {
             <mat-error>Min. 0</mat-error>
             }
           </mat-form-field>
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Do</mat-label>
             <input matInput type="number" formControlName="salaryMax" />
             @if (form.controls.salaryMax.touched && form.controls.salaryMax.hasError('min')) {
@@ -141,7 +141,7 @@
           </mat-form-field>
         </div>
         <div class="auth-row">
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Waluta</mat-label>
             <input matInput formControlName="salaryCurrency" maxlength="3" />
             @if (
@@ -152,7 +152,7 @@
             <mat-error>Waluta: 3 znaki (np. PLN)</mat-error>
             }
           </mat-form-field>
-          <mat-form-field appearance="outline" class="auth-field" subscriptSizing="dynamic">
+          <mat-form-field class="auth-field">
             <mat-label>Status</mat-label>
             <mat-select formControlName="published">
               <mat-option [value]="true" [disabled]="!canPublish()"

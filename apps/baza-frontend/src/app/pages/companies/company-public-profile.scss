@@ -1,86 +1,163 @@
 .company-public {
-  max-width: 40rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .company-public__status {
   text-align: center;
-  color: var(--mat-sys-on-surface-variant, #666);
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .company-public__card {
-  padding: 0.5rem;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.company-public__actions {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.75rem 0.25rem;
+}
+
+.company-public__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem 1rem;
 }
 
 .company-public__logo {
   display: block;
-  width: 96px;
-  height: 96px;
+  width: 5.5rem;
+  height: 5.5rem;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
+  border-radius: 0.55rem;
+  background: var(--mat-sys-surface-container-highest, #334155);
+  border: 1px solid var(--mat-sys-outline-variant, #475569);
+}
+
+.company-public__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-primary-container, #cfe4ff);
+  background: var(--mat-sys-primary-container, #004b7a);
+}
+
+.company-public__name {
+  margin: 0.15rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mat-sys-on-surface, #f1f5f9);
+}
+
+.company-public__nip {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .company-public__fields {
   display: grid;
-  gap: 1rem;
+  gap: 0;
   margin: 0;
+  border-top: 1px solid var(--mat-sys-outline-variant, #475569);
+}
+
+.company-public__field-row {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--mat-sys-outline-variant, #475569) 55%, transparent);
+}
+
+.company-public__field-row--description {
+  border-bottom: none;
+  padding-bottom: 0.35rem;
 }
 
 .company-public__fields dt {
-  font-size: 0.75rem;
+  margin: 0;
+  font-size: 0.7rem;
   font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--mat-sys-on-surface-variant, #666);
-  margin-bottom: 0.25rem;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .company-public__fields dd {
   margin: 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface, #f1f5f9);
+}
+
+.company-public__description {
   white-space: pre-wrap;
+  line-height: 1.55;
 }
 
 .company-public__offers {
-  margin-top: 1.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--mat-sys-outline-variant, #475569);
 }
 
-.company-public__offers h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.1rem;
+.company-public__offers-title {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.company-public__offers-status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .company-public__offers-list {
   list-style: none;
-  margin: 0 0 0.75rem;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
-.company-public__offers-list li {
+.company-public__offer {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-}
-
-.company-public__offers-list a {
+  gap: 0.2rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--mat-sys-outline-variant, #475569);
+  border-radius: 0.65rem;
   color: inherit;
   text-decoration: none;
+  background: color-mix(in srgb, var(--mat-sys-surface-container, #1e293b) 65%, transparent);
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.company-public__offers-list a:hover strong {
-  color: var(--mat-sys-primary);
+.company-public__offer:hover {
+  border-color: var(--mat-sys-primary, #90caf9);
+  background: var(--mat-sys-surface-container-high, #273548);
+}
+
+.company-public__offer-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.company-public__offer-routes {
+  font-size: 0.85rem;
+  color: var(--baza-tag-route-fg, #93c5fd);
 }
 
 .company-public__offers-error {
   color: var(--mat-sys-error, #f87171);
   margin: 0 0 0.5rem;
-}
-
-.company-public__offers-list span {
-  font-size: 0.85rem;
-  opacity: 0.75;
 }

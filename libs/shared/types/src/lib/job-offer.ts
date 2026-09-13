@@ -26,6 +26,10 @@ export interface JobOffer {
   baseLocation: GeoPoint | null;
   /** Text address from company (always available when company exists). */
   companyBaseLocationText: string | null;
+  /** Display name from joined company row. */
+  companyName: string;
+  /** Rewritten public photo URLs from company (null if none). */
+  companyPhotoUrls: Record<string, string> | null;
   published: boolean;
   publishedAt: string;
 }
@@ -65,6 +69,7 @@ export interface JobOfferFilters {
   countries?: string[];
   homeReturnCadence?: HomeReturnCadence;
   licenseCategory?: DriverLicenseCategory;
+  requiredTransportType?: TransportType;
   /** Optional: nearest-first when driver shares location. */
   near?: GeoPoint;
 }

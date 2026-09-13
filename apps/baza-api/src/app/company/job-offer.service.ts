@@ -14,13 +14,18 @@ import type {
   RouteDirection,
   TransportType,
 } from '@baza/shared-types';
-import { isDriverLicenseCategory } from '@baza/shared-types';
+import { isDriverLicenseCategory, isTransportType } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
+import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import {
   CreateJobOfferDto,
   UpdateJobOfferDto,
 } from './dto/job-offer.dto';
 import { ListOffersQueryDto } from './dto/list-offers-query.dto';
+
+/** Shared join used by every query that feeds `mapOffer`. */
+const OFFER_WITH_COMPANY_SELECT =
+  '*, companies(base_lat, base_lng, base_location, name, photo_urls)';
 
 type OfferRow = {
   id: string;
@@ -42,6 +47,8 @@ type OfferRow = {
     base_lat: number | null;
     base_lng: number | null;
     base_location: string | null;
+    name?: string | null;
+    photo_urls?: Record<string, string> | null;
   } | null;
 };
 
@@ -80,6 +87,12 @@ export class JobOfferService {
       }
       filters.licenseCategory = query.license;
     }
+    if (query.transport) {
+      if (!isTransportType(query.transport)) {
+        throw new BadRequestException('Nieprawidłowy typ transportu');
+      }
+      filters.requiredTransportType = query.transport;
+    }
     if (hasLat && hasLng) {
       filters.near = { lat: query.nearLat as number, lng: query.nearLng as number };
     }
@@ -100,7 +113,7 @@ export class JobOfferService {
       .getClient()
       .from('job_offers')
       .insert(row)
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .single();
 
     if (error || !data) {
@@ -136,7 +149,7 @@ export class JobOfferService {
       .update(patch)
       .eq('id', offerId)
       .eq('company_id', company.id)
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .single();
 
     if (error || !data) {
@@ -159,7 +172,7 @@ export class JobOfferService {
       .update({ published: false, updated_at: new Date().toISOString() })
       .eq('id', offerId)
       .eq('company_id', company.id)
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .single();
 
     if (error || !data) {
@@ -173,7 +186,7 @@ export class JobOfferService {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .eq('company_id', company.id)
       .order('created_at', { ascending: false });
 
@@ -188,7 +201,7 @@ export class JobOfferService {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .eq('published', true)
       .order('created_at', { ascending: false });
 
@@ -209,7 +222,7 @@ export class JobOfferService {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .eq('company_id', companyId)
       .eq('published', true)
       .order('created_at', { ascending: false });
@@ -224,7 +237,7 @@ export class JobOfferService {
     const { data, error } = await this.supabaseAuth
       .getClient()
       .from('job_offers')
-      .select('*, companies(base_lat, base_lng, base_location)')
+      .select(OFFER_WITH_COMPANY_SELECT)
       .eq('id', id)
       .eq('published', true)
       .maybeSingle();
@@ -258,6 +271,12 @@ export class JobOfferService {
 
     if (filters.licenseCategory) {
       if (offer.licenseCategory !== filters.licenseCategory) {
+        return false;
+      }
+    }
+
+    if (filters.requiredTransportType) {
+      if (offer.requiredTransportType !== filters.requiredTransportType) {
         return false;
       }
     }
@@ -426,6 +445,8 @@ export class JobOfferService {
       salary,
       baseLocation,
       companyBaseLocationText: co?.base_location ?? null,
+      companyName: (co?.name ?? '').trim(),
+      companyPhotoUrls: rewriteR2PhotoUrls(co?.photo_urls ?? null),
       published: row.published,
       publishedAt: row.created_at,
     };

@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: transparent;
   color: var(--mat-sys-on-background);
 }
@@ -49,6 +49,21 @@
   gap: 0.5rem;
   margin-right: 0.25rem;
   min-width: 0;
+  padding: 0.25rem 0.45rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.baza-app-shell__account-wrap:hover,
+.baza-app-shell__account-wrap:focus-visible {
+  background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  outline: none;
+}
+
+.baza-app-shell__account-wrap--active {
+  background: color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
 }
 
 .baza-app-shell__avatar {
@@ -82,6 +97,12 @@
 .baza-app-shell__main {
   flex: 1 1 auto;
   display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: min(100%, var(--baza-content-min, 80rem));
+  max-width: var(--baza-content-max, 90rem);
+  margin-inline: auto;
+  padding: var(--baza-page-pad, 64px);
   background: transparent;
 }
 

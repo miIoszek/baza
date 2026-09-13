@@ -16,7 +16,17 @@
     </mat-card-header>
     <mat-card-content>
       @if (loading()) {
-      <p class="auth-form offers-list__status">Ładowanie…</p>
+      <div class="auth-form">
+        <baza-async-status kind="loading" message="Ładowanie ofert…" />
+      </div>
+      } @else if (error(); as err) {
+      <div class="auth-form">
+        <baza-async-status kind="error" [message]="err">
+          <button mat-button type="button" (click)="retryLoad()">
+            Spróbuj ponownie
+          </button>
+        </baza-async-status>
+      </div>
       } @else {
       <div class="auth-form">
         <a
@@ -28,7 +38,10 @@
         >
 
         @if (offers().length === 0) {
-        <p class="offers-list__empty">Brak ofert. Utwórz pierwszą.</p>
+        <baza-async-status
+          kind="empty"
+          message="Brak ofert. Utwórz pierwszą."
+        />
         } @else {
         <ul class="offers-list">
           @for (o of offers(); track o.id) {

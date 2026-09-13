@@ -29,6 +29,7 @@ import {
   applicationPhoneValidator,
   validateApplicationCv,
 } from './application-form.helpers';
+import { pickCompanyLogoUrl } from './company-logo-url';
 import { OfferRouteMapComponent } from './offer-route-map';
 import {
   buildRouteMapLegs,
@@ -211,6 +212,16 @@ export class JobOfferDetailPage implements OnInit {
 
   protected transportLabel(code: string): string {
     return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
+  }
+
+  protected logoUrl(offer: JobOffer): string | null {
+    return pickCompanyLogoUrl(offer.companyPhotoUrls);
+  }
+
+  protected scrollToApply(): void {
+    document
+      .getElementById('offer-apply')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   protected salaryText(offer: JobOffer): string | null {

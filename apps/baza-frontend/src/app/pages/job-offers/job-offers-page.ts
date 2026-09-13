@@ -7,11 +7,9 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,9 +20,10 @@ import {
   TRANSPORT_TYPES,
   type JobOffer,
 } from '@baza/shared-types';
-import { catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { AsyncStatus } from '@baza/ui';
+import { catchError, combineLatest, debounceTime, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { OffersMapComponent, type OfferMapMarker } from './offers-map';
+import { pickCompanyLogoUrl } from './company-logo-url';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
   daily: 'Codziennie',
@@ -38,6 +37,7 @@ export type JobOffersQueryModel = {
   countries: string[];
   cadence: string;
   license: string;
+  transport: string;
   nearLat: number | null;
   nearLng: number | null;
 };
@@ -63,6 +63,7 @@ export function parseJobOffersQueryParams(
     countries,
     cadence: get('cadence') ?? '',
     license: get('license') ?? '',
+    transport: get('transport') ?? '',
     nearLat: nearLat != null && !Number.isNaN(nearLat) ? nearLat : null,
     nearLng: nearLng != null && !Number.isNaN(nearLng) ? nearLng : null,
   };
@@ -81,6 +82,9 @@ export function jobOffersQueryToHttpParams(
   if (model.license) {
     params = params.set('license', model.license);
   }
+  if (model.transport) {
+    params = params.set('transport', model.transport);
+  }
   if (model.nearLat != null && model.nearLng != null) {
     params = params.set('nearLat', String(model.nearLat));
     params = params.set('nearLng', String(model.nearLng));
@@ -95,6 +99,7 @@ export function jobOffersQueryToRouterParams(
     countries: model.countries.length ? model.countries.join(',') : null,
     cadence: model.cadence || null,
     license: model.license || null,
+    transport: model.transport || null,
     nearLat: model.nearLat != null ? String(model.nearLat) : null,
     nearLng: model.nearLng != null ? String(model.nearLng) : null,
   };
@@ -105,6 +110,7 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
     model.countries.length > 0 ||
     !!model.cadence ||
     !!model.license ||
+    !!model.transport ||
     (model.nearLat != null && model.nearLng != null)
   );
 }
@@ -115,11 +121,10 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
   imports: [
     RouterLink,
     FormsModule,
-    MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
     MatSelectModule,
-    OffersMapComponent,
+    AsyncStatus,
   ],
   templateUrl: './job-offers-page.html',
   styleUrl: './job-offers-page.scss',
@@ -128,12 +133,12 @@ export class JobOffersPage implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly breakpoint = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly countries = COUNTRIES;
   protected readonly cadences = HOME_RETURN_CADENCES;
   protected readonly licenses = DRIVER_LICENSES;
+  protected readonly transportTypes = TRANSPORT_TYPES;
   protected readonly cadenceLabels = CADENCE_LABELS;
 
   protected readonly loading = signal(true);
@@ -144,43 +149,27 @@ export class JobOffersPage implements OnInit {
     countries: [],
     cadence: '',
     license: '',
+    transport: '',
     nearLat: null,
     nearLng: null,
   });
+
+  /** Bumped by retryLoad() so refetch shares the queryParamMap → switchMap pipe. */
+  private readonly reloadTick = signal(0);
+  private readonly reloadTick$ = toObservable(this.reloadTick);
 
   protected readonly hasFilters = computed(() =>
     hasActiveJobOfferFilters(this.filters())
   );
 
-  protected readonly showMap = toSignal(
-    this.breakpoint.observe('(min-width: 768px)').pipe(map((r) => r.matches)),
-    { initialValue: false }
-  );
-
-  protected readonly mapMarkers = computed<OfferMapMarker[]>(() => {
-    const markers: OfferMapMarker[] = [];
-    for (const o of this.offers()) {
-      const point = o.baseLocation;
-      if (point) {
-        markers.push({
-          id: o.id,
-          title: o.title,
-          point,
-          href: `/job-offers/${o.id}`,
-        });
-      }
-    }
-    return markers;
-  });
-
   ngOnInit(): void {
-    this.route.queryParamMap
+    combineLatest([this.route.queryParamMap, this.reloadTick$])
       .pipe(
-        tap((params) => {
+        tap(([params]) => {
           this.filters.set(parseJobOffersQueryParams((k) => params.get(k)));
         }),
         debounceTime(200),
-        switchMap((params) => {
+        switchMap(([params]) => {
           const model = parseJobOffersQueryParams((k) => params.get(k));
           this.loading.set(true);
           this.error.set(null);
@@ -203,6 +192,10 @@ export class JobOffersPage implements OnInit {
       });
   }
 
+  protected retryLoad(): void {
+    this.reloadTick.update((n) => n + 1);
+  }
+
   protected onCountriesChange(codes: string[]): void {
     this.writeQuery({ ...this.filters(), countries: codes });
   }
@@ -213,6 +206,10 @@ export class JobOffersPage implements OnInit {
 
   protected onLicenseChange(license: string): void {
     this.writeQuery({ ...this.filters(), license: license ?? '' });
+  }
+
+  protected onTransportChange(transport: string): void {
+    this.writeQuery({ ...this.filters(), transport: transport ?? '' });
   }
 
   protected clearFilters(): void {
@@ -246,18 +243,46 @@ export class JobOffersPage implements OnInit {
     );
   }
 
+  protected openOffer(id: string): void {
+    void this.router.navigate(['/job-offers', id]);
+  }
+
+  protected onCardKeydown(event: KeyboardEvent, id: string): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.openOffer(id);
+    }
+  }
+
+  protected logoUrl(offer: JobOffer): string | null {
+    return pickCompanyLogoUrl(offer.companyPhotoUrls);
+  }
+
+  protected salaryPill(offer: JobOffer): string | null {
+    const s = offer.salary;
+    if (!s) {
+      return null;
+    }
+    const parts: string[] = [];
+    if (s.min != null && s.max != null) {
+      parts.push(`${s.min}–${s.max}`);
+    } else if (s.min != null) {
+      parts.push(`od ${s.min}`);
+    } else if (s.max != null) {
+      parts.push(`do ${s.max}`);
+    }
+    if (parts.length === 0) {
+      return null;
+    }
+    return `${parts.join(' ')} ${s.currency}`;
+  }
+
   protected cadenceLabel(code: string): string {
     return CADENCE_LABELS[code as keyof typeof CADENCE_LABELS] ?? code;
   }
 
   protected transportLabel(code: string): string {
     return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
-  }
-
-  protected routesSummary(offer: JobOffer): string {
-    return offer.routes
-      .map((r) => `${r.from.code}→${r.to.code}`)
-      .join(', ');
   }
 
   private writeQuery(model: JobOffersQueryModel): void {
@@ -269,14 +294,28 @@ export class JobOffersPage implements OnInit {
   }
 
   private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const msg = err.error?.message;
-      if (typeof msg === 'string') {
-        return msg;
-      }
-      if (Array.isArray(msg)) {
-        return msg.join(', ');
-      }
+    if (!(err instanceof HttpErrorResponse)) {
+      return 'Nie udało się pobrać ofert';
+    }
+    if (err.status === 0) {
+      return 'Nie udało się pobrać ofert';
+    }
+    const raw = err.error;
+    const msg =
+      typeof raw?.message === 'string'
+        ? raw.message
+        : Array.isArray(raw?.message)
+          ? raw.message.join(', ')
+          : typeof raw === 'string'
+            ? raw
+            : null;
+    if (
+      msg &&
+      !msg.toLowerCase().includes('failed to fetch') &&
+      !msg.toLowerCase().includes('networkerror') &&
+      !msg.toLowerCase().includes('load failed')
+    ) {
+      return msg;
     }
     return 'Nie udało się pobrać ofert';
   }

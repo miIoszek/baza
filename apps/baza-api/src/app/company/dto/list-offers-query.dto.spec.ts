@@ -9,6 +9,7 @@ describe('ListOffersQueryDto', () => {
       countries: 'PL,DE',
       cadence: 'weekly',
       license: 'C_E',
+      transport: 'curtain',
       nearLat: '52.2',
       nearLng: '21.0',
     });
@@ -28,6 +29,12 @@ describe('ListOffersQueryDto', () => {
     const dto = plainToInstance(ListOffersQueryDto, { cadence: 'yearly' });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'cadence')).toBe(true);
+  });
+
+  it('rejects invalid transport type', async () => {
+    const dto = plainToInstance(ListOffersQueryDto, { transport: 'spaceship' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'transport')).toBe(true);
   });
 
   it('maps empty nearLat/nearLng to null instead of 0', async () => {

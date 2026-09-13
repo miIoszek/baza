@@ -75,6 +75,47 @@
   --baza-auth-card-bg: var(--mat-sys-surface);
   --baza-auth-card-border: var(--mat-sys-outline-variant);
   --baza-shell-elev: var(--mat-sys-surface);
+  // Shared page inset from app shell — tweak once for the whole app
+  --baza-page-pad: 64px;
+  --baza-content-max: 90rem;
+  --baza-content-min: 80rem; // ~MacBook 13 Pro CSS width
+  --baza-form-max: 80rem;
+  --baza-form-gap: 0.7rem;
+  --baza-shell-toolbar-height: 64px;
+
+  // Offer list tags (subtle tint per info kind)
+  --baza-tag-license-fg: #9ec9ef;
+  --baza-tag-license-bg: color-mix(in srgb, #90caf9 16%, transparent);
+  --baza-tag-license-border: color-mix(in srgb, #90caf9 40%, transparent);
+
+  --baza-tag-cadence-fg: #8fd9b8;
+  --baza-tag-cadence-bg: color-mix(in srgb, #6ee7b7 14%, transparent);
+  --baza-tag-cadence-border: color-mix(in srgb, #6ee7b7 38%, transparent);
+
+  --baza-tag-transport-fg: #e8c46a;
+  --baza-tag-transport-bg: color-mix(in srgb, #fbbf24 14%, transparent);
+  --baza-tag-transport-border: color-mix(in srgb, #fbbf24 36%, transparent);
+
+  --baza-tag-experience-fg: #b8a4e8;
+  --baza-tag-experience-bg: color-mix(in srgb, #a78bfa 14%, transparent);
+  --baza-tag-experience-border: color-mix(in srgb, #a78bfa 36%, transparent);
+
+  --baza-tag-salary-fg: #7dd3c0;
+  --baza-tag-salary-bg: color-mix(in srgb, #2dd4bf 14%, transparent);
+  --baza-tag-salary-border: color-mix(in srgb, #2dd4bf 38%, transparent);
+
+  --baza-tag-location-fg: #94a3b8;
+  --baza-tag-location-bg: color-mix(in srgb, #94a3b8 12%, transparent);
+  --baza-tag-location-border: color-mix(in srgb, #94a3b8 32%, transparent);
+
+  --baza-tag-route-fg: #93c5fd;
+  --baza-tag-route-bg: color-mix(in srgb, #60a5fa 14%, transparent);
+  --baza-tag-route-border: color-mix(in srgb, #60a5fa 38%, transparent);
+
+  // Map route markers/line — update these when changing brand colors
+  --baza-map-route-from: var(--mat-sys-primary); /* point A */
+  --baza-map-route-to: var(--mat-sys-secondary); /* point B */
+  --baza-map-route-line: var(--mat-sys-tertiary); /* path */
 
   // ===== Premium / Glass tokens (global) =====
   --baza-glass-bg: rgba(30, 41, 59, 0.42);

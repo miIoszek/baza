@@ -5,7 +5,7 @@
   </header>
 
   <div class="job-offers__filters">
-    <mat-form-field appearance="outline" class="job-offers__field">
+    <mat-form-field class="job-offers__field">
       <mat-label>Kraje trasy</mat-label>
       <mat-select
         multiple
@@ -18,7 +18,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="job-offers__field">
+    <mat-form-field class="job-offers__field">
       <mat-label>Powrót do domu</mat-label>
       <mat-select
         [ngModel]="filters().cadence"
@@ -31,7 +31,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="job-offers__field">
+    <mat-form-field class="job-offers__field">
       <mat-label>Prawo jazdy</mat-label>
       <mat-select
         [ngModel]="filters().license"
@@ -40,6 +40,19 @@
         <mat-option value="">Dowolna</mat-option>
         @for (l of licenses; track l.code) {
         <mat-option [value]="l.code">{{ l.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="job-offers__field">
+      <mat-label>Typ transportu</mat-label>
+      <mat-select
+        [ngModel]="filters().transport"
+        (ngModelChange)="onTransportChange($event)"
+      >
+        <mat-option value="">Dowolny</mat-option>
+        @for (t of transportTypes; track t.code) {
+        <mat-option [value]="t.code">{{ t.namePl }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -65,57 +78,99 @@
   }
 
   @if (loading()) {
-  <p class="job-offers__status">Ładowanie ofert…</p>
+  <baza-async-status kind="loading" message="Ładowanie ofert…" />
   } @else if (error(); as err) {
-  <p class="job-offers__status job-offers__status--error">{{ err }}</p>
+  <baza-async-status kind="error" [message]="err">
+    <button mat-button type="button" (click)="retryLoad()">
+      Spróbuj ponownie
+    </button>
+  </baza-async-status>
   } @else if (offers().length === 0 && hasFilters()) {
-  <div class="job-offers__empty">
-    <p class="job-offers__status">
-      Brak ofert dla wybranych filtrów. Spróbuj poluzować kraj lub kadencję.
-    </p>
+  <baza-async-status
+    kind="empty"
+    message="Brak ofert dla wybranych filtrów. Spróbuj poluzować kraj lub kadencję."
+  >
     <button mat-flat-button color="primary" type="button" (click)="clearFilters()">
       Wyczyść filtry
     </button>
-  </div>
+  </baza-async-status>
   } @else if (offers().length === 0) {
-  <p class="job-offers__status">Brak opublikowanych ofert.</p>
+  <baza-async-status kind="empty" message="Brak opublikowanych ofert." />
   } @else {
-  <div class="job-offers__layout" [class.job-offers__layout--map]="showMap()">
-    <ul class="job-offers__list">
-      @for (o of offers(); track o.id) {
-      <li>
-        <mat-card appearance="outlined" class="job-offers__card">
-          <mat-card-header>
-            <mat-card-title>{{ o.title }}</mat-card-title>
-            <mat-card-subtitle>
-              {{ routesSummary(o) }} · {{ cadenceLabel(o.homeReturnCadence) }}
-            </mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <p>
-              {{ transportLabel(o.requiredTransportType) }} · min.
-              {{ o.requiredYearsExperience }} lat · Prawo jazdy {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
-            </p>
-            @if (o.companyBaseLocationText) {
-            <p class="job-offers__loc">{{ o.companyBaseLocationText }}</p>
+  <ul class="job-offers__list">
+    @for (o of offers(); track o.id) {
+    <li>
+      <article
+        class="job-offers__card"
+        role="link"
+        tabindex="0"
+        [attr.aria-label]="'Oferta: ' + o.title"
+        (click)="openOffer(o.id)"
+        (keydown)="onCardKeydown($event, o.id)"
+      >
+        <div class="job-offers__card-top">
+          <a
+            class="job-offers__company"
+            [routerLink]="['/companies', o.companyId]"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+          >
+            @if (logoUrl(o); as logo) {
+            <img
+              class="job-offers__logo"
+              [src]="logo"
+              alt=""
+              width="48"
+              height="48"
+            />
+            } @else {
+            <span class="job-offers__logo job-offers__logo--placeholder" aria-hidden="true">
+              {{ (o.companyName || '?').charAt(0).toUpperCase() }}
+            </span>
             }
-          </mat-card-content>
-          <mat-card-actions>
-            <a mat-button [routerLink]="['/job-offers', o.id]">Szczegóły</a>
-            <a mat-button [routerLink]="['/companies', o.companyId]"
-              >Profil firmy</a
-            >
-          </mat-card-actions>
-        </mat-card>
-      </li>
-      }
-    </ul>
+            <span class="job-offers__company-name">{{
+              o.companyName || 'Firma'
+            }}</span>
+          </a>
+          @if (o.companyBaseLocationText) {
+          <p class="job-offers__loc">{{ o.companyBaseLocationText }}</p>
+          }
+        </div>
 
-    @if (showMap()) {
-    <div class="job-offers__map-pane">
-      <baza-offers-map [markers]="mapMarkers()" />
-    </div>
+        <h2 class="job-offers__card-title">{{ o.title }}</h2>
+
+        <div class="job-offers__routes">
+          <span class="job-offers__routes-label">Trasy</span>
+          <ul class="job-offers__pills" aria-label="Trasy">
+            @for (r of o.routes; track $index) {
+            <li class="job-offers__pill job-offers__pill--route">
+              {{ r.from.code }}→{{ r.to.code }}
+            </li>
+            }
+          </ul>
+        </div>
+
+        <ul class="job-offers__pills" aria-label="Szczegóły oferty">
+          <li class="job-offers__pill job-offers__pill--license">
+            Prawo jazdy
+            {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
+          </li>
+          <li class="job-offers__pill job-offers__pill--cadence">
+            {{ cadenceLabel(o.homeReturnCadence) }}
+          </li>
+          <li class="job-offers__pill job-offers__pill--transport">
+            {{ transportLabel(o.requiredTransportType) }}
+          </li>
+          <li class="job-offers__pill job-offers__pill--experience">
+            min. {{ o.requiredYearsExperience }} lat
+          </li>
+          @if (salaryPill(o); as salary) {
+          <li class="job-offers__pill job-offers__pill--salary">{{ salary }}</li>
+          }
+        </ul>
+      </article>
+    </li>
     }
-  </div>
+  </ul>
   }
 </section>
