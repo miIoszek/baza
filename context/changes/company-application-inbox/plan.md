@@ -192,7 +192,7 @@ Replace placeholder with real inbox page; add shell link; wire authenticated lis
 
 #### Manual
 
-- [ ] 1.7 Smoke list + CV with real token + private R2 (optional mid-slice)
+- [x] 1.7 Smoke list + CV with real token + private R2 (optional mid-slice)
 
 ### Phase 2: Inbox UI + shell navigation
 
@@ -206,5 +206,5 @@ Replace placeholder with real inbox page; add shell link; wire authenticated lis
 
 #### Manual
 
-- [ ] 2.6 Driver apply → company inbox → download CV
-- [ ] 2.7 Other company / anon cannot access CV
+- [x] 2.6 Driver apply → company inbox → download CV
+- [x] 2.7 Other company / anon cannot access CV
