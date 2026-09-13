@@ -319,8 +319,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [x] 2.1 `npx nx test baza-frontend --include='**/job-offers-page.spec.ts'` passes
-- [x] 2.2 `npx nx lint baza-frontend` passes
+- [x] 2.1 `npx nx test baza-frontend --include='**/job-offers-page.spec.ts'` passes — b8076c5
+- [x] 2.2 `npx nx lint baza-frontend` passes — b8076c5
 
 #### Manual
 

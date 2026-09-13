@@ -8,7 +8,7 @@
     </mat-card-header>
     <mat-card-content>
       <p>Oferta nie istnieje albo została wycofana.</p>
-      <a mat-button routerLink="/job-offers">← Wszystkie oferty</a>
+      <a mat-button routerLink="/">← Wszystkie oferty</a>
     </mat-card-content>
   </mat-card>
   } @else if (offer(); as o) {
@@ -26,6 +26,41 @@
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
+          <a
+            class="offer-detail__company"
+            [routerLink]="['/companies', o.companyId]"
+          >
+            @if (logoUrl(o); as logo) {
+            <img
+              class="offer-detail__logo"
+              [src]="logo"
+              alt=""
+              width="48"
+              height="48"
+            />
+            } @else {
+            <span
+              class="offer-detail__logo offer-detail__logo--placeholder"
+              aria-hidden="true"
+              >{{ (o.companyName || '?').charAt(0).toUpperCase() }}</span
+            >
+            }
+            <span>{{ o.companyName || 'Firma' }}</span>
+          </a>
+
+          @if (!applySuccess()) {
+          <div class="offer-detail__cta">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="scrollToApply()"
+            >
+              Aplikuj teraz
+            </button>
+          </div>
+          }
+
           <dl class="offer-detail__fields">
             <div>
               <dt>Trasy</dt>
@@ -69,7 +104,7 @@
           </dl>
         </mat-card-content>
         <mat-card-actions class="offer-detail__actions">
-          <a mat-button routerLink="/job-offers">← Oferty</a>
+          <a mat-button routerLink="/">← Oferty</a>
           <a
             mat-flat-button
             color="primary"
@@ -79,7 +114,11 @@
         </mat-card-actions>
       </mat-card>
 
-      <mat-card appearance="outlined" class="offer-detail__card offer-detail__apply">
+      <mat-card
+        id="offer-apply"
+        appearance="outlined"
+        class="offer-detail__card offer-detail__apply"
+      >
         @if (applySuccess()) {
         <mat-card-header>
           <mat-card-title>Aplikacja wysłana</mat-card-title>

@@ -1,5 +1,5 @@
 .offer-detail {
-  max-width: 64rem;
+  max-width: 72rem;
   margin: 2rem auto;
   padding: 0 1rem 3rem;
 }
@@ -15,7 +15,7 @@
 }
 
 .offer-detail__layout--map {
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
 }
 
@@ -27,6 +27,45 @@
 
 .offer-detail__card {
   background: rgba(15, 23, 42, 0.55);
+}
+
+.offer-detail__company {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.85rem 0 0.5rem;
+  text-decoration: none;
+  color: var(--mat-sys-on-surface, #f1f5f9);
+  font-weight: 600;
+}
+
+.offer-detail__company:hover {
+  text-decoration: underline;
+}
+
+.offer-detail__logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  background: var(--mat-sys-surface-container-highest, #334155);
+}
+
+.offer-detail__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--mat-sys-on-primary-container, #cfe4ff);
+  background: var(--mat-sys-primary-container, #004b7a);
+}
+
+.offer-detail__cta {
+  margin: 0.75rem 0 0.25rem;
+}
+
+.offer-detail__apply {
+  scroll-margin-top: 1rem;
 }
 
 .offer-detail__apply-form {
@@ -103,6 +142,7 @@
   position: sticky;
   top: 1rem;
   height: min(70vh, 32rem);
+  min-height: 18rem;
 }
 
 @media (max-width: 767px) {
