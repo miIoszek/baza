@@ -48,9 +48,9 @@ export class CompanyInboxPage implements OnInit {
       a.href = url;
       a.download = `cv-${app.email.replace(/[^a-zA-Z0-9._-]+/g, '_')}.pdf`;
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (err: unknown) {
-      this.snackBar.open(this.extractError(err), 'OK', { duration: 6000 });
+      this.snackBar.open(await this.extractError(err), 'OK', { duration: 6000 });
     } finally {
       this.downloadingId.set(null);
     }
@@ -66,18 +66,27 @@ export class CompanyInboxPage implements OnInit {
       );
       this.applications.set(list);
     } catch (err: unknown) {
-      this.snackBar.open(this.extractError(err), 'OK', { duration: 6000 });
+      this.snackBar.open(await this.extractError(err), 'OK', { duration: 6000 });
     } finally {
       this.loading.set(false);
     }
   }
 
-  private extractError(err: unknown): string {
+  private async extractError(err: unknown): Promise<string> {
     if (err instanceof HttpErrorResponse) {
       if (typeof err.error?.message === 'string') {
         return err.error.message;
       }
       if (err.error instanceof Blob) {
+        try {
+          const text = await err.error.text();
+          const parsed = JSON.parse(text) as { message?: unknown };
+          if (typeof parsed?.message === 'string' && parsed.message.trim()) {
+            return parsed.message;
+          }
+        } catch {
+          // fall through to generic CV message
+        }
         return 'Nie udało się pobrać CV';
       }
     }

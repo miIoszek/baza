@@ -172,7 +172,16 @@ export class JobApplicationService {
       throw new NotFoundException('Nie znaleziono aplikacji');
     }
 
-    return this.r2.getPrivateObject(data.cv_file_key as string);
+    const cvKey = data.cv_file_key as string;
+    const expectedPrefix = `applications/${company.id}/`;
+    if (!cvKey.startsWith(expectedPrefix)) {
+      this.logger.error(
+        `cv_file_key prefix mismatch for application ${applicationId} (company=${company.id})`
+      );
+      throw new NotFoundException('Nie znaleziono aplikacji');
+    }
+
+    return this.r2.getPrivateObject(cvKey);
   }
 
   private toListItem(row: ListRow): CompanyJobApplicationListItem {

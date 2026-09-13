@@ -4,7 +4,7 @@ title: Company application inbox for driver applications
 status: archived
 created: 2026-09-13
 updated: 2026-09-13
-archived_at: 2026-09-13T18:19:19Z
+archived_at: 2026-09-13T19:41:42Z
 ---
 
 ## Notes

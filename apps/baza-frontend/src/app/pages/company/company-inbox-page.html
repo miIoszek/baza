@@ -31,6 +31,8 @@
                 {{ app.phone }}
                 @if (app.jobOfferTitle) {
                 · {{ app.jobOfferTitle }}
+                } @else if (app.jobOfferId) {
+                · {{ app.jobOfferId }}
                 }
                 · {{ app.createdAt | date: 'short' }}
               </span>

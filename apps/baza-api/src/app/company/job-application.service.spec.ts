@@ -294,6 +294,30 @@ describe('JobApplicationService', () => {
     expect(getPrivateObject).not.toHaveBeenCalled();
   });
 
+  it('getCvStreamForOwner 404 when cv_file_key prefix mismatches company', async () => {
+    mockCompanyForUser('company-1');
+    from.mockImplementationOnce(() => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({
+              data: {
+                id: 'app-1',
+                cv_file_key: 'applications/other-company/offer-1/v1/cv.pdf',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    }));
+
+    await expect(
+      service.getCvStreamForOwner('user-1', 'app-1')
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(getPrivateObject).not.toHaveBeenCalled();
+  });
+
   it('getCvStreamForOwner streams CV for owned application', async () => {
     const { Readable } = await import('stream');
     mockCompanyForUser('company-1');

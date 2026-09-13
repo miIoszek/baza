@@ -341,6 +341,18 @@ export class R2StorageService {
           ? out.Body
           : Readable.from(out.Body as AsyncIterable<Uint8Array>);
 
+      // Mid-stream failures cannot change HTTP status after headers; log + destroy.
+      body.on('error', (streamErr) => {
+        const detail =
+          streamErr instanceof Error ? streamErr.message : String(streamErr);
+        this.logger.error(
+          `Private R2 stream error (bucket=${cfg.bucket}, key=${key}): ${detail}`
+        );
+        if (!body.destroyed) {
+          body.destroy(streamErr instanceof Error ? streamErr : undefined);
+        }
+      });
+
       return {
         body,
         contentType: out.ContentType,
