@@ -14,6 +14,8 @@ export type AsyncStatusKind = 'loading' | 'error' | 'empty';
     '[class.baza-async-status--loading]': "kind === 'loading'",
     '[class.baza-async-status--error]': "kind === 'error'",
     '[class.baza-async-status--empty]': "kind === 'empty'",
+    '[attr.role]': "kind === 'error' ? 'alert' : 'status'",
+    '[attr.aria-live]': "kind === 'error' ? 'assertive' : 'polite'",
   },
 })
 export class AsyncStatus {

@@ -4,8 +4,10 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { describe, expect, it, vi } from 'vitest';
 import { CompanyOffersListPage } from './company-offers-list-page';
 
 describe('CompanyOffersListPage', () => {
@@ -23,6 +25,8 @@ describe('CompanyOffersListPage', () => {
   it('sets error signal when GET /api/company/offers fails', async () => {
     const fixture = TestBed.createComponent(CompanyOffersListPage);
     const http = TestBed.inject(HttpTestingController);
+    const snackBar = TestBed.inject(MatSnackBar);
+    const openSpy = vi.spyOn(snackBar, 'open');
     const page = fixture.componentInstance;
 
     fixture.detectChanges();
@@ -39,6 +43,7 @@ describe('CompanyOffersListPage', () => {
     expect(page['error']()).toBe('Unauthorized');
     expect(page['loading']()).toBe(false);
     expect(page['offers']()).toEqual([]);
+    expect(openSpy).not.toHaveBeenCalled();
     http.verify();
   });
 

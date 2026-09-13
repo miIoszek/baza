@@ -35,6 +35,9 @@ export class CompanyOffersListPage implements OnInit {
   }
 
   protected async retryLoad(): Promise<void> {
+    if (this.loading()) {
+      return;
+    }
     await this.reload();
   }
 
