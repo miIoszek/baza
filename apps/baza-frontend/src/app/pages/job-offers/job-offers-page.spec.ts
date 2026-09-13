@@ -1,5 +1,6 @@
 import { HttpParams } from '@angular/common/http';
 import { describe, expect, it } from 'vitest';
+import { pickCompanyLogoUrl } from './company-logo-url';
 import {
   hasActiveJobOfferFilters,
   jobOffersQueryToHttpParams,
@@ -7,6 +8,26 @@ import {
   parseJobOffersQueryParams,
   type JobOffersQueryModel,
 } from './job-offers-page';
+
+describe('pickCompanyLogoUrl', () => {
+  it('prefers s48 then s96 then original', () => {
+    expect(
+      pickCompanyLogoUrl({
+        original: 'o',
+        s96: 'm',
+        s48: 's',
+      })
+    ).toBe('s');
+    expect(pickCompanyLogoUrl({ original: 'o', s96: 'm' })).toBe('m');
+    expect(pickCompanyLogoUrl({ original: 'o' })).toBe('o');
+  });
+
+  it('returns null for missing urls', () => {
+    expect(pickCompanyLogoUrl(null)).toBeNull();
+    expect(pickCompanyLogoUrl(undefined)).toBeNull();
+    expect(pickCompanyLogoUrl({})).toBeNull();
+  });
+});
 
 describe('job-offers query helpers', () => {
   it('parses countries, cadence, license and near from query params', () => {

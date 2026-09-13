@@ -11,7 +11,6 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -25,6 +24,7 @@ import {
 import { AsyncStatus } from '@baza/ui';
 import { catchError, combineLatest, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { pickCompanyLogoUrl } from './company-logo-url';
 import { OffersMapComponent, type OfferMapMarker } from './offers-map';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
@@ -116,7 +116,6 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
   imports: [
     RouterLink,
     FormsModule,
-    MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -254,6 +253,40 @@ export class JobOffersPage implements OnInit {
       },
       { enableHighAccuracy: false, timeout: 10000 }
     );
+  }
+
+  protected openOffer(id: string): void {
+    void this.router.navigate(['/job-offers', id]);
+  }
+
+  protected onCardKeydown(event: KeyboardEvent, id: string): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.openOffer(id);
+    }
+  }
+
+  protected logoUrl(offer: JobOffer): string | null {
+    return pickCompanyLogoUrl(offer.companyPhotoUrls);
+  }
+
+  protected salaryPill(offer: JobOffer): string | null {
+    const s = offer.salary;
+    if (!s) {
+      return null;
+    }
+    const parts: string[] = [];
+    if (s.min != null && s.max != null) {
+      parts.push(`${s.min}–${s.max}`);
+    } else if (s.min != null) {
+      parts.push(`od ${s.min}`);
+    } else if (s.max != null) {
+      parts.push(`do ${s.max}`);
+    }
+    if (parts.length === 0) {
+      return null;
+    }
+    return `${parts.join(' ')} ${s.currency}`;
   }
 
   protected cadenceLabel(code: string): string {

@@ -307,8 +307,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-api --testPathPatterns=job-offer.service` passes (or full `npx nx test baza-api`)
-- [x] 1.2 `npx nx lint baza-api` passes (touched projects)
+- [x] 1.1 `npx nx test baza-api --testPathPatterns=job-offer.service` passes (or full `npx nx test baza-api`) — 5fa37f7
+- [x] 1.2 `npx nx lint baza-api` passes (touched projects) — 5fa37f7
 
 #### Manual
 
@@ -319,8 +319,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [ ] 2.1 `npx nx test baza-frontend --include='**/job-offers-page.spec.ts'` passes
-- [ ] 2.2 `npx nx lint baza-frontend` passes
+- [x] 2.1 `npx nx test baza-frontend --include='**/job-offers-page.spec.ts'` passes
+- [x] 2.2 `npx nx lint baza-frontend` passes
 
 #### Manual
 
@@ -334,8 +334,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [ ] 3.1 `npx nx test baza-frontend --include='**/job-offer-detail-page.spec.ts'` passes (update if selectors change)
-- [ ] 3.2 `npx nx lint baza-frontend` passes
+- [x] 3.1 `npx nx test baza-frontend --include='**/job-offer-detail-page.spec.ts'` passes (update if selectors change)
+- [x] 3.2 `npx nx lint baza-frontend` passes
 
 #### Manual
 
@@ -347,8 +347,8 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [ ] 4.1 `npx nx test baza-frontend` passes (or targeted specs)
-- [ ] 4.2 `npx nx lint baza-frontend` passes
+- [x] 4.1 `npx nx test baza-frontend` passes (or targeted specs)
+- [x] 4.2 `npx nx lint baza-frontend` passes
 
 #### Manual
 
@@ -359,10 +359,10 @@ No DB migration. Older clients ignoring new JSON fields remain compatible. Bookm
 
 #### Automated
 
-- [ ] 5.1 `npx nx test baza-frontend` passes
-- [ ] 5.2 `npx nx test baza-api` passes
-- [ ] 5.3 `npm run lint` / project lints pass
-- [ ] 5.4 `npx nx build baza-frontend` (or `npm run build`) succeeds
+- [x] 5.1 `npx nx test baza-frontend` passes
+- [x] 5.2 `npx nx test baza-api` passes
+- [x] 5.3 `npm run lint` / project lints pass
+- [x] 5.4 `npx nx build baza-frontend` (or `npm run build`) succeeds
 
 #### Manual
 
