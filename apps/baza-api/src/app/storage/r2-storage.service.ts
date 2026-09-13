@@ -2,11 +2,14 @@ import {
   BadRequestException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { Readable } from 'stream';
 import {
   DeleteObjectsCommand,
+  GetObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
@@ -305,6 +308,64 @@ export class R2StorageService {
       cfg.bucket,
       prefix
     );
+  }
+
+  /**
+   * Fetch a private-bucket object for Nest streaming (company CV download).
+   * Never builds a public URL.
+   */
+  async getPrivateObject(key: string): Promise<{
+    body: Readable;
+    contentType?: string;
+    contentLength?: number;
+  }> {
+    const cfg = this.getPrivateConfig();
+    if (!cfg) {
+      throw new ServiceUnavailableException('Private R2 is not configured');
+    }
+
+    try {
+      const out = await this.getPrivateClient().send(
+        new GetObjectCommand({
+          Bucket: cfg.bucket,
+          Key: key,
+        })
+      );
+
+      if (!out.Body) {
+        throw new NotFoundException('Nie znaleziono pliku CV');
+      }
+
+      const body =
+        out.Body instanceof Readable
+          ? out.Body
+          : Readable.from(out.Body as AsyncIterable<Uint8Array>);
+
+      return {
+        body,
+        contentType: out.ContentType,
+        contentLength: out.ContentLength,
+      };
+    } catch (err) {
+      if (
+        err instanceof NotFoundException ||
+        err instanceof ServiceUnavailableException
+      ) {
+        throw err;
+      }
+      const name =
+        err && typeof err === 'object' && 'name' in err
+          ? String((err as { name: string }).name)
+          : '';
+      if (name === 'NoSuchKey' || name === 'NotFound') {
+        throw new NotFoundException('Nie znaleziono pliku CV');
+      }
+      const detail = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Private R2 GetObject failed (bucket=${cfg.bucket}, key=${key}): ${detail}`
+      );
+      throw new BadRequestException('Nie udało się pobrać pliku CV');
+    }
   }
 
   private async deletePrefixInBucket(

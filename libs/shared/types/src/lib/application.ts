@@ -71,6 +71,21 @@ export interface CreateJobApplicationResponse {
   createdAt: string;
 }
 
+/**
+ * Company inbox list item (S-05).
+ * Never includes cvFileKey — download via GET /api/company/applications/:id/cv.
+ */
+export interface CompanyJobApplicationListItem {
+  id: string;
+  jobOfferId: string;
+  /** Offer title when join succeeds; empty string if offer row missing. */
+  jobOfferTitle: string;
+  email: string;
+  phone: string;
+  message?: string;
+  createdAt: string;
+}
+
 export interface HealthResponse {
   status: 'ok';
   service: string;
