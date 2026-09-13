@@ -1,0 +1,64 @@
+<section class="auth-page">
+  <mat-card class="auth-card baza-glass-card" appearance="outlined">
+    <div class="auth-brand">
+      <img
+        class="auth-brand__logo"
+        src="/baza-logo.png"
+        alt=""
+        width="48"
+        height="59"
+      />
+      <span class="auth-brand__name">Baza</span>
+    </div>
+    <mat-card-header>
+      <mat-card-title>Skrzynka aplikacji</mat-card-title>
+      <mat-card-subtitle>Aplikacje kierowców do ofert Twojej firmy</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loading()) {
+      <p class="auth-form inbox-list__status">Ładowanie…</p>
+      } @else {
+      <div class="auth-form">
+        @if (applications().length === 0) {
+        <p class="inbox-list__empty">Brak aplikacji.</p>
+        } @else {
+        <ul class="inbox-list">
+          @for (app of applications(); track app.id) {
+          <li class="inbox-list__item">
+            <div class="inbox-list__body">
+              <strong>{{ app.email }}</strong>
+              <span class="inbox-list__meta">
+                {{ app.phone }}
+                @if (app.jobOfferTitle) {
+                · {{ app.jobOfferTitle }}
+                } @else if (app.jobOfferId) {
+                · {{ app.jobOfferId }}
+                }
+                · {{ app.createdAt | date: 'short' }}
+              </span>
+              @if (app.message) {
+              <p class="inbox-list__message">{{ app.message }}</p>
+              }
+            </div>
+            <div class="inbox-list__actions">
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="downloadingId() === app.id"
+                (click)="downloadCv(app)"
+              >
+                {{ downloadingId() === app.id ? 'Pobieranie…' : 'Pobierz CV' }}
+              </button>
+            </div>
+          </li>
+          }
+        </ul>
+        }
+      </div>
+      }
+    </mat-card-content>
+    <mat-card-footer class="auth-footer">
+      <a routerLink="/company/offers">← Moje oferty</a>
+    </mat-card-footer>
+  </mat-card>
+</section>
