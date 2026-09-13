@@ -183,12 +183,12 @@ Replace placeholder with real inbox page; add shell link; wire authenticated lis
 
 #### Automated
 
-- [x] 1.1 Shared `CompanyJobApplicationListItem` type (no cvFileKey)
-- [x] 1.2 R2 `getPrivateObject` for private bucket
-- [x] 1.3 JobApplicationService listForOwner + getCvStreamForOwner
-- [x] 1.4 GET /api/company/applications and GET …/:id/cv
-- [x] 1.5 Nest ownership / 404 unit tests
-- [x] 1.6 API lint + test + build green
+- [x] 1.1 Shared `CompanyJobApplicationListItem` type (no cvFileKey) — a908b9e
+- [x] 1.2 R2 `getPrivateObject` for private bucket — a908b9e
+- [x] 1.3 JobApplicationService listForOwner + getCvStreamForOwner — a908b9e
+- [x] 1.4 GET /api/company/applications and GET …/:id/cv — a908b9e
+- [x] 1.5 Nest ownership / 404 unit tests — a908b9e
+- [x] 1.6 API lint + test + build green — a908b9e
 
 #### Manual
 
@@ -198,11 +198,11 @@ Replace placeholder with real inbox page; add shell link; wire authenticated lis
 
 #### Automated
 
-- [ ] 2.1 CompanyInboxPage with loading/empty/error/list
-- [ ] 2.2 Wire route; remove placeholder
-- [ ] 2.3 App shell inbox nav link
-- [ ] 2.4 Authenticated blob CV download
-- [ ] 2.5 Frontend lint + test + build green
+- [x] 2.1 CompanyInboxPage with loading/empty/error/list
+- [x] 2.2 Wire route; remove placeholder
+- [x] 2.3 App shell inbox nav link
+- [x] 2.4 Authenticated blob CV download
+- [x] 2.5 Frontend lint + test + build green
 
 #### Manual
 
