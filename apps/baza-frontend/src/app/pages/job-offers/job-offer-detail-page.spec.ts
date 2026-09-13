@@ -31,6 +31,8 @@ const OFFER: JobOffer = {
   publishedAt: '2026-09-11T00:00:00.000Z',
   baseLocation: { lat: 52.2, lng: 21.0 },
   companyBaseLocationText: 'Warszawa',
+  companyName: 'Acme Transport',
+  companyPhotoUrls: null,
 };
 
 describe('JobOfferDetailPage apply form', () => {

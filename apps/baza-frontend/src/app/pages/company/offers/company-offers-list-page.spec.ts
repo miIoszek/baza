@@ -62,6 +62,8 @@ describe('CompanyOffersListPage', () => {
         description: '',
         baseLocation: null,
         companyBaseLocationText: null,
+        companyName: 'Acme',
+        companyPhotoUrls: null,
         published: true,
         publishedAt: '2026-01-01T00:00:00.000Z',
       },

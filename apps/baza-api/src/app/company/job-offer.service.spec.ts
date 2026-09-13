@@ -42,6 +42,8 @@ describe('JobOfferService', () => {
     routes: baseDto.routes,
     baseLocation: { lat: 52.2, lng: 21.0 },
     companyBaseLocationText: 'Warsaw',
+    companyName: 'Acme Transport',
+    companyPhotoUrls: null,
     published: true,
     publishedAt: '2026-01-01T00:00:00Z',
     ...overrides,
@@ -166,6 +168,11 @@ describe('JobOfferService', () => {
                   base_lat: 52.2,
                   base_lng: 21.0,
                   base_location: 'Warsaw',
+                  name: 'Acme Transport',
+                  photo_urls: {
+                    s48: 'https://cdn.example/n48.webp',
+                    s96: 'https://cdn.example/n96.webp',
+                  },
                 },
               },
             ],
@@ -179,6 +186,11 @@ describe('JobOfferService', () => {
     expect(list).toHaveLength(1);
     expect(list[0].baseLocation).toEqual({ lat: 52.2, lng: 21.0 });
     expect(list[0].licenseCategory).toBe('CE');
+    expect(list[0].companyName).toBe('Acme Transport');
+    expect(list[0].companyPhotoUrls).toEqual({
+      s48: 'https://cdn.example/n48.webp',
+      s96: 'https://cdn.example/n96.webp',
+    });
   });
 
   it('listPublished defaults missing license_category to C for legacy rows', async () => {
@@ -214,6 +226,8 @@ describe('JobOfferService', () => {
 
     const list = await service.listPublished();
     expect(list[0].licenseCategory).toBe('C');
+    expect(list[0].companyName).toBe('');
+    expect(list[0].companyPhotoUrls).toBeNull();
   });
 
   it('listPublished fails loud on unexpected license_category', async () => {
