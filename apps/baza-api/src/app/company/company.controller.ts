@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -11,6 +12,7 @@ import {
   Patch,
   Post,
   Req,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -20,6 +22,7 @@ import { memoryStorage } from 'multer';
 import type {
   AuthMeCompany,
   AuthMeResponse,
+  CompanyJobApplicationListItem,
   JobOffer,
 } from '@baza/shared-types';
 import { AuthService } from '../auth/auth.service';
@@ -27,6 +30,7 @@ import { JwtAuthGuard, type AuthedRequest } from '../auth/jwt-auth.guard';
 import { CompanyService } from './company.service';
 import { CreateJobOfferDto, UpdateJobOfferDto } from './dto/job-offer.dto';
 import { UpdateCompanyProfileDto } from './dto/update-company-profile.dto';
+import { JobApplicationService } from './job-application.service';
 import { JobOfferService } from './job-offer.service';
 
 const ALLOWED_UPLOAD_MIME = new Set([
@@ -41,7 +45,8 @@ export class CompanyController {
   constructor(
     private readonly authService: AuthService,
     private readonly companyService: CompanyService,
-    private readonly jobOfferService: JobOfferService
+    private readonly jobOfferService: JobOfferService,
+    private readonly jobApplicationService: JobApplicationService
   ) {}
 
   @Get('session')
@@ -96,6 +101,30 @@ export class CompanyController {
   @Get('offers')
   async listOwnOffers(@Req() req: AuthedRequest): Promise<JobOffer[]> {
     return this.jobOfferService.listForOwner(this.requireUserId(req));
+  }
+
+  @Get('applications')
+  async listApplications(
+    @Req() req: AuthedRequest
+  ): Promise<CompanyJobApplicationListItem[]> {
+    return this.jobApplicationService.listForOwner(this.requireUserId(req));
+  }
+
+  @Get('applications/:id/cv')
+  @Header('Cache-Control', 'private, no-store')
+  async downloadApplicationCv(
+    @Req() req: AuthedRequest,
+    @Param('id', ParseUUIDPipe) id: string
+  ): Promise<StreamableFile> {
+    const file = await this.jobApplicationService.getCvStreamForOwner(
+      this.requireUserId(req),
+      id
+    );
+    return new StreamableFile(file.body, {
+      type: file.contentType || 'application/pdf',
+      disposition: 'attachment; filename="cv.pdf"',
+      length: file.contentLength,
+    });
   }
 
   @Post('offers')

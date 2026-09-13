@@ -5,7 +5,11 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import type { CreateJobApplicationResponse } from '@baza/shared-types';
+import type {
+  CompanyJobApplicationListItem,
+  CreateJobApplicationResponse,
+} from '@baza/shared-types';
+import { Readable } from 'stream';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 import { R2StorageService } from '../storage/r2-storage.service';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
@@ -20,6 +24,16 @@ type ApplicationRow = {
   cv_file_key: string;
   consent_accepted_at: string;
   created_at: string;
+};
+
+type ListRow = {
+  id: string;
+  job_offer_id: string;
+  email: string;
+  phone: string;
+  message: string | null;
+  created_at: string;
+  job_offers: { title: string } | { title: string }[] | null;
 };
 
 @Injectable()
@@ -105,6 +119,100 @@ export class JobApplicationService {
       }
       throw err;
     }
+  }
+
+  async listForOwner(userId: string): Promise<CompanyJobApplicationListItem[]> {
+    const company = await this.requireCompanyForUser(userId);
+    const { data, error } = await this.supabaseAuth
+      .getClient()
+      .from('job_applications')
+      .select(
+        'id, job_offer_id, email, phone, message, created_at, job_offers(title)'
+      )
+      .eq('company_id', company.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.logger.error(`job_applications list failed: ${error.message}`);
+      throw new BadRequestException('Nie udało się pobrać aplikacji');
+    }
+
+    return ((data ?? []) as ListRow[]).map((row) => this.toListItem(row));
+  }
+
+  async getCvStreamForOwner(
+    userId: string,
+    applicationId: string
+  ): Promise<{
+    body: Readable;
+    contentType?: string;
+    contentLength?: number;
+  }> {
+    if (!this.r2.isPrivateConfigured()) {
+      throw new ServiceUnavailableException(
+        'Pobieranie CV wymaga konfiguracji prywatnego R2'
+      );
+    }
+
+    const company = await this.requireCompanyForUser(userId);
+    const { data, error } = await this.supabaseAuth
+      .getClient()
+      .from('job_applications')
+      .select('id, cv_file_key')
+      .eq('id', applicationId)
+      .eq('company_id', company.id)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`job_applications cv lookup failed: ${error.message}`);
+      throw new BadRequestException('Nie udało się pobrać aplikacji');
+    }
+
+    if (!data?.cv_file_key) {
+      throw new NotFoundException('Nie znaleziono aplikacji');
+    }
+
+    const cvKey = data.cv_file_key as string;
+    const expectedPrefix = `applications/${company.id}/`;
+    if (!cvKey.startsWith(expectedPrefix)) {
+      this.logger.error(
+        `cv_file_key prefix mismatch for application ${applicationId} (company=${company.id})`
+      );
+      throw new NotFoundException('Nie znaleziono aplikacji');
+    }
+
+    return this.r2.getPrivateObject(cvKey);
+  }
+
+  private toListItem(row: ListRow): CompanyJobApplicationListItem {
+    const offer = Array.isArray(row.job_offers)
+      ? row.job_offers[0]
+      : row.job_offers;
+    return {
+      id: row.id,
+      jobOfferId: row.job_offer_id,
+      jobOfferTitle: offer?.title?.trim() || '',
+      email: row.email,
+      phone: row.phone,
+      ...(row.message ? { message: row.message } : {}),
+      createdAt: row.created_at,
+    };
+  }
+
+  private async requireCompanyForUser(
+    userId: string
+  ): Promise<{ id: string }> {
+    const { data, error } = await this.supabaseAuth
+      .getClient()
+      .from('companies')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      throw new NotFoundException('Profil firmy nie znaleziony');
+    }
+    return { id: data.id as string };
   }
 
   private async requirePublishedOffer(

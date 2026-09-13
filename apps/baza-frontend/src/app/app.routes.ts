@@ -4,7 +4,7 @@ import { guestAuthGuard } from './core/guards/guest-auth.guard';
 import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
-import { CompanyInboxPlaceholder } from './pages/company/company-inbox-placeholder';
+import { CompanyInboxPage } from './pages/company/company-inbox-page';
 import { CompanyProfilePage } from './pages/company/company-profile-page';
 import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
@@ -70,7 +70,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'company/inbox',
-    component: CompanyInboxPlaceholder,
+    component: CompanyInboxPage,
     canActivate: [companyAuthGuard],
   },
   { path: '**', redirectTo: '' },

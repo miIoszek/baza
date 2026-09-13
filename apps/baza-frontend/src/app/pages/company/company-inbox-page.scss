@@ -1,0 +1,46 @@
+@use '../auth-shared';
+
+.inbox-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.inbox-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--baza-glass-border, rgba(148, 163, 184, 0.2));
+}
+
+.inbox-list__body {
+  min-width: 0;
+}
+
+.inbox-list__meta {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
+.inbox-list__message {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.inbox-list__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+}
+
+.inbox-list__empty,
+.inbox-list__status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}

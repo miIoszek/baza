@@ -73,4 +73,15 @@ describe('R2StorageService private CV', () => {
     const svc = new R2StorageService();
     expect(svc.isPrivateConfigured()).toBe(false);
   });
+
+  it('getPrivateObject throws when private R2 is not configured', async () => {
+    delete process.env['R2_PRIVATE_BUCKET'];
+    process.env['R2_ACCOUNT_ID'] = 'acct';
+    process.env['R2_ACCESS_KEY_ID'] = 'key';
+    process.env['R2_SECRET_ACCESS_KEY'] = 'secret';
+    const svc = new R2StorageService();
+    await expect(svc.getPrivateObject('applications/x/cv.pdf')).rejects.toBeInstanceOf(
+      ServiceUnavailableException
+    );
+  });
 });
