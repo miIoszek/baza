@@ -3,7 +3,7 @@ project: Baza
 version: 1
 status: draft
 created: 2026-09-08
-updated: 2026-09-11
+updated: 2026-09-13
 prd_version: 1
 
 main_goal: speed
@@ -37,7 +37,7 @@ Transport companies lose drivers when job boards ignore route geography and home
 | S-03 | driver-browse-job-offers  | Open Job Offers without account; filter by route and home cadence | S-02          | FR-006, FR-007, US-01 | done |
 | S-04 | driver-apply-via-map      | Open offer detail with route map; apply with email, phone, CV     | S-03          | FR-008, FR-009, US-01 | done |
 | S-05 | company-application-inbox | See driver applications in employer inbox                         | S-04, F-01    | FR-005, US-01         | proposed |
-| S-06 | ux-improvements           | Clearer empty/loading/error states on browse + company offer list | F-01          | UX polish             | proposed |
+| S-06 | ux-improvements           | Clearer empty/loading/error states on browse + company offer list | F-01          | UX polish             | in-progress |
 
 ## Streams
 
@@ -151,8 +151,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Low — presentation-layer polish on existing pages; keep out of inbox/application download and schema changes so it can ship beside S-05 without merge fights.
-- **Status:** proposed
-
+- **Status:** in-progress
 ## Backlog Handoff
 
 | Roadmap ID | Change ID               | Suggested issue title                              | Ready for `/10x-plan` | Notes                                      |
