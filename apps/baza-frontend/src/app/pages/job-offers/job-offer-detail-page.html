@@ -18,6 +18,19 @@
   >
     <div class="offer-detail__main">
       <mat-card appearance="outlined" class="offer-detail__card">
+        <div class="offer-detail__actions">
+          <a mat-button routerLink="/">← Oferty</a>
+          @if (!applySuccess()) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="scrollToApply()"
+          >
+            Aplikuj teraz
+          </button>
+          }
+        </div>
         <mat-card-header>
           <mat-card-title>{{ o.title }}</mat-card-title>
           <mat-card-subtitle>
@@ -48,70 +61,56 @@
             <span>{{ o.companyName || 'Firma' }}</span>
           </a>
 
-          @if (!applySuccess()) {
-          <div class="offer-detail__cta">
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              (click)="scrollToApply()"
-            >
-              Aplikuj teraz
-            </button>
-          </div>
-          }
-
           <dl class="offer-detail__fields">
-            <div>
+            <div class="offer-detail__field-row">
               <dt>Trasy</dt>
               <dd>
                 <ul class="offer-detail__routes">
                   @for (r of o.routes; track $index) {
                   <li>
-                    {{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{
-                      r.to.code
-                    }})
+                    <span class="offer-detail__route-from"
+                      >{{ r.from.name }}
+                      <span class="offer-detail__route-code">({{ r.from.code }})</span></span
+                    >
+                    <span class="offer-detail__route-arrow" aria-hidden="true"
+                      >→</span
+                    >
+                    <span class="offer-detail__route-to"
+                      >{{ r.to.name }}
+                      <span class="offer-detail__route-code">({{ r.to.code }})</span></span
+                    >
                   </li>
                   }
                 </ul>
               </dd>
             </div>
-            <div>
+            <div class="offer-detail__field-row">
               <dt>Wymagane doświadczenie</dt>
               <dd>{{ o.requiredYearsExperience }} lat</dd>
             </div>
-            <div>
+            <div class="offer-detail__field-row">
               <dt>Prawo jazdy</dt>
               <dd>
                 {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
               </dd>
             </div>
             @if (salaryText(o); as salary) {
-            <div>
+            <div class="offer-detail__field-row">
               <dt>Wynagrodzenie</dt>
               <dd>{{ salary }}</dd>
             </div>
             } @if (o.companyBaseLocationText) {
-            <div>
+            <div class="offer-detail__field-row">
               <dt>Lokalizacja bazy</dt>
               <dd>{{ o.companyBaseLocationText }}</dd>
             </div>
             }
-            <div>
+            <div class="offer-detail__field-row offer-detail__field-row--description">
               <dt>Opis</dt>
               <dd class="offer-detail__description">{{ o.description }}</dd>
             </div>
           </dl>
         </mat-card-content>
-        <mat-card-actions class="offer-detail__actions">
-          <a mat-button routerLink="/">← Oferty</a>
-          <a
-            mat-flat-button
-            color="primary"
-            [routerLink]="['/companies', o.companyId]"
-            >Profil firmy</a
-          >
-        </mat-card-actions>
       </mat-card>
 
       <mat-card
@@ -141,10 +140,7 @@
             [formGroup]="applyForm"
             (ngSubmit)="onApply()"
           >
-            <mat-form-field
-              appearance="outline"
-              class="offer-detail__field"
-              subscriptSizing="dynamic"
+            <mat-form-field class="offer-detail__field"
             >
               <mat-label>E-mail</mat-label>
               <input
@@ -172,10 +168,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field
-              appearance="outline"
-              class="offer-detail__field"
-              subscriptSizing="dynamic"
+            <mat-form-field class="offer-detail__field"
             >
               <mat-label>Telefon</mat-label>
               <input
@@ -200,10 +193,7 @@
               }
             </mat-form-field>
 
-            <mat-form-field
-              appearance="outline"
-              class="offer-detail__field"
-              subscriptSizing="dynamic"
+            <mat-form-field class="offer-detail__field"
             >
               <mat-label>Wiadomość (opcjonalnie)</mat-label>
               <textarea

@@ -7,9 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,10 +21,9 @@ import {
   type JobOffer,
 } from '@baza/shared-types';
 import { AsyncStatus } from '@baza/ui';
-import { catchError, combineLatest, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, debounceTime, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { pickCompanyLogoUrl } from './company-logo-url';
-import { OffersMapComponent, type OfferMapMarker } from './offers-map';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
   daily: 'Codziennie',
@@ -39,6 +37,7 @@ export type JobOffersQueryModel = {
   countries: string[];
   cadence: string;
   license: string;
+  transport: string;
   nearLat: number | null;
   nearLng: number | null;
 };
@@ -64,6 +63,7 @@ export function parseJobOffersQueryParams(
     countries,
     cadence: get('cadence') ?? '',
     license: get('license') ?? '',
+    transport: get('transport') ?? '',
     nearLat: nearLat != null && !Number.isNaN(nearLat) ? nearLat : null,
     nearLng: nearLng != null && !Number.isNaN(nearLng) ? nearLng : null,
   };
@@ -82,6 +82,9 @@ export function jobOffersQueryToHttpParams(
   if (model.license) {
     params = params.set('license', model.license);
   }
+  if (model.transport) {
+    params = params.set('transport', model.transport);
+  }
   if (model.nearLat != null && model.nearLng != null) {
     params = params.set('nearLat', String(model.nearLat));
     params = params.set('nearLng', String(model.nearLng));
@@ -96,6 +99,7 @@ export function jobOffersQueryToRouterParams(
     countries: model.countries.length ? model.countries.join(',') : null,
     cadence: model.cadence || null,
     license: model.license || null,
+    transport: model.transport || null,
     nearLat: model.nearLat != null ? String(model.nearLat) : null,
     nearLng: model.nearLng != null ? String(model.nearLng) : null,
   };
@@ -106,6 +110,7 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
     model.countries.length > 0 ||
     !!model.cadence ||
     !!model.license ||
+    !!model.transport ||
     (model.nearLat != null && model.nearLng != null)
   );
 }
@@ -119,7 +124,6 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
     MatButtonModule,
     MatFormFieldModule,
     MatSelectModule,
-    OffersMapComponent,
     AsyncStatus,
   ],
   templateUrl: './job-offers-page.html',
@@ -129,12 +133,12 @@ export class JobOffersPage implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly breakpoint = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly countries = COUNTRIES;
   protected readonly cadences = HOME_RETURN_CADENCES;
   protected readonly licenses = DRIVER_LICENSES;
+  protected readonly transportTypes = TRANSPORT_TYPES;
   protected readonly cadenceLabels = CADENCE_LABELS;
 
   protected readonly loading = signal(true);
@@ -145,6 +149,7 @@ export class JobOffersPage implements OnInit {
     countries: [],
     cadence: '',
     license: '',
+    transport: '',
     nearLat: null,
     nearLng: null,
   });
@@ -156,27 +161,6 @@ export class JobOffersPage implements OnInit {
   protected readonly hasFilters = computed(() =>
     hasActiveJobOfferFilters(this.filters())
   );
-
-  protected readonly showMap = toSignal(
-    this.breakpoint.observe('(min-width: 768px)').pipe(map((r) => r.matches)),
-    { initialValue: false }
-  );
-
-  protected readonly mapMarkers = computed<OfferMapMarker[]>(() => {
-    const markers: OfferMapMarker[] = [];
-    for (const o of this.offers()) {
-      const point = o.baseLocation;
-      if (point) {
-        markers.push({
-          id: o.id,
-          title: o.title,
-          point,
-          href: `/job-offers/${o.id}`,
-        });
-      }
-    }
-    return markers;
-  });
 
   ngOnInit(): void {
     combineLatest([this.route.queryParamMap, this.reloadTick$])
@@ -222,6 +206,10 @@ export class JobOffersPage implements OnInit {
 
   protected onLicenseChange(license: string): void {
     this.writeQuery({ ...this.filters(), license: license ?? '' });
+  }
+
+  protected onTransportChange(transport: string): void {
+    this.writeQuery({ ...this.filters(), transport: transport ?? '' });
   }
 
   protected clearFilters(): void {
@@ -295,12 +283,6 @@ export class JobOffersPage implements OnInit {
 
   protected transportLabel(code: string): string {
     return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
-  }
-
-  protected routesSummary(offer: JobOffer): string {
-    return offer.routes
-      .map((r) => `${r.from.code}→${r.to.code}`)
-      .join(', ');
   }
 
   private writeQuery(model: JobOffersQueryModel): void {
