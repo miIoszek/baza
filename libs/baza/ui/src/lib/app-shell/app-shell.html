@@ -15,15 +15,9 @@
   @if (accountLabel()) {
     <a
       mat-button
-      routerLink="/company/profile"
-      routerLinkActive="baza-app-shell__active"
-    >
-      Profil firmy
-    </a>
-    <a
-      mat-button
       routerLink="/company/offers"
       routerLinkActive="baza-app-shell__active"
+      [routerLinkActiveOptions]="{ exact: true }"
     >
       Moje oferty
     </a>
@@ -34,7 +28,12 @@
     >
       Dodaj ofertę
     </a>
-    <div class="baza-app-shell__account-wrap">
+    <a
+      class="baza-app-shell__account-wrap"
+      routerLink="/company/profile"
+      routerLinkActive="baza-app-shell__account-wrap--active"
+      [attr.aria-label]="'Profil firmy: ' + accountLabel()"
+    >
       @if (accountAvatarUrl()) {
         <img
           class="baza-app-shell__avatar"
@@ -49,7 +48,7 @@
         </span>
       }
       <span class="baza-app-shell__account">{{ accountLabel() }}</span>
-    </div>
+    </a>
     <button mat-button type="button" (click)="logout.emit()">Wyloguj</button>
   } @else {
     <a mat-button routerLink="/login" routerLinkActive="baza-app-shell__active">

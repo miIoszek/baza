@@ -1,23 +1,28 @@
 @use './styles/theme' as baza;
 
 html {
-  height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
   @include baza.baza-dark-theme;
 }
 
 body {
-  background: var(--baza-page-bg);
-  background-attachment: fixed;
-  background-color: #020617;
-  color: var(--mat-sys-on-background);
-  font: var(--mat-sys-body-medium);
   margin: 0;
   min-height: 100%;
+  min-height: 100dvh;
+  color: var(--mat-sys-on-background);
+  font: var(--mat-sys-body-medium);
+  background-color: #020617;
+  background-image: var(--baza-page-bg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center top;
 }
 
 baza-root {
   display: block;
-  min-height: 100%;
+  min-height: 100dvh;
   background: transparent;
   color: var(--mat-sys-on-background);
 }
@@ -76,10 +81,18 @@ baza-root {
   width: 100%;
 }
 
-// Auth fields: soft glass inputs
-.auth-field {
-  .mdc-text-field--outlined {
-    --mdc-outlined-text-field-container-shape: 14px;
+// Form fields: filled appearance, labels always above
+.mat-mdc-form-field {
+  .mdc-text-field--filled {
+    border-radius: 14px;
+  }
+
+  .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: color-mix(
+      in srgb,
+      var(--mat-sys-surface-container-high, #273548) 72%,
+      transparent
+    );
   }
 
   .mat-mdc-form-field-focus-overlay {

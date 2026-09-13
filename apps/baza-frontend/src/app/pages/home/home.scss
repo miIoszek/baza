@@ -1,7 +1,8 @@
 .home {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 3rem;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .home__subtitle {
