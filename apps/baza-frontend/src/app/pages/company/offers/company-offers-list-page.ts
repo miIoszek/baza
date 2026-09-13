@@ -5,13 +5,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import type { JobOffer } from '@baza/shared-types';
+import { AsyncStatus } from '@baza/ui';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'baza-company-offers-list-page',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatButtonModule, MatSnackBarModule],
+  imports: [
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatSnackBarModule,
+    AsyncStatus,
+  ],
   templateUrl: './company-offers-list-page.html',
   styleUrl: './company-offers-list-page.scss',
 })
@@ -20,9 +27,14 @@ export class CompanyOffersListPage implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
   protected readonly offers = signal<JobOffer[]>([]);
 
   async ngOnInit(): Promise<void> {
+    await this.reload();
+  }
+
+  protected async retryLoad(): Promise<void> {
     await this.reload();
   }
 
@@ -43,6 +55,7 @@ export class CompanyOffersListPage implements OnInit {
 
   private async reload(): Promise<void> {
     this.loading.set(true);
+    this.error.set(null);
     try {
       const list = await firstValueFrom(
         this.http.get<JobOffer[]>(
@@ -50,17 +63,46 @@ export class CompanyOffersListPage implements OnInit {
         )
       );
       this.offers.set(list);
+      this.error.set(null);
     } catch (err: unknown) {
-      this.snackBar.open(this.extractError(err), 'OK', { duration: 6000 });
+      this.error.set(this.extractError(err, 'Nie udało się pobrać ofert'));
     } finally {
       this.loading.set(false);
     }
   }
 
-  private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse && typeof err.error?.message === 'string') {
-      return err.error.message;
+  private extractError(
+    err: unknown,
+    fallback = 'Operacja nie powiodła się'
+  ): string {
+    if (!(err instanceof HttpErrorResponse)) {
+      return fallback;
     }
-    return 'Operacja nie powiodła się';
+    // Blocked / offline / CORS — Angular may wrap TypeError("Failed to fetch")
+    if (err.status === 0) {
+      return fallback;
+    }
+    const raw = err.error;
+    const msg =
+      typeof raw?.message === 'string'
+        ? raw.message
+        : Array.isArray(raw?.message)
+          ? raw.message.join(', ')
+          : typeof raw === 'string'
+            ? raw
+            : null;
+    if (msg && !isBrowserNetworkNoise(msg)) {
+      return msg;
+    }
+    return fallback;
   }
+}
+
+function isBrowserNetworkNoise(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes('failed to fetch') ||
+    m.includes('networkerror') ||
+    m.includes('load failed')
+  );
 }

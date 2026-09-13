@@ -247,26 +247,26 @@ None — pure FE presentation.
 
 #### Automated
 
-- [x] 2.1 `npx nx test baza-frontend --include=src/app/pages/job-offers/job-offers-page.spec.ts` passes
-- [x] 2.2 `npx nx lint baza-frontend` passes (or project lint for touched files)
+- [x] 2.1 `npx nx test baza-frontend --include=src/app/pages/job-offers/job-offers-page.spec.ts` passes — ada9a93
+- [x] 2.2 `npx nx lint baza-frontend` passes (or project lint for touched files) — ada9a93
 
 #### Manual
 
-- [x] 2.3 Force API failure: error + „Spróbuj ponownie” recovers when API is back
-- [x] 2.4 Zero matches with filters: empty + „Wyczyść filtry” restores list
-- [x] 2.5 Unfiltered empty marketplace: empty message, no false error
-- [x] 2.6 Loading text visible briefly on filter change
+- [x] 2.3 Force API failure: error + „Spróbuj ponownie” recovers when API is back — ada9a93
+- [x] 2.4 Zero matches with filters: empty + „Wyczyść filtry” restores list — ada9a93
+- [x] 2.5 Unfiltered empty marketplace: empty message, no false error — ada9a93
+- [x] 2.6 Loading text visible briefly on filter change — ada9a93
 
 ### Phase 3: Wire company offer list
 
 #### Automated
 
-- [ ] 3.1 `npx nx test baza-frontend` passes (or targeted specs for touched pages)
-- [ ] 3.2 `npx nx lint baza-frontend` passes
-- [ ] 3.3 `npm run build` (or `npx nx build baza-frontend`) succeeds with the new `@baza/ui` export
+- [x] 3.1 `npx nx test baza-frontend` passes (or targeted specs for touched pages)
+- [x] 3.2 `npx nx lint baza-frontend` passes
+- [x] 3.3 `npm run build` (or `npx nx build baza-frontend`) succeeds with the new `@baza/ui` export
 
 #### Manual
 
-- [ ] 3.4 Logged-in company with zero offers: empty state, not error; „Dodaj ofertę” works
-- [ ] 3.5 Simulate GET failure: inline error + retry recovers; does not look like „Brak ofert”
-- [ ] 3.6 Unpublish still shows snackbar on success/failure
+- [x] 3.4 Logged-in company with zero offers: empty state, not error; „Dodaj ofertę” works
+- [x] 3.5 Simulate GET failure: inline error + retry recovers; does not look like „Brak ofert”
+- [x] 3.6 Unpublish still shows snackbar on success/failure

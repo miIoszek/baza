@@ -279,14 +279,28 @@ export class JobOffersPage implements OnInit {
   }
 
   private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const msg = err.error?.message;
-      if (typeof msg === 'string') {
-        return msg;
-      }
-      if (Array.isArray(msg)) {
-        return msg.join(', ');
-      }
+    if (!(err instanceof HttpErrorResponse)) {
+      return 'Nie udało się pobrać ofert';
+    }
+    if (err.status === 0) {
+      return 'Nie udało się pobrać ofert';
+    }
+    const raw = err.error;
+    const msg =
+      typeof raw?.message === 'string'
+        ? raw.message
+        : Array.isArray(raw?.message)
+          ? raw.message.join(', ')
+          : typeof raw === 'string'
+            ? raw
+            : null;
+    if (
+      msg &&
+      !msg.toLowerCase().includes('failed to fetch') &&
+      !msg.toLowerCase().includes('networkerror') &&
+      !msg.toLowerCase().includes('load failed')
+    ) {
+      return msg;
     }
     return 'Nie udało się pobrać ofert';
   }
