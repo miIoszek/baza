@@ -376,12 +376,12 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [ ] 4.1 refreshMe failure-path test green
-- [ ] 4.2 Lint green
+- [x] 4.1 refreshMe failure-path test green
+- [x] 4.2 Lint green
 
 #### Manual
 
-- [ ] 4.3 Forced `/auth/me` failure: UI not success-shaped “no company”; Sentry event present
+- [x] 4.3 Forced `/auth/me` failure: UI not success-shaped “no company”; Sentry event present
 
 ### Phase 5: Docs, roadmap, MCP note
 
