@@ -19,19 +19,29 @@
   position: sticky;
   top: var(--baza-shell-toolbar-height, 64px);
   z-index: 5;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
   margin: 0 0 0.75rem;
   padding: 0.65rem 0 0.85rem;
   background-color: #020617;
-  border-bottom: 1px solid var(--mat-sys-outline-variant, #475569);
+  background-image: var(--baza-page-bg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center top;
 }
 
 .job-offers__field {
   min-width: 10rem;
   flex: 1 1 10rem;
+  --mdc-filled-text-field-container-color: transparent;
+  --mat-form-field-container-color: transparent;
+  --mat-form-field-filled-container-color: transparent;
 }
 
 .job-offers__filter-actions {
@@ -39,7 +49,7 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  padding-top: 0.25rem;
+  margin-left: auto;
 }
 
 .job-offers__status {
@@ -53,6 +63,7 @@
 
 .job-offers__list {
   list-style: none;
+  width: 100%;
   margin: 0;
   padding: 0;
   display: flex;
@@ -61,8 +72,10 @@
 }
 
 .job-offers__card {
+  box-sizing: border-box;
   display: block;
   width: 100%;
+  max-width: 100%;
   margin: 0;
   padding: 0.85rem 1rem;
   text-align: left;
@@ -141,8 +154,10 @@
 
 .job-offers__loc {
   margin: 0;
+  max-width: 100%;
   font-size: 0.85rem;
   opacity: 0.75;
+  overflow-wrap: anywhere;
 }
 
 .job-offers__card-title {

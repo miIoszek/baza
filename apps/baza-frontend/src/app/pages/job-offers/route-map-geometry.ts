@@ -6,6 +6,24 @@ export type RouteMapLeg = {
   label: string;
 };
 
+export function routeLegLabel(fromCode: string, toCode: string): string {
+  return `${fromCode}→${toCode}`;
+}
+
+/** Dim other hops when a hovered route exists on the map. */
+export function routeMapLegEmphasis(
+  highlightedLabel: string | null,
+  legLabel: string,
+  allLabels: readonly string[]
+): { dimmed: boolean; emphasized: boolean } {
+  const active =
+    highlightedLabel != null && allLabels.includes(highlightedLabel);
+  return {
+    dimmed: active && legLabel !== highlightedLabel,
+    emphasized: active && legLabel === highlightedLabel,
+  };
+}
+
 /** Build polyline legs; skip any hop whose country code lacks a centroid. */
 export function buildRouteMapLegs(
   routes: RouteDirection[],
@@ -30,7 +48,7 @@ export function buildRouteMapLegs(
     legs.push({
       from: { lat: from.lat, lng: from.lng },
       to: { lat: to.lat, lng: to.lng },
-      label: `${route.from.code}→${route.to.code}`,
+      label: routeLegLabel(route.from.code, route.to.code),
     });
   }
   return legs;
