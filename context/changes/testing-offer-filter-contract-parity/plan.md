@@ -141,30 +141,30 @@ Unit only; mutation-check manual: flip cadence flexible rule briefly.
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-api` passes
+- [x] 1.1 `npx nx test baza-api` passes — f14b1e8
 
 #### Manual
 
-- [x] 1.2 Confirm membership case would fail if filter semantics changed
+- [x] 1.2 Confirm membership case would fail if filter semantics changed — f14b1e8
 
 ### Phase 2: Wire↔product contract (Risk #4)
 
 #### Automated
 
-- [x] 2.1 `npx nx test baza-api` passes
-- [x] 2.2 `npx nx test baza-frontend` passes
-- [x] 2.3 `npm run lint` passes
+- [x] 2.1 `npx nx test baza-api` passes — f14b1e8
+- [x] 2.2 `npx nx test baza-frontend` passes — f14b1e8
+- [x] 2.3 `npm run lint` passes — f14b1e8
 
 #### Manual
 
-- [x] 2.4 Skim rename-trap assertions
+- [x] 2.4 Skim rename-trap assertions — f14b1e8
 
 ### Phase 3: Cookbook sync
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
+- [x] 3.1 `npm run lint` passes — f14b1e8
 
 #### Manual
 
-- [x] 3.2 §6.5 actionable for future filter tests
+- [x] 3.2 §6.5 actionable for future filter tests — f14b1e8

@@ -66,7 +66,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|-----------------|---------------|------------|--------|---------------|
 | 1 | Critical marketplace loop | Prove apply→inbox delivery and CV ownership isolation | #1, #2 | integration (+ e2e only if research shows cheaper layers miss the loop) | done | testing-critical-marketplace-loop |
-| 2 | Offer filter & contract parity | Catch silent filter regressions and FE↔API contract drift | #3, #4 | unit + contract/integration | implemented | testing-offer-filter-contract-parity |
+| 2 | Offer filter & contract parity | Catch silent filter regressions and FE↔API contract drift | #3, #4 | unit + contract/integration | done | testing-offer-filter-contract-parity |
 | 3 | Company auth & abuse floor | Lock guest/owner authz and make apply-abuse posture explicit | #5, #6 | unit + integration | not started | — |
 | 4 | Quality-gates wiring | Keep lint/test/build as the merge floor; add critical-flow gate only when Phase 1 delivers it | cross-cutting | CI gates | not started | — |
 

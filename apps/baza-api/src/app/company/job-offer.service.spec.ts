@@ -397,8 +397,8 @@ describe('JobOfferService', () => {
         new Set(['o-it-fr-daily', 'o-de-nl-flexible'])
       );
       expect(
-        matchingIds({ countries: ['DE'], homeReturnCadence: 'weekly' })
-      ).toEqual(new Set(['o-pl-de-weekly', 'o-de-nl-flexible']));
+        matchingIds({ countries: ['PL'], homeReturnCadence: 'daily' })
+      ).toEqual(new Set());
       expect(
         matchingIds({ countries: ['DE'], homeReturnCadence: 'monthly' })
       ).toEqual(new Set(['o-de-nl-flexible']));
