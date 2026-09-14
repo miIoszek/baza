@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   ServiceUnavailableException,
@@ -312,6 +313,23 @@ export class R2StorageService {
   }
 
   /**
+   * Fail-closed private-bucket prefix purge (offer hard-delete).
+   * Throws when private R2 is unset or list/delete fails — does not swallow errors.
+   */
+  async deletePrivatePrefixOrThrow(prefix: string): Promise<void> {
+    const cfg = this.getPrivateConfig();
+    if (!cfg) {
+      throw new ServiceUnavailableException('Private R2 is not configured');
+    }
+    await this.deletePrefixInBucket(
+      this.getPrivateClient(),
+      cfg.bucket,
+      prefix,
+      { failClosed: true }
+    );
+  }
+
+  /**
    * Fetch a private-bucket object for Nest streaming (company CV download).
    * Never builds a public URL.
    */
@@ -384,7 +402,8 @@ export class R2StorageService {
   private async deletePrefixInBucket(
     client: S3Client,
     bucket: string,
-    prefix: string
+    prefix: string,
+    options: { failClosed?: boolean } = {}
   ): Promise<void> {
     try {
       const listed = await client.send(
@@ -417,6 +436,11 @@ export class R2StorageService {
               `R2 deletePrefix failed (bucket=${bucket}, prefix=${prefix}): ${detail}`
             )
       );
+      if (options.failClosed) {
+        throw new InternalServerErrorException(
+          'Nie udało się usunąć plików CV powiązanych z ofertą'
+        );
+      }
     }
   }
 

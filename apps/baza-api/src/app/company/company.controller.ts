@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Header,
   HttpCode,
@@ -155,6 +156,15 @@ export class CompanyController {
     @Param('id', ParseUUIDPipe) id: string
   ): Promise<JobOffer> {
     return this.jobOfferService.unpublishForUser(this.requireUserId(req), id);
+  }
+
+  @Delete('offers/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteOffer(
+    @Req() req: AuthedRequest,
+    @Param('id', ParseUUIDPipe) id: string
+  ): Promise<void> {
+    await this.jobOfferService.deleteForUser(this.requireUserId(req), id);
   }
 
   private requireUserId(req: AuthedRequest): string {

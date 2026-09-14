@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import type {
   DriverLicenseCategory,
@@ -17,6 +18,7 @@ import type {
 import { isDriverLicenseCategory, isTransportType } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
+import { R2StorageService } from '../storage/r2-storage.service';
 import {
   CreateJobOfferDto,
   UpdateJobOfferDto,
@@ -56,7 +58,10 @@ type OfferRow = {
 export class JobOfferService {
   private readonly logger = new Logger(JobOfferService.name);
 
-  constructor(private readonly supabaseAuth: SupabaseAuthService) {}
+  constructor(
+    private readonly supabaseAuth: SupabaseAuthService,
+    private readonly r2: R2StorageService
+  ) {}
 
   parseListQuery(query: ListOffersQueryDto): JobOfferFilters {
     const hasLat = query.nearLat != null && !Number.isNaN(query.nearLat);
@@ -179,6 +184,34 @@ export class JobOfferService {
       throw new BadRequestException('Nie udało się wycofać oferty');
     }
     return this.mapOffer(data as OfferRow);
+  }
+
+  /**
+   * Hard-delete an owned offer. Purges private R2 CVs under the offer prefix
+   * before deleting the row (applications cascade via FK).
+   */
+  async deleteForUser(userId: string, offerId: string): Promise<void> {
+    const company = await this.requireCompanyForUser(userId);
+    const existing = await this.getOwnedOffer(company.id, offerId);
+    if (!existing) {
+      throw new NotFoundException('Oferta nie znaleziona');
+    }
+
+    if (!this.r2.isPrivateConfigured()) {
+      const hasApps = await this.offerHasApplications(company.id, offerId);
+      if (hasApps) {
+        throw new ServiceUnavailableException(
+          'Nie można usunąć oferty z aplikacjami: magazyn CV (private R2) jest niedostępny'
+        );
+      }
+      await this.deleteOwnedOfferRow(company.id, offerId);
+      return;
+    }
+
+    await this.r2.deletePrivatePrefixOrThrow(
+      `applications/${company.id}/${offerId}`
+    );
+    await this.deleteOwnedOfferRow(company.id, offerId);
   }
 
   async listForOwner(userId: string): Promise<JobOffer[]> {
@@ -347,6 +380,46 @@ export class JobOfferService {
       .eq('company_id', companyId)
       .maybeSingle();
     return (data as Pick<OfferRow, 'id' | 'published'> | null) ?? null;
+  }
+
+  private async offerHasApplications(
+    companyId: string,
+    offerId: string
+  ): Promise<boolean> {
+    const { data, error } = await this.supabaseAuth
+      .getClient()
+      .from('job_applications')
+      .select('id')
+      .eq('job_offer_id', offerId)
+      .eq('company_id', companyId)
+      .limit(1);
+
+    if (error) {
+      this.logger.warn(
+        `Offer applications probe failed (offer=${offerId}): ${error.message}`
+      );
+      throw new InternalServerErrorException(
+        'Nie udało się sprawdzić aplikacji powiązanych z ofertą'
+      );
+    }
+    return (data?.length ?? 0) > 0;
+  }
+
+  private async deleteOwnedOfferRow(
+    companyId: string,
+    offerId: string
+  ): Promise<void> {
+    const { error } = await this.supabaseAuth
+      .getClient()
+      .from('job_offers')
+      .delete()
+      .eq('id', offerId)
+      .eq('company_id', companyId);
+
+    if (error) {
+      this.logger.warn(`Offer delete failed: ${error.message}`);
+      throw new BadRequestException('Nie udało się usunąć oferty');
+    }
   }
 
   private assertSalary(dto: CreateJobOfferDto | UpdateJobOfferDto): void {

@@ -39,6 +39,7 @@ describe('CompanyController', () => {
             createForUser: jest.fn(),
             updateForUser: jest.fn(),
             unpublishForUser: jest.fn(),
+            deleteForUser: jest.fn(),
           },
         },
         {
