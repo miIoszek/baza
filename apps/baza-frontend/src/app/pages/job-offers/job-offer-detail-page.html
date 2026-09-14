@@ -67,7 +67,14 @@
               <dd>
                 <ul class="offer-detail__routes">
                   @for (r of o.routes; track $index) {
-                  <li>
+                  <li
+                    (pointerenter)="hoverRoute(r.from.code, r.to.code)"
+                    (pointerleave)="clearHoveredRoute()"
+                    [class.offer-detail__routes-item--active]="
+                      hoveredRouteLabel() ===
+                      routeKey(r.from.code, r.to.code)
+                    "
+                  >
                     <span class="offer-detail__route-from"
                       >{{ r.from.name }}
                       <span class="offer-detail__route-code">({{ r.from.code }})</span></span
@@ -262,6 +269,7 @@
       <baza-offer-route-map
         [baseLocation]="o.baseLocation"
         [legs]="routeLegs()"
+        [highlightedLabel]="hoveredRouteLabel()"
       />
     </div>
     }
