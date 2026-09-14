@@ -108,7 +108,7 @@ Run it **once, on entry** to the change (right after the `change.md` → `implem
    - and in the `## Foundations` / `## Slices` bodies — the `### <ID>: …` block that contains a `- **Change ID:** <change-id>` line.
 
    `<ID>` is that item's roadmap-local id (`F-NN` or `S-NN`). Match is exact-string only — a slice can spawn several changes, so a near-miss is intentionally *not* touched. **No match** → print `ℹ context/foundation/roadmap.md has no item with Change ID "<change-id>" — roadmap left untouched.` and skip the rest of this step.
-4. **Match found** → read the item's current `- **Status:**`. If it is already `in-progress` or `done`, leave it untouched (**forward-only**: never regress a more-advanced status) and skip to step 5. Otherwise apply both edits with the appropriate tool — each independent and best effort; if a target isn't where the `/10x-roadmap` template puts it (hand-edited or older-format roadmap), skip that sub-edit, keep going, and note what was skipped. Touch only the `Status` field; leave `Outcome`, `Prerequisites`, `Change ID`, etc. alone.
+4. **Match found** → read the item's current `- **Status:**`. If it is already `in-progress` or `done`, leave it untouched (**forward-only**: never regress a more-advanced status) and skip to step 5. Otherwise apply both edits with your AI coding assistant — each independent and best effort; if a target isn't where the `/10x-roadmap` template puts it (hand-edited or older-format roadmap), skip that sub-edit, keep going, and note what was skipped. Touch only the `Status` field; leave `Outcome`, `Prerequisites`, `Change ID`, etc. alone.
    1. **`## At a glance`** — in the matched row, set the **Status** column cell to `in-progress`.
    2. **Item body** — rewrite the item's `- **Status:**` line to `- **Status:** in-progress`.
 
@@ -188,7 +188,7 @@ After implementing a phase:
 
   8. **Capture the short SHA.** Execute `git rev-parse --short HEAD` and store as `SHA`. Skip this step if `SHA=""` was set by step 5.
 
-  9. **Write the SHA back into Progress.** For every Progress row flipped during this phase, perform a targeted modification:
+  9. **Write the SHA back into Progress.** For every Progress row flipped during this phase, execute a targeted modification:
 
      - Find: `- [x] N.M <title>` (no existing ` — <sha>` suffix at end of line)
      - Replace with: `- [x] N.M <title> — <SHA>`

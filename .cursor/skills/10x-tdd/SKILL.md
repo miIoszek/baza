@@ -1,19 +1,6 @@
 ---
 name: 10x-tdd
-description: Drive an approved implementation plan to completion phase by phase, test-first, through the red→green→refactor cycle, but only for phases whose implementation does not exist yet. Reads a plan from context/changes/<change-id>/plan.md and the canonical Progress section, and for each phase first checks whether the phase is TDD'able and still unimplemented — if it is, you write a failing test (RED), make it pass with the minimal code (GREEN), then clean up (REFACTOR); if it is not TDD'able, you redirect that phase to /10x-implement; if implementation is already present, you stop and explain that TDD does not work for already existing code, then suggest /10x-implement for that phase. Mirrors /10x-implement (same plan, same Progress source of truth, same phase-end commit ritual and clipboard handoffs) but flips the order so the failing test always comes before the code. Assumes test infrastructure is already in place — it does NOT set up runners, configs, fixtures, or CI. Use this skill when the user says "tdd", "test-first", "red green refactor", "implement this plan test-first", "drive the plan with tests", or wants to execute an existing plan through a TDD loop. For plans where test-first does not fit, hand the phase to /10x-implement. For phases where the implementation already exists, stop instead of writing retroactive tests.
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
-  - Bash
-  - Task
-  - AskUserQuestion
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
-  - TaskGet
+description: Drive an approved plan from context/changes/<change-id>/plan.md phase by phase, test-first, through red→green→refactor — only for TDD'able phases not yet implemented; everything else routes to /10x-implement. Use when the user says "tdd", "test-first", "red green refactor", or wants to execute a plan via TDD.
 ---
 
 # 10x TDD — Test-First Plan Execution
@@ -94,11 +81,11 @@ This skill assumes test infrastructure already exists; it won't set it up. Optio
 
 5. **Update `change.md`**: set `status: implementing` (only if currently in `{planned, plan_reviewed}`) and `updated: <today>`.
 
-6. **Create one task per phase** (these surface in the user's status bar): for each `## Phase N:` header, `TaskCreate` with `subject: "Phase N: [Phase Name]"` and `activeForm: "TDD Phase N"`. Mark the current phase `in_progress` before starting; mark it `completed` when its success criteria pass.
+6. **Create one task per phase** (these surface in the user's status bar): for each `## Phase N:` header, create a task with `subject: "Phase N: [Phase Name]"` and `activeForm: "TDD Phase N"`. Mark the current phase `in_progress` before starting; mark it `completed` when its success criteria pass.
 
 7. **Find the starting point**: scan `## Progress` — the first `- [ ]` in document order is where you start. If a `phase N` argument was passed, jump to the first `- [ ]` under `### Phase N:`.
 
-> **Clipboard convention.** Wherever this skill says _copy `X` to the clipboard_, pipe the exact string `X` to the platform clipboard — try `pbcopy` (macOS), then `clip.exe` (Windows/WSL), then `xclip -selection clipboard` (Linux), and fall back silently if none exist. Then display the copied command on its own line suffixed with `(✓ copied)`.
+> **Clipboard convention.** Wherever this skill says *copy `X` to the clipboard*, pipe the exact string `X` to the platform clipboard — try `pbcopy` (macOS), then `clip.exe` (Windows/WSL), then `xclip -selection clipboard` (Linux), and fall back silently if none exist. Then display the copied command on its own line suffixed with `(✓ copied)`.
 
 ---
 
@@ -135,47 +122,32 @@ If the implementation is absent, continue to the TDD-ability check.
 
 ### TDD-ability check
 
-After confirming the implementation is absent, decide whether the phase can be **meaningfully driven by a failing test**. A phase is TDD'able when there is an **observable outcome you can assert before the code exists**.
+After confirming the implementation is absent, decide whether the phase can be **meaningly driven by a failing test**. A phase is TDD'able when there is an **observable outcome you can assert before the code exists**.
 
-| TDD'able — drive it here                                       | Not TDD'able — redirect to `/10x-implement`                                  |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Pure functions, data transforms, parsers, validators           | Pure scaffolding: creating dirs, config files, `package.json`/manifest edits |
-| State machines / reducers / flag computation                   | Wiring & infra: CI files, Dockerfiles, env setup, deploy config              |
-| API request → response contracts (status, shape, auth, gating) | Visual / styling polish with no automated assertion path in the stack        |
-| Business logic with clear inputs/outputs                       | Exploratory spikes where the contract isn't known yet                        |
-| Integration flows across mockable boundaries (DB/KV/HTTP)      | Documentation, comments, content-only edits                                  |
-| Bug fixes (write the failing repro first)                      | Thin glue where a test would only restate the implementation (tautological)  |
+| TDD'able — drive it here | Not TDD'able — redirect to `/10x-implement` |
+|---|---|
+| Pure functions, data transforms, parsers, validators | Pure scaffolding: creating dirs, config files, `package.json`/manifest edits |
+| State machines / reducers / flag computation | Wiring & infra: CI files, Dockerfiles, env setup, deploy config |
+| API request → response contracts (status, shape, auth, gating) | Visual / styling polish with no automated assertion path in the stack |
+| Business logic with clear inputs/outputs | Exploratory spikes where the contract isn't known yet |
+| Integration flows across mockable boundaries (DB/KV/HTTP) | Documentation, comments, content-only edits |
+| Bug fixes (write the failing repro first) | Thin glue where a test would only restate the implementation (tautological) |
 
 **How to apply the TDD-ability check:**
 
 - If the implementation is absent and the phase is **clearly TDD'able**, state that in one line and proceed to the red-green-refactor loop.
 - If the phase is **clearly not TDD'able**, run the **redirect** (below).
-- If it's **mixed or ambiguous** (e.g., a phase that scaffolds a config _and_ adds a validator with real logic), use `AskUserQuestion`:
-  - question: "Phase [N] is partly scaffolding, partly logic. How should I drive it?"
-    header: "TDD gate"
-    options:
-    - label: "TDD the testable part (Recommended)"
-      description: "I'll red-green-refactor the [logic] and implement the scaffolding inline as plain steps."
-    - label: "Redirect whole phase to /10x-implement"
-      description: "Hand the entire phase off — copy the resume command to the clipboard."
-    - label: "TDD the whole phase anyway"
-      description: "Force test-first even for the thin parts. May produce low-value tests."
-      multiSelect: false
+- If it's **mixed or ambiguous** (e.g., a phase that scaffolds a config *and* adds a validator with real logic), ask the user: "Phase [N] is partly scaffolding, partly logic. How should I drive it?" with options:
+  - "TDD the testable part (Recommended)": "I'll red-green-refactor the [logic] and implement the scaffolding inline as plain steps."
+  - "Redirect whole phase to /10x-implement": "Hand the entire phase off — copy the resume command to the clipboard."
+  - "TDD the whole phase anyway": "Force test-first even for the thin parts. May produce low-value tests."
 
 ### Redirect a non-TDD'able phase to `/10x-implement`
 
-State _why_ the phase isn't a fit (one or two sentences, grounded in the table above), then use `AskUserQuestion`:
-
-- question: "Phase [N] isn't a good test-first fit. How do you want to handle it?"
-  header: "Not TDD'able"
-  options:
-  - label: "Hand off to /10x-implement (Recommended)"
-    description: "Copy `/10x-implement <change-id> phase N` to the clipboard. Clear context, run it, then resume TDD on the next phase."
-  - label: "Implement inline here (no test-first)"
-    description: "I'll build this phase directly from the plan and run its success criteria — then continue to the next phase's gate."
-  - label: "Skip — already done"
-    description: "Mark the phase's Progress rows and move to the next phase."
-    multiSelect: false
+State *why* the phase isn't a fit (one or two sentences, grounded in the table above), then ask the user: "Phase [N] isn't a good test-first fit. How do you want to handle it?" with options:
+  - "Hand off to /10x-implement (Recommended)": "Copy `/10x-implement <change-id> phase N` to the clipboard. Clear context, run it, then resume TDD on the next phase."
+  - "Implement inline here (no test-first)": "I'll build this phase directly from the plan and run its success criteria — then continue to the next phase's gate."
+  - "Skip — already done": "Mark the phase's Progress rows and move to the next phase."
 
 **On "Hand off":** copy `/10x-implement <change-id> phase [N]` to the clipboard (per the clipboard convention), print the block below, and STOP — `/10x-implement` will flip this phase's Progress rows and run its own commit ritual. Tell the user to resume TDD afterward.
 
@@ -232,7 +204,7 @@ When all `#### Automated` rows in `### Phase N:` are `[x]`, run the phase-end ri
 
 > **Hard invariant — commit only on green.** Never propose, stage, or author a commit while any test in scope is RED, skipped to fake a pass, or otherwise broken. A commit is offered **only after the GREEN (or REFACTOR) state holds and the full suite passes**. The RED step is a transient checkpoint you show the user, never a commit boundary. If the suite is red at phase end, fix the code until it's green — do not reach step 1 of the ritual with failing tests.
 
-Maintain a **touched-file set** throughout the phase: every file you `Edit`/`Write` (tests _and_ production code) goes in it, plus `context/changes/<change-id>/plan.md` (always — you edit its Progress). On the **first phase** of a change, also seed it with any untracked/modified files inside `context/changes/<change-id>/` (`change.md`, `research.md`, etc.). The set **resets at each phase boundary**.
+Maintain a **touched-file set** throughout the phase: every file you modify (tests *and* production code) goes in it, plus `context/changes/<change-id>/plan.md` (always — you edit its Progress). On the **first phase** of a change, also seed it with any untracked/modified files inside `context/changes/<change-id>/` (`change.md`, `research.md`, etc.). The set **resets at each phase boundary**.
 
 1. **Run the full suite** (not just the single files) and confirm green. Fix any cross-phase breakage before committing.
 
@@ -251,19 +223,19 @@ Please perform the manual verification steps from the plan:
 Let me know when manual testing is complete so I can commit.
 ```
 
-On the **final phase**, also roll up any still-pending `#### Manual` rows from earlier phases (informational; the gate still only pauses, it doesn't hard-block).
+   On the **final phase**, also roll up any still-pending `#### Manual` rows from earlier phases (informational; the gate still only pauses, it doesn't hard-block).
 
-3. **Detect unrelated dirty paths.** Run `git status --porcelain`; intersect with paths **outside** the touched set. If any exist, present them and ask via `AskUserQuestion` whether to commit only the planned set (Recommended), stage all, or abort. If none, skip.
+3. **Detect unrelated dirty paths.** Run `git status --porcelain`; intersect with paths **outside** the touched set. If any exist, present them and ask the user whether to commit only the planned set (Recommended), stage all, or abort. If none, skip.
 
 4. **Stage explicitly by path** — `git add` each file in the touched set by name. Never `git add -A` / `git add .`.
 
 5. **Empty diff check.** `git diff --cached --quiet`; if exit 0, print that the phase had no diff (rows stay SHA-less), set `SHA=""`, and skip to step 8.
 
-6. **Propose a Conventional-Commits message** and approve it via `AskUserQuestion` (approve as proposed / edit subject / override). Subject: `<type>(<change-id>): <phase title> (p<N>)`. For TDD'd phases, prefer `test`/`feat` and mention the test-first nature in the body. Include a `Refs:` line if the conversation contains real Jira/Linear/GitHub references (never invent them from the change-id or branch).
+6. **Propose a Conventional-Commits message** and ask the user to approve it (approve as proposed / edit subject / override). Subject: `<type>(<change-id>): <phase title> (p<N>)`. For TDD'd phases, prefer `test`/`feat` and mention the test-first nature in the body. Include a `Refs:` line if the conversation contains real Jira/Linear/GitHub references (never invent them from the change-id or branch).
 
-7. **Commit** via a single `git commit` with a heredoc body, per the global commit-message protocol: the approved subject line, then a short body listing the tests added + production code touched (and the `Refs:` line when applicable), then the `Co-Authored-By` trailer the protocol mandates. Never pass `--no-verify` / `--amend` / signing-bypass flags. If a pre-commit hook fails, fix the cause and make a NEW commit.
+7. **Commit** via a single `git commit` with a heredoc body, per the global commit-message protocol: the approved subject line, then a short body listing the tests added + production code touched (and the `Refs:` line when applicable). Never pass `--no-verify` / `--amend` / signing-bypass flags. If a pre-commit hook fails, fix the cause and make a NEW commit.
 
-8. **Capture and write back the SHA.** `git rev-parse --short HEAD` → `SHA`. For every Progress row flipped this phase, Edit `- [x] N.M <title>` → `- [x] N.M <title> — <SHA>` (skip rows that already carry a SHA; if `SHA=""`, skip — `/10x-archive` surfaces SHA-less rows as informational warnings).
+8. **Capture and write back the SHA.** `git rev-parse --short HEAD` → `SHA`. For every Progress row flipped this phase, modify `- [x] N.M <title>` → `- [x] N.M <title> — <SHA>` (skip rows that already carry a SHA; if `SHA=""`, skip — `/10x-archive` surfaces SHA-less rows as informational warnings).
 
 9. **Update `change.md`**: `updated: <today>`; keep `status: implementing` until the final phase.
 
@@ -271,18 +243,10 @@ On the **final phase**, also roll up any still-pending `#### Manual` rows from e
 
 ### Next-phase decision
 
-Use `AskUserQuestion`:
-
-- question: "Phase [N] complete (test-first). How to proceed?"
-  header: "Next phase"
-  options:
-  - label: "Continue to Phase [N+1]"
-    description: "Stay in this context; run the TDD-ability gate for the next phase and proceed."
-  - label: "Clear context first"
-    description: "Copy the resume command to the clipboard. Start fresh for Phase [N+1]."
-  - label: "Review this phase first"
-    description: "Run /10x-impl-review to verify the implementation against the plan before continuing."
-    multiSelect: false
+Ask the user: "Phase [N] complete (test-first). How to proceed?" with options:
+  - "Continue to Phase [N+1]": "Stay in this context; run the TDD-ability gate for the next phase and proceed."
+  - "Clear context first": "Copy the resume command to the clipboard. Start fresh for Phase [N+1]."
+  - "Review this phase first": "Run /10x-impl-review to verify the implementation against the plan before continuing."
 
 **Continue:** read the next phase, set its task `in_progress`, run the TDD gate, proceed. No need to re-read the whole plan.
 
@@ -306,7 +270,7 @@ If told to run multiple phases consecutively, skip this question between phases.
 
 When every `- [ ]` in the entire `## Progress` section is `[x]`:
 
-1. **Defensive straggler scan.** Re-scan for any remaining `- [ ]`. Under normal flow there are none. If any exist (a manual edit or a bypassed trigger left them), list them grouped by Automated/Manual and ask via `AskUserQuestion` whether to **Pause** (STOP, don't touch `change.md`) or **Proceed to epilogue**.
+1. **Defensive straggler scan.** Re-scan for any remaining `- [ ]`. Under normal flow there are none. If any exist (a manual edit or a bypassed trigger left them), list them grouped by Automated/Manual and ask the user whether to **Pause** (STOP, don't touch `change.md`) or **Proceed to epilogue**.
 
 2. **Update `change.md`**: `status: implemented`, `updated: <today>`. (Do NOT set `archived_at` — that's `/10x-archive`.)
 
@@ -323,7 +287,7 @@ Summary:
 - Files changed: [key files]
 ```
 
-Then `AskUserQuestion`: run `/10x-impl-review <change-id>` (full-plan review) or skip.
+   Then ask the user: run `/10x-impl-review <change-id>` (full-plan review) or skip.
 
 ---
 
@@ -359,7 +323,7 @@ Found: [actual situation]
 Why this matters: [explanation]
 ```
 
-Then `AskUserQuestion` — Adapt and continue / Skip this part / Stop and re-plan.
+Then ask the user — Adapt and continue / Skip this part / Stop and re-plan.
 
 ### File placement
 
