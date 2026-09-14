@@ -330,6 +330,110 @@ describe('JobOfferService', () => {
     ).toThrow(BadRequestException);
   });
 
+  describe('Risk #3 fixture membership oracle', () => {
+    const fixtures: JobOffer[] = [
+      baseOffer({
+        id: 'o-pl-de-weekly',
+        homeReturnCadence: 'weekly',
+        routes: [
+          {
+            from: { code: 'PL', name: 'Polska' },
+            to: { code: 'DE', name: 'Niemcy' },
+          },
+        ],
+      }),
+      baseOffer({
+        id: 'o-it-fr-daily',
+        homeReturnCadence: 'daily',
+        routes: [
+          {
+            from: { code: 'IT', name: 'Włochy' },
+            to: { code: 'FR', name: 'Francja' },
+          },
+        ],
+      }),
+      baseOffer({
+        id: 'o-de-nl-flexible',
+        homeReturnCadence: 'flexible',
+        routes: [
+          {
+            from: { code: 'DE', name: 'Niemcy' },
+            to: { code: 'NL', name: 'Holandia' },
+          },
+        ],
+      }),
+      baseOffer({
+        id: 'o-pl-cz-monthly',
+        homeReturnCadence: 'monthly',
+        routes: [
+          {
+            from: { code: 'PL', name: 'Polska' },
+            to: { code: 'CZ', name: 'Czechy' },
+          },
+        ],
+      }),
+    ];
+
+    function matchingIds(filters: Parameters<JobOfferService['matchesFilters']>[1]) {
+      return new Set(
+        fixtures.filter((o) => service.matchesFilters(o, filters)).map((o) => o.id)
+      );
+    }
+
+    it('returns exact ID sets for country and cadence filters (not merely non-empty)', () => {
+      expect(matchingIds({ countries: ['DE'] })).toEqual(
+        new Set(['o-pl-de-weekly', 'o-de-nl-flexible'])
+      );
+      expect(matchingIds({ countries: ['PL'] })).toEqual(
+        new Set(['o-pl-de-weekly', 'o-pl-cz-monthly'])
+      );
+      expect(matchingIds({ countries: ['IT'] })).toEqual(
+        new Set(['o-it-fr-daily'])
+      );
+      expect(matchingIds({ homeReturnCadence: 'weekly' })).toEqual(
+        new Set(['o-pl-de-weekly', 'o-de-nl-flexible'])
+      );
+      expect(matchingIds({ homeReturnCadence: 'daily' })).toEqual(
+        new Set(['o-it-fr-daily', 'o-de-nl-flexible'])
+      );
+      expect(
+        matchingIds({ countries: ['DE'], homeReturnCadence: 'weekly' })
+      ).toEqual(new Set(['o-pl-de-weekly', 'o-de-nl-flexible']));
+      expect(
+        matchingIds({ countries: ['DE'], homeReturnCadence: 'monthly' })
+      ).toEqual(new Set(['o-de-nl-flexible']));
+      expect(matchingIds({ countries: ['XX'] })).toEqual(new Set());
+    });
+  });
+
+  describe('Risk #4 wire→product contract (parseListQuery)', () => {
+    it('maps cadence/license/transport/near wire names to JobOfferFilters fields', () => {
+      expect(
+        service.parseListQuery({
+          countries: 'pl, de',
+          cadence: 'weekly',
+          license: 'C_E',
+          transport: 'silo',
+          nearLat: 52.2,
+          nearLng: 21.0,
+        } as never)
+      ).toEqual({
+        countries: ['PL', 'DE'],
+        homeReturnCadence: 'weekly',
+        licenseCategory: 'C_E',
+        requiredTransportType: 'silo',
+        near: { lat: 52.2, lng: 21.0 },
+      });
+    });
+
+    it('omits unset wire fields from product filters', () => {
+      expect(service.parseListQuery({} as never)).toEqual({});
+      expect(
+        service.parseListQuery({ cadence: 'flexible' } as never)
+      ).toEqual({ homeReturnCadence: 'flexible' });
+    });
+  });
+
   it('updateForUser 404 when offer not owned', async () => {
     mockCompanyLookup(52, 21);
     from.mockImplementationOnce(() => ({
