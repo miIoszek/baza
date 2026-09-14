@@ -56,6 +56,24 @@ export class CompanyOffersListPage implements OnInit {
     }
   }
 
+  protected async deleteOffer(id: string): Promise<void> {
+    const ok = window.confirm(
+      'Usunąć tę ofertę na stałe? Znikną też wszystkie aplikacje i CV powiązane z tą ofertą. Tej operacji nie można cofnąć.'
+    );
+    if (!ok) {
+      return;
+    }
+    try {
+      await firstValueFrom(
+        this.http.delete(`${environment.apiBaseUrl}/api/company/offers/${id}`)
+      );
+      this.snackBar.open('Oferta usunięta', 'OK', { duration: 4000 });
+      await this.reload();
+    } catch (err: unknown) {
+      this.snackBar.open(this.extractError(err), 'OK', { duration: 6000 });
+    }
+  }
+
   private async reload(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
