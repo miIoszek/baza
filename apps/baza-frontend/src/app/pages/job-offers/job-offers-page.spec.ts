@@ -144,4 +144,27 @@ describe('job-offers query helpers', () => {
     expect(params).toBeInstanceOf(HttpParams);
     expect(params.toString()).toContain('nearLat=1');
   });
+
+  it('HttpParams keys match Nest ListOffersQueryDto wire names (Risk #4)', () => {
+    const params = jobOffersQueryToHttpParams({
+      countries: ['PL', 'DE'],
+      cadence: 'weekly',
+      license: 'C_E',
+      transport: 'silo',
+      nearLat: 52.2,
+      nearLng: 21.0,
+    });
+    const keys = params.keys().sort();
+    expect(keys).toEqual(
+      ['cadence', 'countries', 'license', 'nearLat', 'nearLng', 'transport'].sort()
+    );
+    expect(params.get('countries')).toBe('PL,DE');
+    expect(params.get('cadence')).toBe('weekly');
+    expect(params.get('license')).toBe('C_E');
+    expect(params.get('transport')).toBe('silo');
+    // Product names must NOT appear on the wire
+    expect(params.get('homeReturnCadence')).toBeNull();
+    expect(params.get('licenseCategory')).toBeNull();
+    expect(params.get('requiredTransportType')).toBeNull();
+  });
 });

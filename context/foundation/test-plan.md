@@ -66,7 +66,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|-----------------|---------------|------------|--------|---------------|
 | 1 | Critical marketplace loop | Prove apply→inbox delivery and CV ownership isolation | #1, #2 | integration (+ e2e only if research shows cheaper layers miss the loop) | done | testing-critical-marketplace-loop |
-| 2 | Offer filter & contract parity | Catch silent filter regressions and FE↔API contract drift | #3, #4 | unit + contract/integration | not started | — |
+| 2 | Offer filter & contract parity | Catch silent filter regressions and FE↔API contract drift | #3, #4 | unit + contract/integration | done | testing-offer-filter-contract-parity |
 | 3 | Company auth & abuse floor | Lock guest/owner authz and make apply-abuse posture explicit | #5, #6 | unit + integration | not started | — |
 | 4 | Quality-gates wiring | Keep lint/test/build as the merge floor; add critical-flow gate only when Phase 1 delivers it | cross-cutting | CI gates | not started | — |
 
@@ -153,11 +153,19 @@ Private-bucket Cloudflare ACL remains ops/manual — not automated in this cookb
 
 ### 6.5 Adding a test for offer filter / shared contract changes
 
-- TBD — see §3 Phase 2 for silent-filter-regression and FE↔API parity patterns.
+For silent filter regressions (**Risk #3**) and FE↔API field parity (**Risk #4**):
+
+1. **Membership oracle (API):** Seed a fixed set of `JobOffer` fixtures with known routes/cadence. Run `matchesFilters` (or `listPublished` with a controlled store) and assert `new Set(ids)` equals the expected set — never “list is non-empty”.
+2. Cover at least: country on from/to, cadence + `flexible` wildcard, and one **combined** country+cadence case.
+3. **Contract (wire↔product):** Assert Nest `parseListQuery` maps `cadence`→`homeReturnCadence`, `license`→`licenseCategory`, `transport`→`requiredTransportType`, `nearLat`/`nearLng`→`near`. On FE, assert `jobOffersQueryToHttpParams` emits those wire keys (not product names).
+4. Prefer table-driven unit tests in `job-offer.service.spec.ts` + `job-offers-page.spec.ts`. Avoid snapshotting entire DTOs.
+
+Reference: Risk #3/#4 cases in those specs (change `testing-offer-filter-contract-parity`).
 
 ### 6.6 Per-rollout-phase notes
 
 - **§3 Phase 1 (`testing-critical-marketplace-loop`, 2026-09-14):** Stateful Supabase mock + `job-application.integration.spec.ts` cover apply→inbox (#1) and CV cross-tenant isolation (#2). No Playwright. Cookbook §6.2 / §6.4 filled from that change. Merged via PR #13 — Status `done`.
+- **§3 Phase 2 (`testing-offer-filter-contract-parity`, 2026-09-14):** Fixture membership oracle for offer filters (#3) + wire↔product rename contract (#4). Cookbook §6.5 filled.
 ## 7. What We Deliberately Don't Test
 
 Exclusions agreed during the rollout (Phase 2 interview, Q5). Future
