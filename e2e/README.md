@@ -28,3 +28,5 @@ npx playwright test --project=setup
 ```
 
 `playwright/.auth/` is gitignored. Specs matching `*.authenticated.spec.ts` use that file.
+
+If `user.json` is missing or its Supabase token is expired, authenticated specs **skip** (they will not fail on `/login`). Refresh the session with env setup or `state-save` before expecting them to run.

@@ -139,7 +139,7 @@ Reference: `apps/baza-api/src/app/company/job-application.integration.spec.ts` (
 2. Run with **Firefox** (`npx playwright test --project=firefox`) — automated Chrome is blocked by ManageEngine on some corp machines.
 3. Guest authz (Risk #5): assert redirect to `/login?returnUrl=…` — do not assert Material `mat-card-title` as `heading` (not exposed).
 4. Filter UI (Risk #3 face): assert URL query survives reload; membership oracles stay in unit tests.
-5. Authenticated flows: `E2E_EMAIL`/`E2E_PASSWORD` → `e2e/auth.setup.ts` or `playwright-cli state-save playwright/.auth/user.json` (gitignored). See `e2e/README.md`.
+5. Authenticated flows: `E2E_EMAIL`/`E2E_PASSWORD` → `e2e/auth.setup.ts` or `playwright-cli state-save playwright/.auth/user.json` (gitignored). Expired tokens are treated as no session — authenticated specs skip instead of failing on `/login`. See `e2e/README.md`.
 6. VERIFY: briefly break the protected behavior (e.g. company guard always `true`) and confirm the E2E goes red, then revert — never commit the break.
 
 ### 6.4 Adding a test for a new API endpoint
