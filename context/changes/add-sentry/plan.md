@@ -350,13 +350,13 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [x] 2.1 `baza-api` tests green including getCompanyForUser propagation
-- [x] 2.2 Production API build succeeds without Sentry auth env
-- [x] 2.3 Lint green for api/core and API changes
+- [x] 2.1 `baza-api` tests green including getCompanyForUser propagation — 9b5fed9
+- [x] 2.2 Production API build succeeds without Sentry auth env — 9b5fed9
+- [x] 2.3 Lint green for api/core and API changes — 9b5fed9
 
 #### Manual
 
-- [x] 2.4 Deliberate 500 appears in `baza-api` Sentry project when DSN set
+- [x] 2.4 Deliberate 500 appears in `baza-api` Sentry project when DSN set — 9b5fed9
 - [ ] 2.5 Railway (or dry-run) release/source maps upload verified when auth present
 
 ### Phase 3: FE SDK, interceptor, maps upload
