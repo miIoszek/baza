@@ -12,6 +12,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import {
   APPLICATION_FIELD_LIMITS,
@@ -55,6 +56,7 @@ const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
     MatButtonModule,
     MatCheckboxModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     OfferRouteMapComponent,
   ],
@@ -76,6 +78,7 @@ export class JobOfferDetailPage implements OnInit {
   protected readonly applying = signal(false);
   protected readonly applyError = signal<string | null>(null);
   protected readonly cvError = signal<string | null>(null);
+  protected readonly cvFileName = signal<string | null>(null);
   private cvFile: File | null = null;
 
   protected readonly applyForm = this.fb.nonNullable.group({
@@ -170,6 +173,7 @@ export class JobOfferDetailPage implements OnInit {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     this.cvFile = file;
+    this.cvFileName.set(file?.name ?? null);
     this.cvError.set(validateApplicationCv(file));
   }
 
@@ -210,6 +214,7 @@ export class JobOfferDetailPage implements OnInit {
         consentAccepted: false,
       });
       this.cvFile = null;
+      this.cvFileName.set(null);
       this.cvError.set(null);
     } catch (err: unknown) {
       this.applyError.set(this.extractError(err));

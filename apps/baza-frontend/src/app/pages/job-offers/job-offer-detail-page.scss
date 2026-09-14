@@ -156,13 +156,92 @@
 }
 
 .offer-detail__apply {
+  --mdc-outlined-card-outline-color: color-mix(
+    in srgb,
+    var(--mat-sys-primary, #90caf9) 72%,
+    transparent
+  ) !important;
+  align-self: start;
   scroll-margin-top: 1rem;
+  padding: 1.25rem 1.2rem 1.4rem !important;
+  border-width: 1.5px !important;
+  background:
+    radial-gradient(
+      120% 85% at 8% 0%,
+      color-mix(in srgb, var(--mat-sys-primary, #90caf9) 22%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--mat-sys-primary-container, #004b7a) 38%, #0f172a),
+      color-mix(in srgb, #1e293b 88%, #0f172a)
+    ) !important;
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary, #90caf9) 18%, transparent),
+    0 0 28px color-mix(in srgb, var(--mat-sys-primary, #90caf9) 20%, transparent) !important;
+}
+
+.offer-detail__apply--success {
+  --mdc-outlined-card-outline-color: color-mix(
+    in srgb,
+    var(--mat-sys-secondary, #6ee7b7) 65%,
+    transparent
+  ) !important;
+  background:
+    radial-gradient(
+      120% 85% at 8% 0%,
+      color-mix(in srgb, var(--mat-sys-secondary, #6ee7b7) 16%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--mat-sys-secondary-container, #005c3a) 34%, #0f172a),
+      color-mix(in srgb, #1e293b 88%, #0f172a)
+    ) !important;
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    0 0 28px color-mix(in srgb, var(--mat-sys-secondary, #6ee7b7) 18%, transparent) !important;
+}
+
+.offer-detail__apply-head {
+  margin-bottom: 1.05rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--mat-sys-primary, #90caf9) 28%, transparent);
+}
+
+.offer-detail__apply--success .offer-detail__apply-head {
+  border-bottom-color: color-mix(
+    in srgb,
+    var(--mat-sys-secondary, #6ee7b7) 28%,
+    transparent
+  );
+}
+
+.offer-detail__apply-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--mat-sys-on-primary-container, #cfe4ff);
+}
+
+.offer-detail__apply--success .offer-detail__apply-title {
+  color: var(--mat-sys-on-secondary-container, #a7f3d0);
+}
+
+.offer-detail__apply-lead {
+  margin: 0.4rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .offer-detail__apply-form {
   display: grid;
   gap: var(--baza-form-gap, 0.7rem);
-  margin-top: 0.75rem;
 }
 
 .offer-detail__field {
@@ -170,16 +249,50 @@
 }
 
 .offer-detail__file {
+  position: relative;
   display: grid;
-  gap: 0.45rem;
-  font-size: 0.875rem;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed color-mix(in srgb, var(--mat-sys-outline, #64748b) 70%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high, #273548) 45%, transparent);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.offer-detail__file > span {
-  font-size: 0.7rem;
+.offer-detail__file:hover,
+.offer-detail__file:focus-within {
+  border-color: color-mix(in srgb, var(--mat-sys-primary, #90caf9) 55%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary, #90caf9) 8%, transparent);
+}
+
+.offer-detail__file--filled {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--mat-sys-secondary, #6ee7b7) 45%, transparent);
+}
+
+.offer-detail__file--error {
+  border-color: color-mix(in srgb, var(--mat-sys-error, #f87171) 65%, transparent);
+}
+
+.offer-detail__file input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.offer-detail__file-title {
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  color: var(--mat-sys-on-surface, #f1f5f9);
+  word-break: break-word;
+}
+
+.offer-detail__file-hint {
+  font-size: 0.75rem;
   color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
@@ -194,8 +307,9 @@
 }
 
 .offer-detail__success {
-  margin: 0.5rem 0 0;
-  line-height: 1.45;
+  margin: 0.35rem 0 0;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
 }
 
 .offer-detail__map-pane {
