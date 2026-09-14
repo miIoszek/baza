@@ -7,4 +7,5 @@ export const environment: BazaEnvironment = {
   apiBaseUrl: localEnvironment.apiBaseUrl ?? '',
   supabaseUrl: localEnvironment.supabaseUrl,
   supabaseAnonKey: localEnvironment.supabaseAnonKey,
+  sentryDsn: localEnvironment.sentryDsn ?? '',
 };

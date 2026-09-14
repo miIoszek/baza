@@ -4,8 +4,9 @@ import type { BazaEnvironment } from './environment.model';
 export const localEnvironment: Pick<
   BazaEnvironment,
   'supabaseUrl' | 'supabaseAnonKey'
-> & { apiBaseUrl?: string } = {
+> & { apiBaseUrl?: string; sentryDsn?: string } = {
   apiBaseUrl: '',
   supabaseUrl: '',
   supabaseAnonKey: '',
+  sentryDsn: '',
 };
