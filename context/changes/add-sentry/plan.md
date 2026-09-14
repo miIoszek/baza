@@ -387,8 +387,8 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [x] 5.1 Checklist/docs files exist and reference this plan — af30b36
+- [x] 5.1 Checklist/docs files exist and reference this plan — 45d2ea6
 
 #### Manual
 
-- [x] 5.2 Human can execute post-deploy verification checklist — af30b36
+- [x] 5.2 Human can execute post-deploy verification checklist — 45d2ea6
