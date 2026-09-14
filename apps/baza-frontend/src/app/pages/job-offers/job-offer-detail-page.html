@@ -23,7 +23,7 @@
           @if (!applySuccess()) {
           <button
             mat-flat-button
-            color="primary"
+            class="baza-btn-premium"
             type="button"
             (click)="scrollToApply()"
           >
@@ -123,143 +123,152 @@
       <mat-card
         id="offer-apply"
         appearance="outlined"
-        class="offer-detail__card offer-detail__apply"
+        class="offer-detail__card offer-detail__apply baza-glass-card"
+        [class.offer-detail__apply--success]="applySuccess()"
       >
         @if (applySuccess()) {
-        <mat-card-header>
-          <mat-card-title>Aplikacja wysłana</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
+        <div class="offer-detail__apply-head">
+          <h2 class="offer-detail__apply-title">Aplikacja wysłana</h2>
           <p class="offer-detail__success" role="status">
             Dziękujemy. Twoja aplikacja została przekazana firmie.
           </p>
-        </mat-card-content>
+        </div>
         } @else {
-        <mat-card-header>
-          <mat-card-title>Aplikuj</mat-card-title>
-          <mat-card-subtitle
-            >Bez konta — e-mail, telefon i CV (PDF)</mat-card-subtitle
+        <div class="offer-detail__apply-head">
+          <h2 class="offer-detail__apply-title">Aplikuj</h2>
+          <p class="offer-detail__apply-lead">
+            Bez konta — e-mail, telefon i CV (PDF)
+          </p>
+        </div>
+        <form
+          class="offer-detail__apply-form"
+          [formGroup]="applyForm"
+          (ngSubmit)="onApply()"
+        >
+          <mat-form-field class="offer-detail__field"
           >
-        </mat-card-header>
-        <mat-card-content>
-          <form
-            class="offer-detail__apply-form"
-            [formGroup]="applyForm"
-            (ngSubmit)="onApply()"
-          >
-            <mat-form-field class="offer-detail__field"
-            >
-              <mat-label>E-mail</mat-label>
-              <input
-                matInput
-                type="email"
-                formControlName="email"
-                [attr.maxlength]="fieldLimits.email"
-                autocomplete="email"
-              />
-              @if (
-                applyForm.controls.email.touched &&
-                applyForm.controls.email.hasError('required')
-              ) {
-              <mat-error>E-mail jest wymagany</mat-error>
-              } @else if (
-                applyForm.controls.email.touched &&
-                applyForm.controls.email.hasError('email')
-              ) {
-              <mat-error>Podaj poprawny adres e-mail</mat-error>
-              } @else if (
-                applyForm.controls.email.touched &&
-                applyForm.controls.email.hasError('maxlength')
-              ) {
-              <mat-error>Max. {{ fieldLimits.email }} znaków</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field class="offer-detail__field"
-            >
-              <mat-label>Telefon</mat-label>
-              <input
-                matInput
-                type="tel"
-                formControlName="phone"
-                [attr.maxlength]="fieldLimits.phone"
-                autocomplete="tel"
-                placeholder="+48 123 456 789"
-              />
-              @if (
-                applyForm.controls.phone.touched &&
-                applyForm.controls.phone.hasError('required')
-              ) {
-              <mat-error>Telefon jest wymagany</mat-error>
-              } @else if (
-                applyForm.controls.phone.touched &&
-                (applyForm.controls.phone.hasError('phoneFormat') ||
-                  applyForm.controls.phone.hasError('maxlength'))
-              ) {
-              <mat-error>Podaj prawidłowy numer telefonu</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field class="offer-detail__field"
-            >
-              <mat-label>Wiadomość (opcjonalnie)</mat-label>
-              <textarea
-                matInput
-                rows="3"
-                formControlName="message"
-                [attr.maxlength]="fieldLimits.message"
-              ></textarea>
-              @if (
-                applyForm.controls.message.touched &&
-                applyForm.controls.message.hasError('maxlength')
-              ) {
-              <mat-error>Max. {{ fieldLimits.message }} znaków</mat-error>
-              }
-            </mat-form-field>
-
-            <label class="offer-detail__file">
-              <span>CV (PDF, max. 5 MB)</span>
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                (change)="onCvSelected($event)"
-              />
-            </label>
-            @if (cvError()) {
-            <p class="offer-detail__field-error">{{ cvError() }}</p>
-            }
-
-            <mat-checkbox
-              class="offer-detail__consent"
-              formControlName="consentAccepted"
-            >
-              Wyrażam zgodę na przetwarzanie danych osobowych w celu rekrutacji
-            </mat-checkbox>
+            <mat-label>E-mail</mat-label>
+            <mat-icon matPrefix>mail</mat-icon>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              [attr.maxlength]="fieldLimits.email"
+              autocomplete="email"
+            />
             @if (
-              applyForm.controls.consentAccepted.touched &&
-              applyForm.controls.consentAccepted.hasError('required')
+              applyForm.controls.email.touched &&
+              applyForm.controls.email.hasError('required')
             ) {
-            <p class="offer-detail__field-error">
-              Wymagana jest zgoda na przetwarzanie danych
-            </p>
+            <mat-error>E-mail jest wymagany</mat-error>
+            } @else if (
+              applyForm.controls.email.touched &&
+              applyForm.controls.email.hasError('email')
+            ) {
+            <mat-error>Podaj poprawny adres e-mail</mat-error>
+            } @else if (
+              applyForm.controls.email.touched &&
+              applyForm.controls.email.hasError('maxlength')
+            ) {
+            <mat-error>Max. {{ fieldLimits.email }} znaków</mat-error>
             }
+          </mat-form-field>
 
-            @if (applyError()) {
-            <p class="offer-detail__field-error" role="alert">
-              {{ applyError() }}
-            </p>
+          <mat-form-field class="offer-detail__field"
+          >
+            <mat-label>Telefon</mat-label>
+            <mat-icon matPrefix>call</mat-icon>
+            <input
+              matInput
+              type="tel"
+              formControlName="phone"
+              [attr.maxlength]="fieldLimits.phone"
+              autocomplete="tel"
+              placeholder="+48 123 456 789"
+            />
+            @if (
+              applyForm.controls.phone.touched &&
+              applyForm.controls.phone.hasError('required')
+            ) {
+            <mat-error>Telefon jest wymagany</mat-error>
+            } @else if (
+              applyForm.controls.phone.touched &&
+              (applyForm.controls.phone.hasError('phoneFormat') ||
+                applyForm.controls.phone.hasError('maxlength'))
+            ) {
+            <mat-error>Podaj prawidłowy numer telefonu</mat-error>
             }
+          </mat-form-field>
 
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="applying()"
-            >
-              {{ applying() ? 'Wysyłanie…' : 'Wyślij aplikację' }}
-            </button>
-          </form>
-        </mat-card-content>
+          <mat-form-field class="offer-detail__field"
+          >
+            <mat-label>Wiadomość (opcjonalnie)</mat-label>
+            <textarea
+              matInput
+              rows="3"
+              formControlName="message"
+              [attr.maxlength]="fieldLimits.message"
+            ></textarea>
+            @if (
+              applyForm.controls.message.touched &&
+              applyForm.controls.message.hasError('maxlength')
+            ) {
+            <mat-error>Max. {{ fieldLimits.message }} znaków</mat-error>
+            }
+          </mat-form-field>
+
+          <label
+            class="offer-detail__file"
+            [class.offer-detail__file--filled]="cvFileName()"
+            [class.offer-detail__file--error]="cvError()"
+          >
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              aria-label="CV PDF, maksymalnie 5 MB"
+              (change)="onCvSelected($event)"
+            />
+            <span class="offer-detail__file-title">{{
+              cvFileName() || 'CV (PDF, max. 5 MB)'
+            }}</span>
+            <span class="offer-detail__file-hint">{{
+              cvFileName() ? 'Kliknij, aby zmienić' : 'Wybierz plik'
+            }}</span>
+          </label>
+          @if (cvError()) {
+          <p class="offer-detail__field-error">{{ cvError() }}</p>
+          }
+
+          <mat-checkbox
+            class="offer-detail__consent"
+            formControlName="consentAccepted"
+          >
+            Wyrażam zgodę na przetwarzanie danych osobowych w celu rekrutacji
+          </mat-checkbox>
+          @if (
+            applyForm.controls.consentAccepted.touched &&
+            applyForm.controls.consentAccepted.hasError('required')
+          ) {
+          <p class="offer-detail__field-error">
+            Wymagana jest zgoda na przetwarzanie danych
+          </p>
+          }
+
+          @if (applyError()) {
+          <p class="offer-detail__field-error" role="alert">
+            {{ applyError() }}
+          </p>
+          }
+
+          <button
+            mat-flat-button
+            class="baza-btn-premium full-width"
+            type="submit"
+            [disabled]="applying()"
+          >
+            {{ applying() ? 'Wysyłanie…' : 'Wyślij aplikację' }}
+          </button>
+        </form>
         }
       </mat-card>
     </div>
