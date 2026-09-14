@@ -376,19 +376,19 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [x] 4.1 refreshMe failure-path test green
-- [x] 4.2 Lint green
+- [x] 4.1 refreshMe failure-path test green — 7a1a5fd
+- [x] 4.2 Lint green — 7a1a5fd
 
 #### Manual
 
-- [x] 4.3 Forced `/auth/me` failure: UI not success-shaped “no company”; Sentry event present
+- [x] 4.3 Forced `/auth/me` failure: UI not success-shaped “no company”; Sentry event present — 7a1a5fd
 
 ### Phase 5: Docs, roadmap, MCP note
 
 #### Automated
 
-- [ ] 5.1 Checklist/docs files exist and reference this plan
+- [x] 5.1 Checklist/docs files exist and reference this plan — af30b36
 
 #### Manual
 
-- [ ] 5.2 Human can execute post-deploy verification checklist
+- [x] 5.2 Human can execute post-deploy verification checklist — af30b36
