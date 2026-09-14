@@ -1,0 +1,100 @@
+.company-directory {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.company-directory__header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.company-directory__header p {
+  margin: 0 0 0.85rem;
+  opacity: 0.8;
+}
+
+.company-directory__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+.company-directory__card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  height: 100%;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--mat-sys-outline-variant, #475569);
+  border-radius: 0.75rem;
+  background: var(--baza-glass-bg, rgba(30, 41, 59, 0.42));
+  color: inherit;
+  box-shadow: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.company-directory__card:hover,
+.company-directory__card:focus-visible {
+  border-color: var(--mat-sys-primary, #90caf9);
+  background: var(--mat-sys-surface-container-high, #273548);
+  outline: none;
+}
+
+.company-directory__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.company-directory__logo {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  background: var(--mat-sys-surface-container-highest, #334155);
+}
+
+.company-directory__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--mat-sys-on-primary-container, #cfe4ff);
+  background: var(--mat-sys-primary-container, #004b7a);
+}
+
+.company-directory__name {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-directory__loc {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
+
+.company-directory__offers {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant, #94a3b8);
+}
