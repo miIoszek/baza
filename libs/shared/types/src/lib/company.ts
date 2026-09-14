@@ -15,3 +15,12 @@ export interface CompanyPublicProfile {
   baseLng: number | null;
   photoUrls: Record<string, string> | null;
 }
+
+/** Public employer-directory card (list GET). Separate from profile so detail stays stable. */
+export interface CompanyDirectoryItem {
+  id: string;
+  name: string;
+  baseLocation: string;
+  photoUrls: Record<string, string> | null;
+  offerCount: number;
+}
