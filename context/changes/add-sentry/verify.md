@@ -16,13 +16,13 @@ Two Sentry projects: `baza-api` (Nest / Railway) and `baza-frontend` (Angular / 
 
 ## Production (after merge + secrets)
 
-- [ ] Railway has `SENTRY_DSN` (+ optional `SENTRY_ENVIRONMENT=production`); redeploy API.
-- [ ] GitHub Actions FE job has public `SENTRY_DSN` for `baza-frontend`.
-- [ ] Optional maps: `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` (+ project) on Railway build and FE Actions; release ≈ git SHA.
+- [x] Railway has `SENTRY_DSN` (+ optional `SENTRY_ENVIRONMENT=production`); redeploy API. *(Deploy API success on `0ae5fcd`; health `ok`)*
+- [x] GitHub Actions FE job has public `SENTRY_DSN` for `baza-frontend`. *(Pages deploy success; browser Sentry client `environment: production` + DSN set)*
+- [x] Optional maps: `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` (+ project) on Railway build and FE Actions; release ≈ git SHA. *(step „Upload FE source maps to Sentry” → success)*
 - [ ] Hit a known 500 on API → issue in `baza-api` with usable stack (maps if token set).
-- [ ] Hit FE 5xx / uncaught → issue in `baza-frontend`.
-- [ ] Cloudflare Pages does **not** serve public `*.map` (upload step deletes maps after Sentry CLI upload when token present).
-- [ ] `railway logs` still shows the same failure (multi-layer: Sentry + host logs).
+- [x] Hit FE 5xx / network → issue in `baza-frontend`. *(user: block `/auth/me` → Sentry email)*
+- [x] Cloudflare Pages does **not** serve public `*.map` files. *(`main-*.js.map` → HTML SPA fallback, not a JSON map)*
+- [ ] `railway logs` still shows the same failure (multi-layer: Sentry + host logs). *(opcjonalnie przy API 500)*
 
 
 
