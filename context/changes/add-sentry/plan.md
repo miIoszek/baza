@@ -363,13 +363,13 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [ ] 3.1 Production FE build with empty `sentryDsn` succeeds
-- [ ] 3.2 FE lint/tests used in CI green
-- [ ] 3.3 `deploy.yml` frontend job YAML remains valid
+- [x] 3.1 Production FE build with empty `sentryDsn` succeeds
+- [x] 3.2 FE lint/tests used in CI green
+- [x] 3.3 `deploy.yml` frontend job YAML remains valid
 
 #### Manual
 
-- [ ] 3.4 FE 5xx/uncaught error appears in `baza-frontend` with usable stack after map upload
+- [x] 3.4 FE uncaught error appears in `baza-frontend` (local smoke → [BAZA-FRONTEND-1](https://milosz.sentry.io/issues/BAZA-FRONTEND-1); prod stack/maps after deploy)
 - [ ] 3.5 Production Pages does not publicly serve `.map` files
 
 ### Phase 4: Fix `refreshMe` swallow

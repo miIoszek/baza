@@ -10,4 +10,5 @@ export const environment: BazaEnvironment = {
   supabaseUrl: '',
   supabaseAnonKey: '',
   sentryDsn: '',
+  sentryRelease: '',
 };

@@ -8,4 +8,5 @@ export const environment: BazaEnvironment = {
   supabaseUrl: localEnvironment.supabaseUrl,
   supabaseAnonKey: localEnvironment.supabaseAnonKey,
   sentryDsn: localEnvironment.sentryDsn ?? '',
+  sentryRelease: localEnvironment.sentryRelease ?? '',
 };

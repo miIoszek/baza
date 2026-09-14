@@ -88,6 +88,7 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/throttler": "^6.5.0",
+    "@sentry/angular": "^10.74.0",
     "@sentry/nestjs": "^10.74.0",
     "@supabase/supabase-js": "^2.115.0",
     "class-transformer": "^0.5.1",
