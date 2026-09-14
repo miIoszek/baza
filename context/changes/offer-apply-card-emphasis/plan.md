@@ -113,11 +113,11 @@ Land the agreed apply-card treatment and keep the existing apply form behavior/t
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-frontend` passes
-- [x] 1.2 `npx nx lint baza-frontend` passes
+- [x] 1.1 `npx nx test baza-frontend` passes — 3c9c724
+- [x] 1.2 `npx nx lint baza-frontend` passes — 3c9c724
 
 #### Manual
 
-- [x] 1.3 Apply card clearly stronger than details card (gradient + border + glow)
-- [x] 1.4 No left bar / spinning border / perk pills
-- [x] 1.5 CV filename + premium CTAs work; success tint OK; mobile OK
+- [x] 1.3 Apply card clearly stronger than details card (gradient + border + glow) — 3c9c724
+- [x] 1.4 No left bar / spinning border / perk pills — 3c9c724
+- [x] 1.5 CV filename + premium CTAs work; success tint OK; mobile OK — 3c9c724

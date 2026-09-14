@@ -1,7 +1,7 @@
 ---
 change_id: offer-apply-card-emphasis
 title: Emphasize the apply card on job offer detail
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
@@ -18,4 +18,4 @@ Decyzje z rozmowy (2026-09-14):
 - Gradient + mocniejszy border/glow → tak
 - „Aplikuj teraz” w headerze oferty jako baza-btn-premium → tak
 - Complexity: LOWER — plan z ustaleń, bez dodatkowych pytań
-- Implement: bez commitów na obecnym branchu; wypchnąć osobno po skończeniu bieżącej pracy
+- Implement: branch `feat/offer-apply-card-emphasis` z `main`
