@@ -1,10 +1,10 @@
 ---
 change_id: offer-apply-card-emphasis
 title: Emphasize the apply card on job offer detail
-status: impl_reviewed
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
-archived_at: null
+archived_at: 2026-09-14T19:30:51Z
 ---
 
 ## Notes
