@@ -226,9 +226,9 @@ No schema change. Existing `companies` rows appear immediately, including those 
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes after Phase 2 changes
-- [x] 2.2 `npx nx test baza-frontend` passes for the directory page specs
-- [x] 2.3 `npm run test` and `npm run build` pass (CI mirror)
+- [x] 2.1 `npm run lint` passes after Phase 2 changes — 34b451c
+- [x] 2.2 `npx nx test baza-frontend` passes for the directory page specs — 34b451c
+- [x] 2.3 `npm run test` and `npm run build` pass (CI mirror) — 34b451c
 
 #### Manual
 
