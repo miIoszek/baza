@@ -56,3 +56,4 @@ __screenshots__/
 # Frontend local overrides (never commit real anon/project keys)
 apps/baza-frontend/src/environments/environment.local.ts
 apps/baza-frontend/src/environments/environment.production.local.ts
+.cursor/hooks/hook-fire.log

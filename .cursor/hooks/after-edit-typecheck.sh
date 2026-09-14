@@ -13,6 +13,10 @@ if [[ -z "$FILE" || ! -f "$FILE" ]]; then
 fi
 
 case "$FILE" in
+  */.cursor/*|*/.claude/*|*/.git/*) exit 0 ;;
+esac
+
+case "$FILE" in
   *.ts|*.tsx) ;;
   *) exit 0 ;;
 esac
@@ -29,6 +33,7 @@ case "$REL" in
   apps/baza-frontend/*) TSCONFIG="apps/baza-frontend/tsconfig.app.json" ;;
   libs/shared/types/*|libs/api/*|libs/baza/*)
     # Shared libs: typecheck both app consumers (still ~few seconds each).
+    echo "[after-edit-typecheck] shared lib → api+fe (${REL})" >&2
     OUT_API="$(npx tsc -p apps/baza-api/tsconfig.app.json --noEmit 2>&1)" || {
       MSG="after-edit typecheck (api, via shared lib) failed for ${REL}:
 ${OUT_API}"
@@ -43,11 +48,13 @@ ${OUT_FE}"
       echo "$MSG" >&2
       exit 2
     }
+    echo "[after-edit-typecheck] ok shared lib" >&2
     exit 0
     ;;
   *) exit 0 ;;
 esac
 
+echo "[after-edit-typecheck] ${REL} via ${TSCONFIG}" >&2
 OUT="$(npx tsc -p "$TSCONFIG" --noEmit 2>&1)" || {
   MSG="after-edit typecheck failed for ${REL} (${TSCONFIG}):
 ${OUT}"
@@ -55,5 +62,6 @@ ${OUT}"
   echo "$MSG" >&2
   exit 2
 }
+echo "[after-edit-typecheck] ok ${REL}" >&2
 
 exit 0

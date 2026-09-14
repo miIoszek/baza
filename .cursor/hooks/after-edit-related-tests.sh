@@ -12,6 +12,10 @@ if [[ -z "$FILE" || ! -f "$FILE" ]]; then
   exit 0
 fi
 
+case "$FILE" in
+  */.cursor/*|*/.claude/*|*/.git/*) exit 0 ;;
+esac
+
 REL="${FILE#"$ROOT"/}"
 
 # Highest remaining / covered risks from context/foundation/test-plan.md:

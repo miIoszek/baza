@@ -12,6 +12,11 @@ if [[ -z "$FILE" || ! -f "$FILE" ]]; then
   exit 0
 fi
 
+# Never react to edits under Cursor config (avoids reload loops).
+case "$FILE" in
+  */.cursor/*|*/.claude/*|*/.git/*) exit 0 ;;
+esac
+
 case "$FILE" in
   *.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs) ;;
   *) exit 0 ;;
@@ -23,6 +28,7 @@ case "$FILE" in
 esac
 
 REL="${FILE#"$ROOT"/}"
+echo "[after-edit-lint] checking ${REL}" >&2
 OUT="$(npx eslint --fix "$REL" 2>&1)" || {
   MSG="after-edit lint failed for ${REL}:
 ${OUT}"
@@ -30,5 +36,6 @@ ${OUT}"
   echo "$MSG" >&2
   exit 2
 }
+echo "[after-edit-lint] ok ${REL}" >&2
 
 exit 0
