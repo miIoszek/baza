@@ -2,10 +2,12 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { JobOffer } from '@baza/shared-types';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
+import { R2StorageService } from '../storage/r2-storage.service';
 import { CreateJobOfferDto } from './dto/job-offer.dto';
 import { JobOfferService } from './job-offer.service';
 
@@ -13,6 +15,8 @@ describe('JobOfferService', () => {
   let service: JobOfferService;
   const from = jest.fn();
   const getClient = jest.fn(() => ({ from }));
+  const isPrivateConfigured = jest.fn(() => true);
+  const deletePrivatePrefixOrThrow = jest.fn(async () => undefined);
 
   const baseDto: CreateJobOfferDto = {
     title: 'Kierowca PL-DE',
@@ -52,6 +56,10 @@ describe('JobOfferService', () => {
   beforeEach(async () => {
     from.mockReset();
     getClient.mockClear();
+    isPrivateConfigured.mockReset();
+    isPrivateConfigured.mockReturnValue(true);
+    deletePrivatePrefixOrThrow.mockReset();
+    deletePrivatePrefixOrThrow.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -59,6 +67,13 @@ describe('JobOfferService', () => {
         {
           provide: SupabaseAuthService,
           useValue: { getClient },
+        },
+        {
+          provide: R2StorageService,
+          useValue: {
+            isPrivateConfigured,
+            deletePrivatePrefixOrThrow,
+          },
         },
       ],
     }).compile();
@@ -452,5 +467,117 @@ describe('JobOfferService', () => {
         published: true,
       })
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  describe('deleteForUser', () => {
+    function mockOwnedOffer() {
+      from.mockImplementationOnce(() => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { id: 'offer-1', published: true },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      }));
+    }
+
+    function mockApplicationsProbe(rows: { id: string }[]) {
+      from.mockImplementationOnce(() => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              limit: async () => ({ data: rows, error: null }),
+            }),
+          }),
+        }),
+      }));
+    }
+
+    function mockOfferDelete(error: { message: string } | null = null) {
+      from.mockImplementationOnce(() => ({
+        delete: () => ({
+          eq: () => ({
+            eq: async () => ({ error }),
+          }),
+        }),
+      }));
+    }
+
+    it('404 when offer not owned — no R2 purge / no DB delete', async () => {
+      mockCompanyLookup(52, 21);
+      from.mockImplementationOnce(() => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+        }),
+      }));
+
+      await expect(
+        service.deleteForUser('user-1', 'offer-missing')
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(deletePrivatePrefixOrThrow).not.toHaveBeenCalled();
+      expect(from).toHaveBeenCalledTimes(2);
+    });
+
+    it('success with R2 configured — purge then DB delete', async () => {
+      isPrivateConfigured.mockReturnValue(true);
+      mockCompanyLookup(52, 21);
+      mockOwnedOffer();
+      mockOfferDelete();
+
+      await service.deleteForUser('user-1', 'offer-1');
+
+      expect(deletePrivatePrefixOrThrow).toHaveBeenCalledWith(
+        'applications/company-1/offer-1'
+      );
+      expect(from).toHaveBeenCalledTimes(3);
+    });
+
+    it('R2 purge throw blocks DB delete', async () => {
+      isPrivateConfigured.mockReturnValue(true);
+      mockCompanyLookup(52, 21);
+      mockOwnedOffer();
+      deletePrivatePrefixOrThrow.mockRejectedValue(
+        new InternalServerErrorException('Nie udało się usunąć plików CV')
+      );
+
+      await expect(service.deleteForUser('user-1', 'offer-1')).rejects.toBeInstanceOf(
+        InternalServerErrorException
+      );
+      expect(from).toHaveBeenCalledTimes(2);
+    });
+
+    it('R2 unset + applications → 503, no DB delete', async () => {
+      isPrivateConfigured.mockReturnValue(false);
+      mockCompanyLookup(52, 21);
+      mockOwnedOffer();
+      mockApplicationsProbe([{ id: 'app-1' }]);
+
+      await expect(service.deleteForUser('user-1', 'offer-1')).rejects.toBeInstanceOf(
+        ServiceUnavailableException
+      );
+      expect(deletePrivatePrefixOrThrow).not.toHaveBeenCalled();
+      expect(from).toHaveBeenCalledTimes(3);
+    });
+
+    it('R2 unset + zero applications → DB delete without purge', async () => {
+      isPrivateConfigured.mockReturnValue(false);
+      mockCompanyLookup(52, 21);
+      mockOwnedOffer();
+      mockApplicationsProbe([]);
+      mockOfferDelete();
+
+      await service.deleteForUser('user-1', 'offer-1');
+
+      expect(deletePrivatePrefixOrThrow).not.toHaveBeenCalled();
+      expect(from).toHaveBeenCalledTimes(4);
+    });
   });
 });
