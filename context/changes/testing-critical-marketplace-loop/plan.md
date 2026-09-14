@@ -230,12 +230,12 @@ Not applicable — test-only change, no schema or production config.
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-api` passes including new harness spec(s)
-- [x] 1.2 `npm run lint` passes
+- [x] 1.1 `npx nx test baza-api` passes including new harness spec(s) — e3bf276
+- [x] 1.2 `npm run lint` passes — e3bf276
 
 #### Manual
 
-- [x] 1.3 Review harness API: seed two companies and see list isolation without reading production service code
+- [x] 1.3 Review harness API: seed two companies and see list isolation without reading production service code — e3bf276
 
 ### Phase 2: Apply → Inbox Loop (Risk #1)
 
