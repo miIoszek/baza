@@ -1,10 +1,10 @@
 ---
 change_id: testing-offer-filter-contract-parity
 title: Offer filter & contract parity tests (silent filters, FE↔API)
-status: impl_reviewed
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
-archived_at: null
+archived_at: 2026-09-14T10:39:27Z
 ---
 
 ## Notes
