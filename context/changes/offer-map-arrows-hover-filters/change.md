@@ -1,7 +1,7 @@
 ---
 change_id: offer-map-arrows-hover-filters
 title: Native map arrows, filter width, and route hover highlight
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
