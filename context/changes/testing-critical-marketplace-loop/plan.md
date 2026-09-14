@@ -241,12 +241,12 @@ Not applicable — test-only change, no schema or production config.
 
 #### Automated
 
-- [ ] 2.1 `npx nx test baza-api` passes
-- [ ] 2.2 New spec includes at least one test documenting apply→inbox ownership
+- [x] 2.1 `npx nx test baza-api` passes
+- [x] 2.2 New spec includes at least one test documenting apply→inbox ownership
 
 #### Manual
 
-- [ ] 2.3 Confirm test would fail if company_id insert or list filter regressed (mental regression check)
+- [x] 2.3 Confirm test would fail if company_id insert or list filter regressed (mental regression check)
 
 ### Phase 3: CV Cross-Tenant Isolation (Risk #2)
 
