@@ -252,20 +252,20 @@ Not applicable — test-only change, no schema or production config.
 
 #### Automated
 
-- [x] 3.1 `npx nx test baza-api` passes
-- [x] 3.2 `npm run test` (root) passes
+- [x] 3.1 `npx nx test baza-api` passes — 3d58a51
+- [x] 3.2 `npm run test` (root) passes — 3d58a51
 
 #### Manual
 
-- [x] 3.3 Skim integration spec: scenarios map to test-plan Risk #2 guidance
+- [x] 3.3 Skim integration spec: scenarios map to test-plan Risk #2 guidance — 3d58a51
 
 ### Phase 4: Test-Plan Cookbook Sync
 
 #### Automated
 
-- [ ] 4.1 `npm run lint` passes
+- [x] 4.1 `npm run lint` passes
 
 #### Manual
 
-- [ ] 4.2 Read §6.2/§6.4 — pattern is actionable for future tests
-- [ ] 4.3 §3 Phase 1 status reflects merge state
+- [x] 4.2 Read §6.2/§6.4 — pattern is actionable for future tests
+- [x] 4.3 §3 Phase 1 status reflects merge state
