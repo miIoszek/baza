@@ -214,9 +214,9 @@ No schema change. Existing `companies` rows appear immediately, including those 
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes after Phase 1 changes
-- [x] 1.2 `npx nx test baza-api` passes (list includes all companies, newest first, published-only offerCount)
-- [x] 1.3 New `CompanyDirectoryItem` is exported from `@baza/shared-types` (`npx nx build shared-types` or equivalent in `npm run build`)
+- [x] 1.1 `npm run lint` passes after Phase 1 changes — 301372d
+- [x] 1.2 `npx nx test baza-api` passes (list includes all companies, newest first, published-only offerCount) — 301372d
+- [x] 1.3 New `CompanyDirectoryItem` is exported from `@baza/shared-types` (`npx nx build shared-types` or equivalent in `npm run build`) — 301372d
 
 #### Manual
 
