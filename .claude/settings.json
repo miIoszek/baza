@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print((d.get(\\\"tool_input\\\") or {}).get(\\\"file_path\\\") or \\\"\\\")\"); [[ -z \"$FILE\" || ! -f \"$FILE\" ]] && exit 0; case \"$FILE\" in *.ts|*.tsx|*.js|*.jsx|*.mjs) ;; *) exit 0 ;; esac; npx eslint --fix \"$FILE\"'",
+            "timeout": 60000
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print((d.get(\\\"tool_input\\\") or {}).get(\\\"file_path\\\") or \\\"\\\")\"); [[ -z \"$FILE\" || ! -f \"$FILE\" ]] && exit 0; case \"$FILE\" in *baza-api*) npx tsc -p apps/baza-api/tsconfig.app.json --noEmit ;; *baza-frontend*) npx tsc -p apps/baza-frontend/tsconfig.app.json --noEmit ;; *) exit 0 ;; esac'",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

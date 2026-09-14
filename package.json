@@ -14,7 +14,8 @@
     "start": "node dist/apps/baza-api/main.js",
     "lint": "nx run-many -t lint -p baza-api,baza-frontend",
     "test": "nx run-many -t test -p baza-api,baza-frontend",
-    "graph": "nx graph"
+    "graph": "nx graph",
+    "prepare": "lefthook install || true"
   },
   "private": true,
   "devDependencies": {
@@ -55,6 +56,7 @@
     "jest-util": "~30.3.0",
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "lefthook": "^2.1.14",
     "ng-packagr": "~22.1.0",
     "nx": "23.2.0",
     "postcss": "^8.4.5",

@@ -1,0 +1,18 @@
+# Pre-commit quality gate (M3L3). Runs on staged files before commit.
+# Install: npx lefthook install
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs}"
+      run: npx eslint --fix {staged_files} && git add {staged_files}
+    typecheck-api:
+      glob: "{apps/baza-api,libs}/**/*.{ts,tsx}"
+      run: npx tsc -p apps/baza-api/tsconfig.app.json --noEmit
+    typecheck-frontend:
+      glob: "{apps/baza-frontend,libs}/**/*.{ts,tsx}"
+      run: npx tsc -p apps/baza-frontend/tsconfig.app.json --noEmit
+    test-related-api:
+      glob: "apps/baza-api/**/*.{ts,tsx}"
+      run: npx jest --config apps/baza-api/jest.config.js --findRelatedTests {staged_files} --passWithNoTests --forceExit
