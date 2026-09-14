@@ -245,7 +245,7 @@ export function createStatefulSupabaseMock(initial?: Partial<StatefulSupabaseSto
     jobApplications: initial?.jobApplications ?? [],
   };
 
-  const from = jest.fn((table: string) => {
+  const from = (table: string) => {
     const key = tableKey(table);
     const state: QueryState = {
       table: key,
@@ -256,9 +256,9 @@ export function createStatefulSupabaseMock(initial?: Partial<StatefulSupabaseSto
       orderBy: null,
     };
     return createQueryBuilder(store, state);
-  });
+  };
 
-  const getClient = jest.fn(() => ({ from }));
+  const getClient = () => ({ from });
 
   return {
     store,
