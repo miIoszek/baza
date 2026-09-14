@@ -126,6 +126,27 @@ describe('JobApplicationService integration (apply → inbox + CV)', () => {
     expect(getPrivateObject).not.toHaveBeenCalled();
   });
 
+  it('company_id filter blocks CV even when key prefix would match caller (Risk #2 filter layer)', async () => {
+    // Row owned by A, but key under B's prefix — only .eq(company_id) must deny B.
+    // If that filter regresses, prefix check would pass and R2 would be called.
+    supabase.store.jobApplications.push({
+      id: 'app-mismatch',
+      job_offer_id: 'offer-a',
+      company_id: 'company-a',
+      email: 'driver@example.com',
+      phone: '+48123456789',
+      message: null,
+      cv_file_key: 'applications/company-b/offer-a/v1/cv.pdf',
+      consent_accepted_at: '2026-09-14T00:00:00.000Z',
+      created_at: '2026-09-14T00:00:00.000Z',
+    });
+
+    await expect(
+      service.getCvStreamForOwner('user-b', 'app-mismatch')
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(getPrivateObject).not.toHaveBeenCalled();
+  });
+
   it('owning company streams CV after apply (Risk #2 happy path)', async () => {
     const applyResult = await service.applyToPublishedOffer(
       'offer-a',

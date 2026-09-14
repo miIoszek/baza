@@ -65,7 +65,7 @@ orchestrator updates Status as artifacts appear on disk.
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|------------|-----------------|---------------|------------|--------|---------------|
-| 1 | Critical marketplace loop | Prove apply→inbox delivery and CV ownership isolation | #1, #2 | integration (+ e2e only if research shows cheaper layers miss the loop) | done | testing-critical-marketplace-loop |
+| 1 | Critical marketplace loop | Prove apply→inbox delivery and CV ownership isolation | #1, #2 | integration (+ e2e only if research shows cheaper layers miss the loop) | implemented | testing-critical-marketplace-loop |
 | 2 | Offer filter & contract parity | Catch silent filter regressions and FE↔API contract drift | #3, #4 | unit + contract/integration | not started | — |
 | 3 | Company auth & abuse floor | Lock guest/owner authz and make apply-abuse posture explicit | #5, #6 | unit + integration | not started | — |
 | 4 | Quality-gates wiring | Keep lint/test/build as the merge floor; add critical-flow gate only when Phase 1 delivers it | cross-cutting | CI gates | not started | — |
@@ -157,7 +157,7 @@ Private-bucket Cloudflare ACL remains ops/manual — not automated in this cookb
 
 ### 6.6 Per-rollout-phase notes
 
-- **§3 Phase 1 (`testing-critical-marketplace-loop`, 2026-09-14):** Stateful Supabase mock + `job-application.integration.spec.ts` cover apply→inbox (#1) and CV cross-tenant isolation (#2). No Playwright. Cookbook §6.2 / §6.4 filled from that change.
+- **§3 Phase 1 (`testing-critical-marketplace-loop`, 2026-09-14):** Stateful Supabase mock + `job-application.integration.spec.ts` cover apply→inbox (#1) and CV cross-tenant isolation (#2). No Playwright. Cookbook §6.2 / §6.4 filled from that change. Status `implemented` until PR merges, then flip to `done`.
 ## 7. What We Deliberately Don't Test
 
 Exclusions agreed during the rollout (Phase 2 interview, Q5). Future

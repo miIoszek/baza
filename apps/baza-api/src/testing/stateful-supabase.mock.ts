@@ -146,8 +146,15 @@ function createQueryBuilder(store: StatefulSupabaseStore, state: QueryState) {
     },
     async maybeSingle(): Promise<{ data: unknown; error: null }> {
       const key = state.table;
-      if (!key || state.operation !== 'select') {
-        return { data: null, error: null };
+      if (!key) {
+        throw new Error(
+          'stateful-supabase mock: maybeSingle() on unsupported table'
+        );
+      }
+      if (state.operation !== 'select') {
+        throw new Error(
+          `stateful-supabase mock: maybeSingle() requires select (got ${state.operation})`
+        );
       }
 
       const rows = store[key] as Record<string, unknown>[];
@@ -162,6 +169,11 @@ function createQueryBuilder(store: StatefulSupabaseStore, state: QueryState) {
     },
     async single(): Promise<{ data: unknown; error: null }> {
       if (state.operation === 'insert' && state.insertPayload) {
+        if (state.table !== 'jobApplications') {
+          throw new Error(
+            `stateful-supabase mock: insert only supported on job_applications (got ${String(state.table)})`
+          );
+        }
         const now = new Date().toISOString();
         const row: JobApplicationRow = {
           id: nextApplicationId(),
@@ -185,13 +197,17 @@ function createQueryBuilder(store: StatefulSupabaseStore, state: QueryState) {
           error: null,
         };
       }
-      return { data: null, error: null };
+      throw new Error(
+        'stateful-supabase mock: single() only supported after insert().select()'
+      );
     },
   };
 
   async function executeList(): Promise<{ data: unknown; error: null }> {
     if (state.table !== 'jobApplications' || state.operation !== 'select') {
-      return { data: [], error: null };
+      throw new Error(
+        `stateful-supabase mock: list/order only supported on job_applications select (got table=${String(state.table)}, op=${state.operation})`
+      );
     }
 
     let rows = store.jobApplications.filter((row) =>

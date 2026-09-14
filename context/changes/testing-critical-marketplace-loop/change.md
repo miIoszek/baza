@@ -1,7 +1,7 @@
 ---
 change_id: testing-critical-marketplace-loop
 title: Critical marketplace loop tests (apply → inbox, CV isolation)
-status: implemented
+status: impl_reviewed
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
