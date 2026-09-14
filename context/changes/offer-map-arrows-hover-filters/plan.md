@@ -128,13 +128,13 @@ Re-render route layers on zoom (pixel conversion). Keep hop count small (offer r
 
 #### Automated
 
-- [x] 1.1 `npx nx test baza-frontend --testFile=route-map-arrow.spec.ts --testFile=route-map-geometry.spec.ts` passes — 836a74b
-- [x] 1.2 `npx nx test baza-frontend` passes — 836a74b
-- [x] 1.3 `npx nx lint baza-frontend` passes — 836a74b
-- [x] 1.4 Root `package.json` has no `leaflet-polylinedecorator` / `@types/leaflet-polylinedecorator` — 836a74b
+- [x] 1.1 `npx nx test baza-frontend --testFile=route-map-arrow.spec.ts --testFile=route-map-geometry.spec.ts` passes — a28e93d
+- [x] 1.2 `npx nx test baza-frontend` passes — a28e93d
+- [x] 1.3 `npx nx lint baza-frontend` passes — a28e93d
+- [x] 1.4 Root `package.json` has no `leaflet-polylinedecorator` / `@types/leaflet-polylinedecorator` — a28e93d
 
 #### Manual
 
-- [x] 1.5 On offer detail (desktop), zoom the map: arrows stay on the dashed lines — 836a74b
-- [x] 1.6 On `/offers`, the filter row uses full list width and does not overflow — 836a74b
-- [x] 1.7 Hover a route in the detail list: that hop is emphasized, others dim; leave restores — 836a74b
+- [x] 1.5 On offer detail (desktop), zoom the map: arrows stay on the dashed lines — a28e93d
+- [x] 1.6 On `/offers`, the filter row uses full list width and does not overflow — a28e93d
+- [x] 1.7 Hover a route in the detail list: that hop is emphasized, others dim; leave restores — a28e93d
