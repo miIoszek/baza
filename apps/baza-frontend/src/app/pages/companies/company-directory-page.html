@@ -1,0 +1,56 @@
+<section class="company-directory">
+  <header class="company-directory__header">
+    <h1>Pracodawcy</h1>
+    <p>Lista firm transportowych na Baza</p>
+  </header>
+
+  @if (loading()) {
+  <baza-async-status kind="loading" message="Ładowanie pracodawców…" />
+  } @else if (error(); as err) {
+  <baza-async-status kind="error" [message]="err">
+    <button mat-button type="button" (click)="retryLoad()">
+      Spróbuj ponownie
+    </button>
+  </baza-async-status>
+  } @else if (companies().length === 0) {
+  <baza-async-status kind="empty" message="Brak pracodawców." />
+  } @else {
+  <ul class="company-directory__grid">
+    @for (c of companies(); track c.id) {
+    <li>
+      <article
+        class="company-directory__card"
+        role="link"
+        tabindex="0"
+        [attr.aria-label]="'Pracodawca: ' + c.name"
+        (click)="openCompany(c.id)"
+        (keydown)="onCardKeydown($event, c.id)"
+      >
+        <div class="company-directory__identity">
+          @if (logoUrl(c); as logo) {
+          <img
+            class="company-directory__logo"
+            [src]="logo"
+            alt=""
+            width="48"
+            height="48"
+          />
+          } @else {
+          <span
+            class="company-directory__logo company-directory__logo--placeholder"
+            aria-hidden="true"
+            >{{ c.name.charAt(0).toUpperCase() }}</span
+          >
+          }
+          <h2 class="company-directory__name">{{ c.name }}</h2>
+        </div>
+        @if (hasAddress(c)) {
+        <p class="company-directory__loc">{{ c.baseLocation }}</p>
+        }
+        <p class="company-directory__offers">Oferty: {{ c.offerCount }}</p>
+      </article>
+    </li>
+    }
+  </ul>
+  }
+</section>

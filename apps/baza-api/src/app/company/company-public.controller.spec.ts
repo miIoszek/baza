@@ -7,16 +7,18 @@ import { JobOfferService } from './job-offer.service';
 describe('CompanyPublicController', () => {
   let controller: CompanyPublicController;
   const getById = jest.fn();
+  const list = jest.fn();
 
   beforeEach(async () => {
     getById.mockReset();
+    list.mockReset();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CompanyPublicController],
       providers: [
         {
           provide: CompanyPublicService,
-          useValue: { getById },
+          useValue: { getById, list },
         },
         {
           provide: JobOfferService,
@@ -26,6 +28,22 @@ describe('CompanyPublicController', () => {
     }).compile();
 
     controller = module.get(CompanyPublicController);
+  });
+
+  it('list delegates to the public service', async () => {
+    const items = [
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        name: 'Acme Transport',
+        baseLocation: 'Warsaw',
+        photoUrls: null,
+        offerCount: 0,
+      },
+    ];
+    list.mockResolvedValue(items);
+
+    await expect(controller.list()).resolves.toEqual(items);
+    expect(list).toHaveBeenCalledTimes(1);
   });
 
   it('returns public profile shape for existing company', async () => {

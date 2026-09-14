@@ -214,22 +214,22 @@ No schema change. Existing `companies` rows appear immediately, including those 
 
 #### Automated
 
-- [ ] 1.1 `npm run lint` passes after Phase 1 changes
-- [ ] 1.2 `npx nx test baza-api` passes (list includes all companies, newest first, published-only offerCount)
-- [ ] 1.3 New `CompanyDirectoryItem` is exported from `@baza/shared-types` (`npx nx build shared-types` or equivalent in `npm run build`)
+- [x] 1.1 `npm run lint` passes after Phase 1 changes — 7e47afb
+- [x] 1.2 `npx nx test baza-api` passes (list includes all companies, newest first, published-only offerCount) — 7e47afb
+- [x] 1.3 New `CompanyDirectoryItem` is exported from `@baza/shared-types` (`npx nx build shared-types` or equivalent in `npm run build`) — 7e47afb
 
 #### Manual
 
-- [ ] 1.4 Logged-out `GET /api/companies` returns every company newest-first with `offerCount`; `GET /api/companies/:id` body is unchanged
+- [x] 1.4 Logged-out `GET /api/companies` returns every company newest-first with `offerCount`; `GET /api/companies/:id` body is unchanged
 
 ### Phase 2: Public `/companies` grid + navbar
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes after Phase 2 changes
-- [ ] 2.2 `npx nx test baza-frontend` passes for the directory page specs
-- [ ] 2.3 `npm run test` and `npm run build` pass (CI mirror)
+- [x] 2.1 `npm run lint` passes after Phase 2 changes — 34b451c
+- [x] 2.2 `npx nx test baza-frontend` passes for the directory page specs — 34b451c
+- [x] 2.3 `npm run test` and `npm run build` pass (CI mirror) — 34b451c
 
 #### Manual
 
-- [ ] 2.4 Logged-out: navbar “Pracodawcy” → grid of all companies newest-first; cards show photo/initial, name, address (hidden if blank), `Oferty: N` including 0; click opens `/companies/:id`; retry works on API down; Job Offers `/` unchanged
+- [x] 2.4 Logged-out: navbar “Pracodawcy” → grid of all companies newest-first; cards show photo/initial, name, address (hidden if blank), `Oferty: N` including 0; click opens `/companies/:id`; retry works on API down; Job Offers `/` unchanged

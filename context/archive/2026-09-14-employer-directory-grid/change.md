@@ -1,10 +1,10 @@
 ---
 change_id: employer-directory-grid
 title: Employer directory grid with profile cards
-status: planned
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
-archived_at: null
+archived_at: 2026-09-14T19:18:34Z
 ---
 
 ## Notes

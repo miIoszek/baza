@@ -1,5 +1,9 @@
 import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
-import type { CompanyPublicProfile, JobOffer } from '@baza/shared-types';
+import type {
+  CompanyDirectoryItem,
+  CompanyPublicProfile,
+  JobOffer,
+} from '@baza/shared-types';
 import { CompanyPublicService } from './company-public.service';
 import { JobOfferService } from './job-offer.service';
 
@@ -9,6 +13,11 @@ export class CompanyPublicController {
     private readonly companyPublic: CompanyPublicService,
     private readonly jobOfferService: JobOfferService
   ) {}
+
+  @Get()
+  list(): Promise<CompanyDirectoryItem[]> {
+    return this.companyPublic.list();
+  }
 
   @Get(':id/offers')
   listOffers(

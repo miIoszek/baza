@@ -29,6 +29,14 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'companies',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/companies/company-directory-page').then(
+        (m) => m.CompanyDirectoryPage
+      ),
+  },
+  {
     path: 'companies/:id',
     component: CompanyPublicProfilePage,
   },
