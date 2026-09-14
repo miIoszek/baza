@@ -1,7 +1,7 @@
 ---
 change_id: employer-directory-grid
 title: Employer directory grid with profile cards
-status: implementing
+status: impl_reviewed
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null

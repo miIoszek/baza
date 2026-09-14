@@ -220,7 +220,7 @@ No schema change. Existing `companies` rows appear immediately, including those 
 
 #### Manual
 
-- [ ] 1.4 Logged-out `GET /api/companies` returns every company newest-first with `offerCount`; `GET /api/companies/:id` body is unchanged
+- [x] 1.4 Logged-out `GET /api/companies` returns every company newest-first with `offerCount`; `GET /api/companies/:id` body is unchanged
 
 ### Phase 2: Public `/companies` grid + navbar
 
@@ -232,4 +232,4 @@ No schema change. Existing `companies` rows appear immediately, including those 
 
 #### Manual
 
-- [ ] 2.4 Logged-out: navbar “Pracodawcy” → grid of all companies newest-first; cards show photo/initial, name, address (hidden if blank), `Oferty: N` including 0; click opens `/companies/:id`; retry works on API down; Job Offers `/` unchanged
+- [x] 2.4 Logged-out: navbar “Pracodawcy” → grid of all companies newest-first; cards show photo/initial, name, address (hidden if blank), `Oferty: N` including 0; click opens `/companies/:id`; retry works on API down; Job Offers `/` unchanged
