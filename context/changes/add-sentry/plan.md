@@ -339,24 +339,24 @@ No DB migration. Existing production has no Sentry — first deploy after secret
 
 #### Automated
 
-- [x] 1.1 `write-fe-production-env.mjs` succeeds with Supabase-only secrets and emits empty `sentryDsn`
-- [x] 1.2 FE lint/typecheck for env model changes green
+- [x] 1.1 `write-fe-production-env.mjs` succeeds with Supabase-only secrets and emits empty `sentryDsn` — 73b8d90
+- [x] 1.2 FE lint/typecheck for env model changes green — 73b8d90
 
 #### Manual
 
-- [x] 1.3 Secret checklist reviewed for Railway + GitHub + two Sentry projects
+- [x] 1.3 Secret checklist reviewed for Railway + GitHub + two Sentry projects — 73b8d90
 
 ### Phase 2: API SDK, filter, maps
 
 #### Automated
 
-- [ ] 2.1 `baza-api` tests green including getCompanyForUser propagation
-- [ ] 2.2 Production API build succeeds without Sentry auth env
-- [ ] 2.3 Lint green for api/core and API changes
+- [x] 2.1 `baza-api` tests green including getCompanyForUser propagation
+- [x] 2.2 Production API build succeeds without Sentry auth env
+- [x] 2.3 Lint green for api/core and API changes
 
 #### Manual
 
-- [ ] 2.4 Deliberate 500 appears in `baza-api` Sentry project when DSN set
+- [x] 2.4 Deliberate 500 appears in `baza-api` Sentry project when DSN set
 - [ ] 2.5 Railway (or dry-run) release/source maps upload verified when auth present
 
 ### Phase 3: FE SDK, interceptor, maps upload

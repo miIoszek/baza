@@ -5,6 +5,7 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
 import {
@@ -408,6 +409,13 @@ export class R2StorageService {
       const detail = err instanceof Error ? err.message : String(err);
       this.logger.error(
         `R2 deletePrefix failed (bucket=${bucket}, prefix=${prefix}): ${detail}`
+      );
+      Sentry.captureException(
+        err instanceof Error
+          ? err
+          : new Error(
+              `R2 deletePrefix failed (bucket=${bucket}, prefix=${prefix}): ${detail}`
+            )
       );
     }
   }

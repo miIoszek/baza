@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthMeCompany } from '@baza/shared-types';
 import {
@@ -149,7 +151,9 @@ export class AuthService {
       this.logger.warn(
         `getCompanyForUser failed for ${userId}: ${error.message}`
       );
-      return null;
+      // Do not treat query failure as "no company" — that swallows the error
+      // and makes /auth/me and /company/session look like a guest without a profile.
+      throw new InternalServerErrorException('Failed to load company profile');
     }
     if (!data) {
       return null;
@@ -194,23 +198,23 @@ export class AuthService {
     }
 
     if (!admin) {
-      this.logger.warn(
-        `Compensation orphan cleanup failed for auth user ${userId}: no admin client (SUPABASE_SERVICE_ROLE_KEY required)`
-      );
+      const msg = `Compensation orphan cleanup failed for auth user ${userId}: no admin client (SUPABASE_SERVICE_ROLE_KEY required)`;
+      this.logger.warn(msg);
+      Sentry.captureMessage(msg, 'error');
       return;
     }
 
     try {
       const { error } = await admin.auth.admin.deleteUser(userId);
       if (error) {
-        this.logger.warn(
-          `Compensation orphan cleanup failed for auth user ${userId}: ${error.message}`
-        );
+        const msg = `Compensation orphan cleanup failed for auth user ${userId}: ${error.message}`;
+        this.logger.warn(msg);
+        Sentry.captureMessage(msg, 'error');
       }
     } catch (e) {
-      this.logger.warn(
-        `Compensation orphan cleanup failed for auth user ${userId}: ${String(e)}`
-      );
+      const msg = `Compensation orphan cleanup failed for auth user ${userId}: ${String(e)}`;
+      this.logger.warn(msg);
+      Sentry.captureException(e instanceof Error ? e : new Error(msg));
     }
   }
 

@@ -68,7 +68,9 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | Supabase anon on Pages | Pages / Actions | Injected at Pages build via GitHub Secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — wire secrets before first Actions FE deploy |
 | R2 SDK / upload routes in Nest | Code | Shipped for register photo; keep R2 vars on Railway only |
 | `SENTRY_DSN` | Railway | API project (`baza-api`) — runtime; empty = SDK no-op |
-| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | Railway (build) | Source map + release upload during `build:api` — **never** on Pages |
+| `SENTRY_ENVIRONMENT` | Railway (optional) | e.g. `production` |
+| `SENTRY_RELEASE` | Railway (optional) | Prefer explicit; else webpack/plugin uses `RAILWAY_GIT_COMMIT_SHA` when present |
+| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | Railway (build) | Source map + release upload during `build:api` (`SENTRY_PROJECT` default `baza-api`) — **never** on Pages |
 | `SENTRY_DSN` | GitHub Actions (FE job) | Public browser DSN for project `baza-frontend` → `write-fe-production-env.mjs` |
 | `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | GitHub Actions (FE job) | FE source map upload after `nx build` — **never** bake into `environment.*.ts` or Cloudflare Pages |
 

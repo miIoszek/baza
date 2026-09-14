@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { ApiCoreModule } from '@baza/api-core';
 import { ApiDataAccessModule } from '@baza/api-data-access';
 import { AppController } from './app.controller';
@@ -11,6 +12,7 @@ import { GeoModule } from './geo/geo.module';
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ApiCoreModule,
     ApiDataAccessModule,
     AuthModule,
