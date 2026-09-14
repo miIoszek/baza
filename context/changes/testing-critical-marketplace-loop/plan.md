@@ -263,9 +263,9 @@ Not applicable — test-only change, no schema or production config.
 
 #### Automated
 
-- [x] 4.1 `npm run lint` passes
+- [x] 4.1 `npm run lint` passes — 7ddd3c9
 
 #### Manual
 
-- [x] 4.2 Read §6.2/§6.4 — pattern is actionable for future tests
-- [x] 4.3 §3 Phase 1 status reflects merge state
+- [x] 4.2 Read §6.2/§6.4 — pattern is actionable for future tests — 7ddd3c9
+- [x] 4.3 §3 Phase 1 status reflects merge state — 7ddd3c9
