@@ -34,6 +34,7 @@ import { OfferRouteMapComponent } from './offer-route-map';
 import {
   buildRouteMapLegs,
   hasRouteMapGeometry,
+  routeLegLabel,
 } from './route-map-geometry';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
@@ -98,6 +99,9 @@ export class JobOfferDetailPage implements OnInit {
     consentAccepted: [false, [Validators.requiredTrue]],
   });
 
+  protected readonly hoveredRouteLabel = signal<string | null>(null);
+  protected readonly routeKey = routeLegLabel;
+
   protected readonly showMapPane = toSignal(
     this.breakpoint.observe('(min-width: 768px)').pipe(map((r) => r.matches)),
     { initialValue: false }
@@ -118,6 +122,14 @@ export class JobOfferDetailPage implements OnInit {
     }
     return hasRouteMapGeometry(o.baseLocation, this.routeLegs());
   });
+
+  protected hoverRoute(fromCode: string, toCode: string): void {
+    this.hoveredRouteLabel.set(routeLegLabel(fromCode, toCode));
+  }
+
+  protected clearHoveredRoute(): void {
+    this.hoveredRouteLabel.set(null);
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

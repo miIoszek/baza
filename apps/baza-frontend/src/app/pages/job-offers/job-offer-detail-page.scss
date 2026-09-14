@@ -128,6 +128,16 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.35rem 0.5rem;
+  margin-inline: -0.4rem;
+  padding: 0.28rem 0.4rem;
+  border-radius: 0.5rem;
+  cursor: default;
+  transition: background 0.12s ease;
+}
+
+.offer-detail__routes li:hover,
+.offer-detail__routes li.offer-detail__routes-item--active {
+  background: color-mix(in srgb, var(--mat-sys-primary, #90caf9) 16%, transparent);
 }
 
 .offer-detail__route-arrow {

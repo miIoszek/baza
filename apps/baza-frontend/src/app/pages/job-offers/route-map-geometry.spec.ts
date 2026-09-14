@@ -1,4 +1,8 @@
-import { buildRouteMapLegs, hasRouteMapGeometry } from './route-map-geometry';
+import {
+  buildRouteMapLegs,
+  hasRouteMapGeometry,
+  routeMapLegEmphasis,
+} from './route-map-geometry';
 import type { CountryCentroid, RouteDirection } from '@baza/shared-types';
 
 describe('route-map-geometry', () => {
@@ -24,6 +28,27 @@ describe('route-map-geometry', () => {
     expect(legs[0].label).toBe('PL→DE');
   });
 
+  it('keeps every hop whose both countries have centroids', () => {
+    const all: CountryCentroid[] = [
+      ...centroids,
+      { code: 'AT', namePl: 'Austria', lat: 47.6, lng: 14.1 },
+      { code: 'IT', namePl: 'Włochy', lat: 42.5, lng: 12.5 },
+      { code: 'FR', namePl: 'Francja', lat: 46.6, lng: 2.5 },
+    ];
+    const many: RouteDirection[] = [
+      { from: { code: 'PL', name: 'Polska' }, to: { code: 'DE', name: 'Niemcy' } },
+      { from: { code: 'PL', name: 'Polska' }, to: { code: 'AT', name: 'Austria' } },
+      { from: { code: 'PL', name: 'Polska' }, to: { code: 'IT', name: 'Włochy' } },
+      { from: { code: 'DE', name: 'Niemcy' }, to: { code: 'FR', name: 'Francja' } },
+    ];
+    expect(buildRouteMapLegs(many, all).map((l) => l.label)).toEqual([
+      'PL→DE',
+      'PL→AT',
+      'PL→IT',
+      'DE→FR',
+    ]);
+  });
+
   it('detects geometry from legs or base pin', () => {
     expect(hasRouteMapGeometry(null, [])).toBe(false);
     expect(hasRouteMapGeometry({ lat: 52, lng: 21 }, [])).toBe(true);
@@ -36,5 +61,25 @@ describe('route-map-geometry', () => {
         },
       ])
     ).toBe(true);
+  });
+
+  it('dims other hops when a hovered route is on the map', () => {
+    const labels = ['PL→DE', 'PL→AT', 'DE→FR'];
+    expect(routeMapLegEmphasis('PL→AT', 'PL→AT', labels)).toEqual({
+      dimmed: false,
+      emphasized: true,
+    });
+    expect(routeMapLegEmphasis('PL→AT', 'PL→DE', labels)).toEqual({
+      dimmed: true,
+      emphasized: false,
+    });
+    expect(routeMapLegEmphasis(null, 'PL→DE', labels)).toEqual({
+      dimmed: false,
+      emphasized: false,
+    });
+    expect(routeMapLegEmphasis('XX→YY', 'PL→DE', labels)).toEqual({
+      dimmed: false,
+      emphasized: false,
+    });
   });
 });
