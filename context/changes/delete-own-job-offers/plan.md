@@ -219,27 +219,27 @@ No SQL migration. Existing cascade is sufficient. No backfill of orphan R2 from 
 
 #### Automated
 
-- [x] 1.1 Unit tests for delete contracts pass (`job-offer.service`)
-- [x] 1.2 Typecheck/lint for touched API files
-- [x] 1.3 No regressions in existing `job-offer.service` specs
+- [x] 1.1 Unit tests for delete contracts pass (`job-offer.service`) — d6b3238
+- [x] 1.2 Typecheck/lint for touched API files — d6b3238
+- [x] 1.3 No regressions in existing `job-offer.service` specs — d6b3238
 
 #### Manual
 
-- [x] 1.4 Delete owned offer with applications — offer, inbox rows, CVs gone
-- [x] 1.5 Delete offer with zero applications succeeds
-- [x] 1.6 Delete another company’s offer id → 404
-- [x] 1.7 Private R2 unset + applications → 503 and offer remains
+- [x] 1.4 Delete owned offer with applications — offer, inbox rows, CVs gone — d6b3238
+- [x] 1.5 Delete offer with zero applications succeeds — d6b3238
+- [x] 1.6 Delete another company’s offer id → 404 — d6b3238
+- [x] 1.7 Private R2 unset + applications → 503 and offer remains — d6b3238
 
 ### Phase 2: FE Usuń on company offers list
 
 #### Automated
 
-- [x] 2.1 Frontend lint/typecheck for touched files
-- [x] 2.2 Existing `company-offers-list-page.spec.ts` still passes
+- [x] 2.1 Frontend lint/typecheck for touched files — d6b3238
+- [x] 2.2 Existing `company-offers-list-page.spec.ts` still passes — d6b3238
 
 #### Manual
 
-- [x] 2.3 Confirm cancel → no DELETE
-- [x] 2.4 Confirm OK → offer removed + success snackbar
-- [x] 2.5 Wycofaj still available; Usuń works on unpublished offers
-- [x] 2.6 Error path shows snackbar and leaves row
+- [x] 2.3 Confirm cancel → no DELETE — d6b3238
+- [x] 2.4 Confirm OK → offer removed + success snackbar — d6b3238
+- [x] 2.5 Wycofaj still available; Usuń works on unpublished offers — d6b3238
+- [x] 2.6 Error path shows snackbar and leaves row — d6b3238

@@ -1,7 +1,7 @@
 ---
 change_id: delete-own-job-offers
 title: Allow companies to delete their own job offers
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
