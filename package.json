@@ -14,6 +14,7 @@
     "start": "node dist/apps/baza-api/main.js",
     "lint": "nx run-many -t lint -p baza-api,baza-frontend",
     "test": "nx run-many -t test -p baza-api,baza-frontend",
+    "test:e2e": "playwright test",
     "graph": "nx graph",
     "prepare": "lefthook install || true"
   },
@@ -38,6 +39,7 @@
     "@nx/web": "23.2.0",
     "@nx/webpack": "^23.2.0",
     "@nx/workspace": "23.2.0",
+    "@playwright/test": "^1.63.0",
     "@schematics/angular": "~22.1.0",
     "@swc/helpers": "~0.5.18",
     "@types/express": "^4.17.25",

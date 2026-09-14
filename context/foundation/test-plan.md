@@ -83,7 +83,7 @@ of assuming access.
 |-------|------|---------|-------|
 | unit + integration (API) | Jest via Nx | ~30.3 | `apps/baza-api` — `npx nx test baza-api` / `npm run test` |
 | unit (FE) | Vitest via `@angular/build:unit-test` | ^4.0.8 | `apps/baza-frontend` — ~specs clustered in pages/guards |
-| e2e | none yet | — | no Playwright config; add only if Phase 1 research requires full-loop signal |
+| e2e | Playwright + Firefox | ^1.63 | `e2e/` — guest gates + filter URL; Chrome blocked by ManageEngine; `npx playwright test --project=firefox` |
 | accessibility | none yet | — | not a top risk for this rollout |
 | AI-native visual | deliberately skipped | — | excluded by interview Q5 (map/marketing snapshots) |
 
@@ -135,7 +135,12 @@ Reference: `apps/baza-api/src/app/company/job-application.integration.spec.ts` (
 
 ### 6.3 Adding an e2e test
 
-- Not introduced for §3 Phase 1. Research chose stateful service integration over Playwright; revisit only if a future risk needs full browser signal the API layer cannot catch.
+1. Follow `e2e/seed.spec.ts` + `.cursor/rules/e2e-testing.mdc` (getByRole/Label/Text, wait-for-state, risk-tied names).
+2. Run with **Firefox** (`npx playwright test --project=firefox`) — automated Chrome is blocked by ManageEngine on some corp machines.
+3. Guest authz (Risk #5): assert redirect to `/login?returnUrl=…` — do not assert Material `mat-card-title` as `heading` (not exposed).
+4. Filter UI (Risk #3 face): assert URL query survives reload; membership oracles stay in unit tests.
+5. Authenticated flows: `E2E_EMAIL`/`E2E_PASSWORD` → `e2e/auth.setup.ts` or `playwright-cli state-save playwright/.auth/user.json` (gitignored). See `e2e/README.md`.
+6. VERIFY: briefly break the protected behavior (e.g. company guard always `true`) and confirm the E2E goes red, then revert — never commit the break.
 
 ### 6.4 Adding a test for a new API endpoint
 

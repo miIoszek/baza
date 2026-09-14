@@ -53,6 +53,13 @@ __screenshots__/
 .env.*
 !.env.example
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/.playwright-cli/
+
 # Frontend local overrides (never commit real anon/project keys)
 apps/baza-frontend/src/environments/environment.local.ts
 apps/baza-frontend/src/environments/environment.production.local.ts
