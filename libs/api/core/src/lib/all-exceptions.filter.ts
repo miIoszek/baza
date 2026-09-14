@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import type { Response } from 'express';
 import { MulterError } from 'multer';
 
@@ -51,6 +52,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (status >= 500) {
       this.logger.error(exception);
+      Sentry.captureException(exception);
     }
 
     response.status(status).json({

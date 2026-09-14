@@ -9,6 +9,12 @@ const supabaseUrl = process.env.SUPABASE_URL?.trim();
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY?.trim();
 const apiBaseUrl =
   process.env.API_BASE_URL?.trim() || DEFAULT_API_BASE_URL;
+/** Public FE DSN from Actions; empty when unset so builds do not require Sentry. */
+const sentryDsn = process.env.SENTRY_DSN?.trim() || '';
+const sentryRelease =
+  process.env.SENTRY_RELEASE?.trim() ||
+  process.env.GITHUB_SHA?.trim() ||
+  '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
@@ -38,6 +44,8 @@ export const environment: BazaEnvironment = {
   apiBaseUrl: ${tsString(apiBaseUrl)},
   supabaseUrl: ${tsString(supabaseUrl)},
   supabaseAnonKey: ${tsString(supabaseAnonKey)},
+  sentryDsn: ${tsString(sentryDsn)},
+  sentryRelease: ${tsString(sentryRelease)},
 };
 `;
 

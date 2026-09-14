@@ -112,10 +112,30 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_RELEASE: ${{ github.sha }}
         run: node scripts/write-fe-production-env.mjs
 
       - name: Build frontend
         run: npx nx build baza-frontend --configuration=production
+
+      - name: Upload FE source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ]; then
+            echo "SENTRY_AUTH_TOKEN / SENTRY_ORG not set — skipping FE source map upload"
+            exit 0
+          fi
+          PROJECT="${SENTRY_PROJECT:-baza-frontend}"
+          npx --yes @sentry/cli sourcemaps inject dist/apps/baza-frontend/browser
+          npx --yes @sentry/cli sourcemaps upload dist/apps/baza-frontend/browser \
+            --org "$SENTRY_ORG" \
+            --project "$PROJECT" \
+            --release "${{ github.sha }}"
+          find dist/apps/baza-frontend/browser -name '*.map' -delete || true
 
       - name: Deploy to Cloudflare Pages
         env:

@@ -94,6 +94,12 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.auth.whenReady();
     await this.auth.refreshMe();
+    const loadError = this.auth.meLoadError();
+    if (loadError) {
+      this.loading.set(false);
+      this.snackBar.open(loadError, 'OK', { duration: 7000 });
+      return;
+    }
     const company = this.auth.company();
     if (!company) {
       this.loading.set(false);

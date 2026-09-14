@@ -3,7 +3,7 @@ project: Baza
 version: 1
 status: draft
 created: 2026-09-08
-updated: 2026-09-13
+updated: 2026-09-14
 prd_version: 1
 
 main_goal: speed
@@ -59,7 +59,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Data:** partial — Supabase Postgres migration for `companies` only (`supabase/migrations/20260904120000_create_companies.sql`); no `offers` or `applications` tables yet.
 - **Auth:** present — Supabase Auth on FE + API; JWT on `/api/auth/me` and `/api/company/*`; Angular `companyAuthGuard` on employer routes (F-01); company register + R2 photo path live.
 - **Deploy / infra:** partial — CI (`/.github/workflows/ci.yml`) and deploy to Railway (API via `railway.toml` + Railpack) and Cloudflare Pages (FE via `deploy.yml`); production live per `context/deployment/deploy-plan.md`. No Dockerfile — not required (Railpack + Pages build/deploy without Docker).
-- **Observability:** partial — Nest `Logger` and global exception filter; no Sentry, metrics, or structured logging.
+- **Observability:** partial — Nest `Logger` + global exception filter; Sentry wiring in progress via change `add-sentry` (API + FE); no metrics dashboards yet.
 
 ## Foundations
 
@@ -179,7 +179,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Chat / messaging beyond apply form** — Why parked: PRD §Non-Goals.
 - **Multi-language UI** — Why parked: PRD §Non-Goals (Polish only in MVP).
 - **Map pin clustering / popup list** — Why parked: PRD §Non-Goals until offer density grows.
-- **Deep observability (Sentry, metrics dashboards)** — Why parked: `main_goal: speed` + baseline logging sufficient for MVP; revisit if quality becomes the goal.
+- **Deep observability (Sentry, metrics dashboards)** — Sentry error monitoring is **in progress** via change `add-sentry` (not done until archive). Metrics dashboards remain parked (`main_goal: speed`).
 - **Dockerfile / container-local dev stack** — Why parked: deploy uses Railway Railpack + Cloudflare Pages without Docker; not required for MVP.
 
 ## Done

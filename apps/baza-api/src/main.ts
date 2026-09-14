@@ -6,8 +6,12 @@
 import { config as loadEnv } from 'dotenv';
 loadEnv();
 
+// After dotenv so SENTRY_DSN is visible; before Nest so instrumentation can wrap modules.
+import './instrument';
+
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as Sentry from '@sentry/nestjs';
 import { configureApp } from '@baza/api-core';
 import { AppModule } from './app/app.module';
 import { assertRequiredSupabaseEnv } from './supabase-env';
@@ -34,5 +38,6 @@ bootstrap().catch((err) => {
     err instanceof Error ? err.stack : undefined,
     'Bootstrap'
   );
-  process.exit(1);
+  Sentry.captureException(err);
+  void Sentry.close(2000).finally(() => process.exit(1));
 });

@@ -68,10 +68,10 @@ The team put Nest on Railway Free after the $5 trial. Always-on API burned the $
 ## Operational Story
 
 - **Preview deploys**: Railway PR/environment deploys for the API service; Cloudflare Pages preview deployments per branch/PR for Angular. Protect previews if the app shows personal data (Access or auth gate) before public driver traffic.
-- **Secrets**: Railway Variables for Nest (`SUPABASE_*`, R2 keys, `CORS_ORIGIN`); Cloudflare Pages env for public FE keys only (`anon` / public API URL); never put Supabase **service role** in Pages. Rotate in each vendor’s vault; agents may set non-prod vars, humans rotate production primaries.
+- **Secrets**: Railway Variables for Nest (`SUPABASE_*`, R2 keys, `CORS_ORIGIN`, optional `SENTRY_DSN` + build-time Sentry upload vars); Cloudflare Pages / Actions bake for public FE keys only (`anon` / public API URL / public `SENTRY_DSN`); never put Supabase **service role** or **`SENTRY_AUTH_TOKEN`** in Pages or FE env files. Rotate in each vendor’s vault; agents may set non-prod vars, humans rotate production primaries. See `context/deployment/deploy-plan.md` for the Sentry checklist (`baza-api` / `baza-frontend`).
 - **Rollback**: Railway — redeploy previous deployment from dashboard (or redeploy known good image/commit); Cloudflare Pages — instant rollback to prior deployment in dashboard / wrangler rollback where applicable. DB migrations on Supabase do **not** roll back with a code revert.
 - **Approval**: Human-only — production publish first time, custom domain DNS, billing plan upgrade, drop Supabase project, rotate service-role key. Agent may — draft env lists, trigger non-prod deploys, `railway logs` / `wrangler pages deployment tail` read-only.
-- **Logs**: `railway logs` (and Railway MCP) for API; `wrangler pages deployment tail` / dashboard for Pages; Supabase dashboard/logs for Auth/DB.
+- **Logs**: `railway logs` (and Railway MCP) for API; `wrangler pages deployment tail` / dashboard for Pages; Supabase dashboard/logs for Auth/DB; Sentry issues UI (optional Sentry MCP) once DSNs are wired.
 
 ## Risk Register
 

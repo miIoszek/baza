@@ -40,8 +40,8 @@
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "750kb",
+              "maximumError": "1.25mb"
             },
             {
               "type": "anyComponentStyle",
@@ -50,6 +50,12 @@
             }
           ],
           "outputHashing": "all",
+          "sourceMap": {
+            "scripts": true,
+            "styles": false,
+            "vendor": false,
+            "hidden": true
+          },
           "fileReplacements": [
             {
               "replace": "apps/baza-frontend/src/environments/environment.ts",

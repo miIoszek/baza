@@ -8,6 +8,7 @@ jest.mock('../storage/r2-storage.service', () => ({
 
 import {
   BadRequestException,
+  InternalServerErrorException,
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -266,5 +267,85 @@ describe('AuthService.register compensation', () => {
     expect(signUp).not.toHaveBeenCalled();
     expect(createUser).toHaveBeenCalled();
     expect(deleteUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('AuthService.getCompanyForUser', () => {
+  let service: AuthService;
+  let getClient: jest.Mock;
+  let maybeSingle: jest.Mock;
+
+  beforeEach(async () => {
+    maybeSingle = jest.fn();
+    getClient = jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            maybeSingle,
+          }),
+        }),
+      }),
+    });
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: SupabaseAuthService, useValue: { getClient } },
+        {
+          provide: R2StorageService,
+          useValue: {
+            isConfigured: jest.fn(),
+            uploadCompanyLogo: jest.fn(),
+            deletePrefix: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('returns null when no company row exists (not an error)', async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: null });
+
+    await expect(service.getCompanyForUser('user-1')).resolves.toBeNull();
+  });
+
+  it('propagates DB failure instead of returning null (swallowed-error guard)', async () => {
+    maybeSingle.mockResolvedValue({
+      data: null,
+      error: { message: 'connection reset' },
+    });
+
+    await expect(service.getCompanyForUser('user-1')).rejects.toBeInstanceOf(
+      InternalServerErrorException
+    );
+  });
+
+  it('maps a company row when the query succeeds', async () => {
+    maybeSingle.mockResolvedValue({
+      data: {
+        id: 'c1',
+        name: 'Acme',
+        nip: '1234567890',
+        description: 'Fleet',
+        base_location: 'Warsaw',
+        base_lat: 52.2,
+        base_lng: 21.0,
+        photo_urls: null,
+      },
+      error: null,
+    });
+
+    await expect(service.getCompanyForUser('user-1')).resolves.toEqual({
+      id: 'c1',
+      name: 'Acme',
+      nip: '1234567890',
+      description: 'Fleet',
+      baseLocation: 'Warsaw',
+      baseLat: 52.2,
+      baseLng: 21.0,
+      photoUrls: null,
+    });
   });
 });

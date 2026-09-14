@@ -67,6 +67,14 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | `R2_PUBLIC_URL` | Railway | Optional / as configured |
 | Supabase anon on Pages | Pages / Actions | Injected at Pages build via GitHub Secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — wire secrets before first Actions FE deploy |
 | R2 SDK / upload routes in Nest | Code | Shipped for register photo; keep R2 vars on Railway only |
+| `SENTRY_DSN` | Railway | API project (`baza-api`) — runtime; empty = SDK no-op |
+| `SENTRY_ENVIRONMENT` | Railway (optional) | e.g. `production` |
+| `SENTRY_RELEASE` | Railway (optional) | Prefer explicit; else webpack/plugin uses `RAILWAY_GIT_COMMIT_SHA` when present |
+| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | Railway (build) | Source map + release upload during `build:api` (`SENTRY_PROJECT` default `baza-api`) — **never** on Pages |
+| `SENTRY_DSN` | GitHub Actions (FE job) | Public browser DSN for project `baza-frontend` → `write-fe-production-env.mjs` |
+| `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | GitHub Actions (FE job) | FE source map upload after `nx build` — **never** bake into `environment.*.ts` or Cloudflare Pages |
+
+Two Sentry projects: **`baza-api`** (Nest) and **`baza-frontend`** (Angular). Prefer shared release name = git commit SHA. Auth token is upload-only; public DSN may appear in the browser bundle (same trust model as Supabase anon).
 
 ## GitHub Actions (primary redeploy path)
 
@@ -86,6 +94,10 @@ Workflows:
 | `CLOUDFLARE_ACCOUNT_ID` | Pages deploy |
 | `SUPABASE_URL` | FE production env writer (public project URL) |
 | `SUPABASE_ANON_KEY` | FE production env writer (anon key only) |
+| `SENTRY_DSN` | FE production env writer (public browser DSN → `environment.sentryDsn`; optional) |
+| `SENTRY_AUTH_TOKEN` | FE source map / release upload (optional until Sentry wired) |
+| `SENTRY_ORG` | Sentry org slug for CLI upload |
+| `SENTRY_PROJECT` | FE project slug (expect `baza-frontend`) |
 
 Path filters (see `deploy.yml`): API also watches `libs/api/**`, `libs/shared/**`, lockfile/Nx config, `railway.toml`. FE watches `apps/baza-frontend/**`, `libs/baza/**`, `libs/shared/**`, lockfile/Nx config. Shared-lib or root package changes redeploy both.
 

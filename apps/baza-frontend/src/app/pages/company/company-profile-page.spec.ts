@@ -12,6 +12,8 @@ describe('CompanyProfilePage', () => {
     whenReady: Mock;
     refreshMe: Mock;
     company: Mock;
+    meLoadError: Mock;
+    isLoggedIn: Mock;
   };
 
   beforeEach(async () => {
@@ -28,6 +30,8 @@ describe('CompanyProfilePage', () => {
         baseLng: null,
         photoUrls: null,
       }),
+      meLoadError: vi.fn().mockReturnValue(null),
+      isLoggedIn: vi.fn().mockReturnValue(true),
     };
 
     await TestBed.configureTestingModule({
