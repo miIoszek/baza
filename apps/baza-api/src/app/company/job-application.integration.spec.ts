@@ -1,10 +1,12 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Readable } from 'stream';
 import { SupabaseAuthService } from '../auth/supabase-auth.service';
 import { R2StorageService } from '../storage/r2-storage.service';
 import { createStatefulSupabaseMock } from '../../testing/stateful-supabase.mock';
 import { JobApplicationService } from './job-application.service';
 
-describe('JobApplicationService integration (apply → inbox)', () => {
+describe('JobApplicationService integration (apply → inbox + CV)', () => {
   let service: JobApplicationService;
   let supabase: ReturnType<typeof createStatefulSupabaseMock>;
   const uploadApplicationCv = jest.fn();
@@ -105,5 +107,48 @@ describe('JobApplicationService integration (apply → inbox)', () => {
     expect(inboxB.some((item) => item.id === applyResult.id)).toBe(false);
     expect(supabase.listApplicationsForCompany('company-a')).toHaveLength(1);
     expect(supabase.listApplicationsForCompany('company-b')).toHaveLength(0);
+  });
+
+  it('company B cannot download company A CV after apply (Risk #2 cross-tenant)', async () => {
+    const applyResult = await service.applyToPublishedOffer(
+      'offer-a',
+      {
+        email: 'driver@example.com',
+        phone: '+48123456789',
+        consentAccepted: true,
+      },
+      pdf
+    );
+
+    await expect(
+      service.getCvStreamForOwner('user-b', applyResult.id)
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(getPrivateObject).not.toHaveBeenCalled();
+  });
+
+  it('owning company streams CV after apply (Risk #2 happy path)', async () => {
+    const applyResult = await service.applyToPublishedOffer(
+      'offer-a',
+      {
+        email: 'driver@example.com',
+        phone: '+48123456789',
+        consentAccepted: true,
+      },
+      pdf
+    );
+
+    const body = Readable.from([Buffer.from('%PDF-1.4')]);
+    getPrivateObject.mockResolvedValue({
+      body,
+      contentType: 'application/pdf',
+      contentLength: 8,
+    });
+
+    const stream = await service.getCvStreamForOwner('user-a', applyResult.id);
+    expect(getPrivateObject).toHaveBeenCalledWith(
+      'applications/company-a/offer-a/v1/cv.pdf'
+    );
+    expect(stream.body).toBe(body);
+    expect(stream.contentType).toBe('application/pdf');
   });
 });

@@ -241,23 +241,23 @@ Not applicable — test-only change, no schema or production config.
 
 #### Automated
 
-- [x] 2.1 `npx nx test baza-api` passes
-- [x] 2.2 New spec includes at least one test documenting apply→inbox ownership
+- [x] 2.1 `npx nx test baza-api` passes — 8ac4afe
+- [x] 2.2 New spec includes at least one test documenting apply→inbox ownership — 8ac4afe
 
 #### Manual
 
-- [x] 2.3 Confirm test would fail if company_id insert or list filter regressed (mental regression check)
+- [x] 2.3 Confirm test would fail if company_id insert or list filter regressed (mental regression check) — 8ac4afe
 
 ### Phase 3: CV Cross-Tenant Isolation (Risk #2)
 
 #### Automated
 
-- [ ] 3.1 `npx nx test baza-api` passes
-- [ ] 3.2 `npm run test` (root) passes
+- [x] 3.1 `npx nx test baza-api` passes
+- [x] 3.2 `npm run test` (root) passes
 
 #### Manual
 
-- [ ] 3.3 Skim integration spec: scenarios map to test-plan Risk #2 guidance
+- [x] 3.3 Skim integration spec: scenarios map to test-plan Risk #2 guidance
 
 ### Phase 4: Test-Plan Cookbook Sync
 
