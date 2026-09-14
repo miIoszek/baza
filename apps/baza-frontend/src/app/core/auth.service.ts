@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import type { Session, User } from '@supabase/supabase-js';
 import type { AuthMeResponse } from '@baza/shared-types';
-import * as Sentry from '@sentry/angular';
+import { captureException } from '@sentry/angular';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { getSupabase } from './supabase-client';
@@ -126,7 +126,7 @@ export class AuthService {
         err instanceof HttpErrorResponse &&
         (err.status === 0 || err.status >= 500);
       if (!interceptorOwns) {
-        Sentry.captureException(err);
+        captureException(err);
       }
     }
   }

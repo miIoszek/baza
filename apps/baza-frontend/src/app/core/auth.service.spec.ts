@@ -7,11 +7,14 @@ import { provideHttpClient } from '@angular/common/http';
 import type { AuthMeResponse } from '@baza/shared-types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@sentry/angular', () => ({
-  captureException: vi.fn(() => 'event-id'),
+const { captureExceptionMock } = vi.hoisted(() => ({
+  captureExceptionMock: vi.fn(() => 'event-id'),
 }));
 
-import * as Sentry from '@sentry/angular';
+vi.mock('@sentry/angular', () => ({
+  captureException: captureExceptionMock,
+}));
+
 import { AuthService } from './auth.service';
 
 const meWithCompany: AuthMeResponse = {
@@ -43,7 +46,7 @@ describe('AuthService.refreshMe', () => {
     });
     auth = TestBed.inject(AuthService);
     http = TestBed.inject(HttpTestingController);
-    vi.mocked(Sentry.captureException).mockClear();
+    captureExceptionMock.mockClear();
   });
 
   afterEach(() => {
@@ -73,7 +76,7 @@ describe('AuthService.refreshMe', () => {
     expect(auth.company()?.name).toBe('Acme');
     expect(auth.meLoadError()).toContain('500');
     // 5xx left to sentryHttpInterceptor in the real app
-    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(captureExceptionMock).not.toHaveBeenCalled();
   });
 
   it('clears me and session on 401 without meLoadError', async () => {
@@ -90,7 +93,7 @@ describe('AuthService.refreshMe', () => {
     expect(auth.company()).toBeNull();
     expect(auth.session()).toBeNull();
     expect(auth.meLoadError()).toBeNull();
-    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(captureExceptionMock).not.toHaveBeenCalled();
   });
 
   it('captures unexpected 4xx (non-401) and keeps prior me', async () => {
@@ -106,6 +109,6 @@ describe('AuthService.refreshMe', () => {
 
     expect(auth.company()?.name).toBe('Acme');
     expect(auth.meLoadError()).toContain('403');
-    expect(Sentry.captureException).toHaveBeenCalled();
+    expect(captureExceptionMock).toHaveBeenCalled();
   });
 });
