@@ -1,19 +1,35 @@
-# Baza (Nx monorepo)
+<div align="center">
 
-Transport job board MVP — **Angular** frontend + **NestJS** API in one Nx workspace.
+<img src="apps/baza-frontend/public/baza-logo.png" alt="Baza" width="120" />
 
-Product context stays in `context/` (PRD, tech-stack, notes). This monorepo is the runnable code.
+# Baza
 
-## Structure
+**Baza** to tablica ofert pracy dla branży transportu.
+
+Kierowcy szukają tu ofert dopasowanych do tras i rytmu powrotów do domu. Firmy transportowe publikują oferty (kraje/kierunki, kadencja powrotu, wymagane doświadczenie) i odbierają aplikacje — w MVP bez płatności i bez konta po stronie kierowcy.
+
+## Co robi produkt
+
+**Dla firm** — rejestracja, publiczny profil, publikacja darmowych ofert pracy z lokalizacją bazy i mapą tras.
+
+**Dla kierowców** — przeglądanie ofert (lista + mapa), filtry po krajach trasy i powrocie do domu, aplikacja z CV bez zakładania konta.
+
+Szczegóły produktu: [`context/foundation/prd.md`](context/foundation/prd.md)
+
+</div>
+
+## Stack (Nx monorepo)
 
 | Path | Role |
 |------|------|
-| `apps/baza-api` | NestJS API (`@baza` Nest app) |
+| `apps/baza-api` | NestJS API |
 | `apps/baza-frontend` | Angular SPA |
-| `libs/shared/types` | `@baza/shared-types` — DTOs/interfaces shared by API + UI |
-| `libs/baza/ui` | `@baza/ui` — Angular UI kit (start with `PageShell`) |
-| `libs/api/core` | `@baza/api-core` — Nest bootstrap helpers (CORS, validation, filters) |
-| `libs/api/data-access` | `@baza/api-data-access` — DB/repos (hook Supabase/Prisma later) |
+| `libs/shared/types` | `@baza/shared-types` — wspólne DTOs/interfejsy |
+| `libs/baza/ui` | `@baza/ui` — Angular UI kit |
+| `libs/api/core` | `@baza/api-core` — bootstrap Nest (CORS, validation, filters) |
+| `libs/api/data-access` | `@baza/api-data-access` — warstwa danych |
+
+Auth/DB → Supabase · API → Railway · FE → Cloudflare Pages · pliki → Cloudflare R2 (`context/foundation/tech-stack.md`).
 
 ## Commands
 
@@ -21,24 +37,17 @@ Product context stays in `context/` (PRD, tech-stack, notes). This monorepo is t
 npm install
 
 # API  → http://localhost:3000/api
-npx nx serve baza-api
+npm run serve:api
 
 # Frontend → http://localhost:4200  (proxies /api → :3000)
-npx nx serve baza-frontend
+npm run serve:frontend
 
-# Build both
-npx nx run-many -t build -p baza-api,baza-frontend
-
-# Graph
-npx nx graph
+npm run lint
+npm run test
+npm run build
+npm run graph
 ```
-
-## Versions (as scaffolded)
-
-- Nx 23.x
-- Angular 22.x
-- NestJS 11.x (newest supported by `@nx/nest@23`; Nest 12 peer-conflicts with Nx today)
 
 ## Course toolkit
 
-`context/`, `skills/`, `prompts/`, `.cursor/` are course / agent tooling — keep them; do not treat them as app source.
+`context/`, `skills/`, `prompts/`, `.cursor/` to tooling kursu / agentów — nie traktuj ich jako kodu runtime aplikacji.
