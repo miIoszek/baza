@@ -9,16 +9,21 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
 import { GeoModule } from './geo/geo.module';
+import { AccessTokenGuard } from './identity/guards/access-token.guard';
+import { RolesGuard } from './identity/guards/roles.guard';
+import { IdentityModule } from './identity/identity.module';
 
 @Module({
   imports: [
     SentryModule.forRoot(),
     ApiCoreModule,
     ApiDataAccessModule,
+    IdentityModule,
     AuthModule,
     CompanyModule,
     GeoModule,
-    // High default so browse is unaffected; register/apply set stricter @Throttle.
+    // High default so browse is unaffected; register/login/apply set stricter @Throttle.
+    // In-memory and per-process: fine for the single Railway replica, needs Redis when scaled out.
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -30,10 +35,10 @@ import { GeoModule } from './geo/geo.module';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // Order matters: throttle first (cheap, no DB), then authenticate, then authorise.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: AccessTokenGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule {}

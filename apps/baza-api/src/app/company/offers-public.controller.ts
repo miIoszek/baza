@@ -24,7 +24,9 @@ import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 import { JobApplicationService } from './job-application.service';
 import { JobOfferService } from './job-offer.service';
 import { ListOffersQueryDto } from './dto/list-offers-query.dto';
+import { Public } from '../identity/decorators';
 
+@Public()
 @Controller('offers')
 export class OffersPublicController {
   constructor(

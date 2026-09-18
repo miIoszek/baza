@@ -7,7 +7,7 @@ describe('RegisterCompanyDto', () => {
     name: 'Acme Transport',
     nip: '1234567890',
     email: 'fleet@acme.pl',
-    password: 'secret123',
+    password: 'correct horse battery',
     description: 'Fleet ops',
     baseLocation: 'Warsaw',
     termsAccepted: true,

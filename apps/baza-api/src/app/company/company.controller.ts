@@ -15,7 +15,6 @@ import {
   Req,
   StreamableFile,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -27,7 +26,7 @@ import type {
   JobOffer,
 } from '@baza/shared-types';
 import { AuthService } from '../auth/auth.service';
-import { JwtAuthGuard, type AuthedRequest } from '../auth/jwt-auth.guard';
+import type { AuthedRequest } from '../identity/decorators';
 import { CompanyService } from './company.service';
 import { CreateJobOfferDto, UpdateJobOfferDto } from './dto/job-offer.dto';
 import { UpdateCompanyProfileDto } from './dto/update-company-profile.dto';
@@ -41,7 +40,6 @@ const ALLOWED_UPLOAD_MIME = new Set([
 ]);
 
 @Controller('company')
-@UseGuards(JwtAuthGuard)
 export class CompanyController {
   constructor(
     private readonly authService: AuthService,

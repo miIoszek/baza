@@ -21,8 +21,8 @@ export class RegisterCompanyDto {
   @IsEmail()
   email!: string;
 
+  /** Strength is enforced by the shared password policy (WEAK_PASSWORD), not duplicated here. */
   @IsString()
-  @MinLength(8)
   @MaxLength(128)
   password!: string;
 

@@ -14,10 +14,10 @@ import { NestFactory } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
 import { configureApp } from '@baza/api-core';
 import { AppModule } from './app/app.module';
-import { assertRequiredSupabaseEnv } from './supabase-env';
+import { assertDatabaseEnv } from '@baza/api-data-access';
 
 async function bootstrap() {
-  assertRequiredSupabaseEnv();
+  assertDatabaseEnv();
 
   const app = await NestFactory.create(AppModule);
   configureApp(app);

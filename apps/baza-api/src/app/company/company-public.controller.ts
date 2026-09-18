@@ -6,7 +6,9 @@ import type {
 } from '@baza/shared-types';
 import { CompanyPublicService } from './company-public.service';
 import { JobOfferService } from './job-offer.service';
+import { Public } from '../identity/decorators';
 
+@Public()
 @Controller('companies')
 export class CompanyPublicController {
   constructor(

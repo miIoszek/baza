@@ -50,6 +50,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? (exceptionResponse as { message: string | string[] }).message
           : 'Internal server error';
 
+    const code =
+      exceptionResponse &&
+      typeof exceptionResponse === 'object' &&
+      'code' in exceptionResponse &&
+      typeof (exceptionResponse as { code: unknown }).code === 'string'
+        ? (exceptionResponse as { code: string }).code
+        : undefined;
+
     if (status >= 500) {
       this.logger.error(exception);
       Sentry.captureException(exception);
@@ -58,6 +66,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       message,
+      ...(code ? { code } : {}),
       timestamp: new Date().toISOString(),
     });
   }
