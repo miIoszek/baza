@@ -25,6 +25,7 @@
     "jest.config.js",
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
-    "src/**/*.mock.ts"
+    "src/**/*.mock.ts",
+    "src/testing/**/*.ts"
   ]
 }
