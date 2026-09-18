@@ -1,6 +1,7 @@
 import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './all-exceptions.filter';
+import { isProductionEnv } from './environment';
 
 const DEV_DEFAULT_ORIGINS = ['http://localhost:4200'];
 
@@ -23,7 +24,7 @@ export function resolveCorsOrigins(
   if (configured.length) {
     return configured;
   }
-  if (env['NODE_ENV'] === 'production') {
+  if (isProductionEnv(env)) {
     throw new Error('CORS_ORIGIN is required in production');
   }
   return DEV_DEFAULT_ORIGINS;

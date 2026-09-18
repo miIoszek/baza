@@ -1,5 +1,6 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { Logger } from '@nestjs/common';
+import { isProductionEnv } from '@baza/api-core';
 
 export type SigningKeyStatus = 'active' | 'retiring';
 
@@ -88,7 +89,7 @@ function csv(value: string | undefined): string[] {
 }
 
 export function loadIdentityConfig(env: Env = process.env): IdentityConfig {
-  const isProduction = env['NODE_ENV'] === 'production';
+  const isProduction = isProductionEnv(env);
 
   const rawKeys = env['AUTH_JWT_SIGNING_KEYS']?.trim();
   if (!rawKeys && isProduction) {

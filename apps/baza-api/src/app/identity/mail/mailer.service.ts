@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { isProductionEnv } from '@baza/api-core';
 import { IDENTITY_CONFIG } from '../identity.constants';
 import type { IdentityConfig } from '../identity.config';
 
@@ -86,7 +87,7 @@ export class MailerService {
     try {
       if (this.config.mail.transport === 'log') {
         // Bodies contain single-use links: log them in dev, never in production.
-        const dev = process.env['NODE_ENV'] !== 'production';
+        const dev = !isProductionEnv();
         this.logger.log(
           `[mail:log] to=${message.to} subject="${message.subject}"${dev ? `\n${message.text}` : ''}`
         );

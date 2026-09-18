@@ -1,6 +1,6 @@
 import { generateKeyPairSync } from 'node:crypto';
 import * as jwt from 'jsonwebtoken';
-import { resolveCorsOrigins } from '@baza/api-core';
+import { isProductionEnv, resolveCorsOrigins } from '@baza/api-core';
 import { ProxyAwareThrottlerGuard } from './guards/proxy-aware-throttler.guard';
 import { loadIdentityConfig, parseSigningKeys } from './identity.config';
 import { isAcceptablePassword } from './password-policy.util';
@@ -195,5 +195,20 @@ describe('ProxyAwareThrottlerGuard', () => {
     expect(await guard.getTracker(req({ 'x-baza-proxy-secret': 'x', 'x-baza-client-ip': '203.0.113.7' }))).toBe('10.0.0.1');
     process.env['PROXY_SHARED_SECRET'] = 's3cret';
     expect(await guard.getTracker(req({ 'x-baza-proxy-secret': 's3cret', 'x-baza-client-ip': 'not-an-ip' }))).toBe('10.0.0.1');
+  });
+});
+
+describe('isProductionEnv', () => {
+  it('is production for NODE_ENV=production or when running on Railway', () => {
+    expect(isProductionEnv({ NODE_ENV: 'production' })).toBe(true);
+    expect(isProductionEnv({ RAILWAY_ENVIRONMENT_NAME: 'production' })).toBe(true);
+    expect(isProductionEnv({ RAILWAY_ENVIRONMENT: 'x' })).toBe(true);
+    expect(isProductionEnv({})).toBe(false);
+    expect(isProductionEnv({ NODE_ENV: 'development', RAILWAY_ENVIRONMENT_NAME: ' ' })).toBe(false);
+  });
+
+  it('makes a Railway process strict even without NODE_ENV', () => {
+    expect(() => loadIdentityConfig({ RAILWAY_ENVIRONMENT_NAME: 'production' })).toThrow(/AUTH_JWT_SIGNING_KEYS/);
+    expect(() => resolveCorsOrigins({ RAILWAY_ENVIRONMENT_NAME: 'production' })).toThrow(/CORS_ORIGIN/);
   });
 });
