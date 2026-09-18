@@ -1,17 +1,29 @@
 ---
 name: deploy
-description: Deploy the app to Cloudflare Workers via wrangler. Only the user can trigger this skill.
+description: Deploy Baza (API + Postgres on Railway, frontend on Cloudflare Pages). Only the user can trigger this skill.
 disable-model-invocation: true
 ---
 
-Deploy CookingHelper to Cloudflare Workers.
+Deploy Baza to production.
 
-Steps:
+Normal path: merge to `main`. `.github/workflows/deploy.yml` deploys path-filtered: API →
+Railway (`railway up --service=baza-api`), frontend → Cloudflare Pages (`wrangler pages deploy`
+from `apps/baza-frontend`, which also ships the `/api` proxy Function). CI (`ci.yml`) must be green.
+
+Manual path (only if the user asks):
 
 1. Confirm the user intends to deploy to production (ask explicitly if not stated).
-2. Run `npm run build` and surface any errors before proceeding.
-3. Run `npx wrangler deploy`.
-4. Report the deployed URL from wrangler output.
+2. Run `npm run lint && npm run test && npm run build` and surface any errors first. The API tests need
+   `TEST_DATABASE_URL` (a scratch Postgres).
+3. API: `railway up --service=baza-api --ci` (requires `railway login`, project `baza`).
+   Migrations run at API boot; watch `railway logs` for `Applied N migration(s)`.
+4. Frontend: `npm run build:frontend:ci`, then from `apps/baza-frontend`:
+   `npx wrangler pages deploy ../../dist/apps/baza-frontend/browser --project-name=baza-app`.
+5. Smoke test: `GET /api/health`, then register/login on the live site.
 
-If wrangler is not authenticated, tell the user to run `npx wrangler login` first.
-If `SUPABASE_URL` or `SUPABASE_KEY` are missing from the Cloudflare environment, warn before deploying — the app will start but auth will fail.
+Before deploying, check the environment (never print secret values):
+
+- Railway `baza-api`: `DATABASE_URL`, `AUTH_JWT_SIGNING_KEYS`, `AUTH_WEB_BASE_URL`, `CORS_ORIGIN`,
+  `PROXY_SHARED_SECRET`, R2 keys. Without them the API refuses to boot (by design).
+- Cloudflare Pages project `baza-app`: `API_ORIGIN`, `PROXY_SHARED_SECRET` (same value as Railway).
+- Auth details, key rotation and incident procedures: `.claude/skills/baza-auth`.

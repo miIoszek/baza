@@ -8,7 +8,7 @@ Baza is an Nx TypeScript monorepo: NestJS API (`apps/baza-api`) + Angular SPA (`
 - Do not invent parallel app trees at repo root. Nest features go under `apps/baza-api/src`; Angular under `apps/baza-frontend/src/app` or `@baza/ui`.
 - Shared DTOs/contracts belong in `@baza/shared-types` (`libs/shared/types`) before duplicating types in either app.
 - Treat `context/`, `skills/`, `prompts/`, `.cursor/` as course/agent tooling — not runtime app source (`@README.md`).
-- External stack lock: Auth/DB → Supabase; API host → Railway; FE → Cloudflare Pages; files → Cloudflare R2. Do not swap these without updating `@context/foundation/tech-stack.md`.
+- External stack lock: Auth (own NestJS identity module) + Postgres + API host → Railway; FE → Cloudflare Pages; files → Cloudflare R2. Auth work: read `.claude/skills/baza-auth` first (architecture, pitfalls, operations, migration log). Do not swap these without updating `@context/foundation/tech-stack.md`.
 - Frontend already uses TypeScript `strict: true` (`@apps/baza-frontend/tsconfig.json`). Prefer the same discipline on Nest; validate HTTP bodies with `class-validator` DTOs (already a dependency).
 
 ## Project Structure & Module Organization

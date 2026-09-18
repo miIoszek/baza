@@ -34,7 +34,7 @@ Baza is a TypeScript marketplace (company auth, job offers, route/home-cadence m
 - `libs/baza/ui` (`@baza/ui`) — Angular UI library
 - `libs/api/core` + `libs/api/data-access` — Nest helpers / future DB layer
 
-Auth and Postgres+PostGIS stay on Supabase; files on Cloudflare R2. AI and background jobs stay out of MVP.
+Auth and Postgres are self-hosted: our own NestJS identity module (email + password) and a Railway Postgres in the same region as the API (migrated off Supabase on 2026-09-18; see `.claude/skills/baza-auth`). Files stay on Cloudflare R2. AI and background jobs stay out of MVP.
 
 ### Deviation from Nest-only bootstrap
 
@@ -51,4 +51,4 @@ Earlier hand-off (`starter_id: nestjs`, project `baza-api`) assumed Nest-first t
 2. **Publish job offer** (FR-003, FR-004) — free listing; show on profile + Job Offers list + map pin at base.
 3. **Later:** driver browse/filter/apply without account + company inbox (FR-005–FR-009).
 
-Infra for this slice: Supabase Auth (company accounts) + Postgres (company + offer data); map pin can be lat/lng or geocode from base location; PostGIS can wait until route filters need it.
+Infra for this slice: self-hosted email + password auth (company accounts) + Railway Postgres (company + offer data); map pin is lat/lng (plain columns, no PostGIS) or geocoded from base location; PostGIS can wait until route filters need it.

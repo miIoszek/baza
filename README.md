@@ -29,7 +29,7 @@ Szczegóły produktu: [`context/foundation/prd.md`](context/foundation/prd.md)
 | `libs/api/core` | `@baza/api-core` — bootstrap Nest (CORS, validation, filters) |
 | `libs/api/data-access` | `@baza/api-data-access` — warstwa danych |
 
-Auth/DB → Supabase · API → Railway · FE → Cloudflare Pages · pliki → Cloudflare R2 (`context/foundation/tech-stack.md`).
+Auth (własny moduł w Nest) + DB (Postgres) + API → Railway · FE → Cloudflare Pages · pliki → Cloudflare R2 (`context/foundation/tech-stack.md`).
 
 ## Commands
 
