@@ -257,6 +257,36 @@ describeDb('identity (HTTP, real Postgres)', () => {
       expect(again.status).toBe(204);
     });
 
+    it('a refresh token from an older session epoch is dead even if it was never revoked', async () => {
+      // Models the race where a rotation commits its successor AFTER the family was revoked: the
+      // epoch bump (password change / ban) must still invalidate that token.
+      const { email, cookie } = await signedUp();
+      await q(`UPDATE user_account SET session_epoch = session_epoch + 1 WHERE email = $1`, [email]);
+      expect((await refresh(cookie)).status).toBe(401);
+    });
+
+    it('logout racing an in-flight refresh never leaves a live session behind', async () => {
+      for (let i = 0; i < 6; i += 1) {
+        const { cookie, email } = await signedUp();
+        const logout = () =>
+          http().post('/api/auth/logout').set('Origin', t.origin).set('Cookie', `${COOKIE}=${cookie}`);
+        const [refreshed, out] = await Promise.all([refresh(cookie), logout()]);
+        expect(out.status).toBe(204);
+
+        const live = await q(
+          `SELECT count(*)::int AS n FROM refresh_token r JOIN user_account u ON u.id = r.user_id
+            WHERE u.email = $1 AND r.revoked_at IS NULL`,
+          [email]
+        );
+        expect(live[0].n).toBe(0);
+        // Whichever request won, no cookie handed out in that window can start a session.
+        const successor = cookieOf(refreshed);
+        if (successor) {
+          expect((await refresh(successor)).status).toBe(401);
+        }
+      }
+    }, 60_000);
+
     it('stores only hashes: the raw cookie value is not in the database', async () => {
       const { cookie } = await signedUp();
       const rows = await q(`SELECT count(*)::int AS n FROM refresh_token WHERE token_hash = $1`, [cookie]);

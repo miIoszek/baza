@@ -19,6 +19,7 @@ export type IssuedRefreshToken = {
   userId: string;
   familyId: string;
   generation: number;
+  sessionEpoch: number;
   expiresAt: Date;
 };
 
@@ -54,10 +55,11 @@ export class RefreshTokenService {
   /** Starts a new family. Called on login only. */
   async issue(
     userId: string,
+    sessionEpoch: number,
     manager?: EntityManager
   ): Promise<IssuedRefreshToken> {
     return this.persist(
-      { userId, familyId: randomUUID(), generation: 1 },
+      { userId, familyId: randomUUID(), generation: 1, sessionEpoch },
       manager ?? this.dataSource.manager
     );
   }
@@ -111,17 +113,31 @@ export class RefreshTokenService {
     return result.affected ?? 0;
   }
 
-  /** Logout: ends one session. Idempotent — unknown/already-dead tokens are a no-op. */
+  /**
+   * Logout: ends one session. Idempotent — unknown/already-dead tokens are a no-op.
+   *
+   * The presented token's row is locked (`FOR UPDATE`) first. A concurrent rotation of the same
+   * token holds that lock until it commits, so logout waits, then sees the committed successor and
+   * revokes the WHOLE family. Without the lock, logout could revoke only the old token while an
+   * uncommitted rotation inserts a live successor: the user is "logged out" yet the session lives.
+   */
   async revokeByToken(
     presentedToken: string,
     reason: RefreshRevocationReason
   ): Promise<void> {
-    const existing = await this.dataSource.getRepository(RefreshToken).findOne({
-      where: { tokenHash: hashRefreshToken(presentedToken) },
+    await this.dataSource.transaction(async (manager) => {
+      const existing = await manager
+        .getRepository(RefreshToken)
+        .createQueryBuilder('t')
+        .setLock('pessimistic_write')
+        .where('t.tokenHash = :tokenHash', {
+          tokenHash: hashRefreshToken(presentedToken),
+        })
+        .getOne();
+      if (existing && !existing.revokedAt) {
+        await this.revokeFamily(existing.familyId, reason, manager);
+      }
     });
-    if (existing && !existing.revokedAt) {
-      await this.revokeFamily(existing.familyId, reason);
-    }
   }
 
   /** Housekeeping for a future sweeper/cron: rows past expiry are useless. */
@@ -200,6 +216,7 @@ export class RefreshTokenService {
         userId: existing.userId,
         familyId: existing.familyId,
         generation: existing.generation + 1,
+        sessionEpoch: existing.sessionEpoch,
       },
       manager
     );
@@ -207,7 +224,12 @@ export class RefreshTokenService {
   }
 
   private async persist(
-    input: { userId: string; familyId: string; generation: number },
+    input: {
+      userId: string;
+      familyId: string;
+      generation: number;
+      sessionEpoch: number;
+    },
     manager: EntityManager
   ): Promise<IssuedRefreshToken> {
     const token = randomBytes(TOKEN_BYTES).toString('base64url');
@@ -218,6 +240,7 @@ export class RefreshTokenService {
       familyId: input.familyId,
       tokenHash: hashRefreshToken(token),
       generation: input.generation,
+      sessionEpoch: input.sessionEpoch,
       expiresAt,
       usedAt: null,
       revokedAt: null,

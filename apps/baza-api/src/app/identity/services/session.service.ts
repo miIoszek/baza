@@ -22,7 +22,7 @@ export class SessionService {
 
   /** New login: new refresh family + access token. */
   async start(account: UserAccount): Promise<StartedSession> {
-    const refresh = await this.refreshTokens.issue(account.id);
+    const refresh = await this.refreshTokens.issue(account.id, account.sessionEpoch);
     return this.build(account, refresh.token);
   }
 
@@ -32,6 +32,13 @@ export class SessionService {
     const account = await this.accounts.findById(rotated.userId);
     if (!account || account.status !== 'active' || !account.canLogin) {
       await this.refreshTokens.revokeFamily(rotated.familyId, 'account-disabled');
+      throw new AuthException(AuthErrorCode.SESSION_EXPIRED);
+    }
+    // A password change / ban bumps the epoch. A refresh token issued under an older epoch must
+    // never mint a session, even if it slipped past the revocation (a rotation that was in flight
+    // when the family was revoked commits its successor AFTER the revoke).
+    if (rotated.sessionEpoch !== account.sessionEpoch) {
+      await this.refreshTokens.revokeFamily(rotated.familyId, 'password-changed');
       throw new AuthException(AuthErrorCode.SESSION_EXPIRED);
     }
     return this.build(account, rotated.token);

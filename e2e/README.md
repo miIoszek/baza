@@ -3,30 +3,34 @@
 ## Run
 
 ```bash
-npm run serve:frontend   # :4200
+npm run serve:api        # :3000 (needs DATABASE_URL, see .env.example)
+npm run serve:frontend   # :4200, proxies /api -> :3000
 npx playwright test --project=firefox
 ```
 
 Firefox only — ManageEngine blocks automated Chrome on this machine.
 
-## storageState (authenticated specs)
+## Authenticated specs (`*.authenticated.spec.ts`)
 
-1. Via CLI (after login in headed Firefox):
-
-```bash
-playwright-cli open http://localhost:4200/login --browser firefox --headed
-# fill Email / Hasło, click Zaloguj się
-playwright-cli state-save playwright/.auth/user.json
-```
-
-2. Or env-driven setup project:
+They sign in as a real company through `POST /api/auth/login` (see `e2e/authenticated.ts`):
 
 ```bash
-export E2E_EMAIL='you@company.com'
+export E2E_EMAIL='you@company.com'      # a VERIFIED company account
 export E2E_PASSWORD='…'
-npx playwright test --project=setup
+npx playwright test --project=firefox-authenticated
 ```
 
-`playwright/.auth/` is gitignored. Specs matching `*.authenticated.spec.ts` use that file.
+Without `E2E_EMAIL` / `E2E_PASSWORD` these specs **skip**.
 
-If `user.json` is missing or its Supabase token is expired, authenticated specs **skip** (they will not fail on `/login`). Refresh the session with env setup or `state-save` before expecting them to run.
+### Why there is no shared `storageState`
+
+The refresh token is a **rotating** HttpOnly cookie. A saved `storageState` would replay one cookie
+from many parallel browser contexts (and from later runs). The API treats reuse of an already
+rotated token outside a 10 s grace window as theft and revokes the entire session family, so shared
+state produces random 401s. Each test therefore logs in with its own session.
+
+The cookie is `baza_rt` (`__Host-baza_rt` when `AUTH_SECURE_COOKIES=true`, i.e. production). The
+API requires an allowed `Origin` on cookie endpoints; `authenticated.ts` sends `baseURL`.
+
+To get a verified account locally, register through the UI with `AUTH_REQUIRE_EMAIL_VERIFICATION=false`
+on the API, or open the link the API logs when `MAIL_TRANSPORT=log`.

@@ -121,8 +121,8 @@ describeDb('database schema (migrations)', () => {
     const userId = await insertUser('owner3@example.com');
     await insertCompany(userId, '1112223334');
     await q(
-      `INSERT INTO refresh_token (user_id, family_id, token_hash, generation, expires_at)
-       VALUES ($1, gen_random_uuid(), repeat('a', 64), 1, now() + interval '1 day')`,
+      `INSERT INTO refresh_token (user_id, family_id, token_hash, generation, session_epoch, expires_at)
+       VALUES ($1, gen_random_uuid(), repeat('a', 64), 1, 1, now() + interval '1 day')`,
       [userId],
     );
     await q(`DELETE FROM user_account WHERE id = $1`, [userId]);

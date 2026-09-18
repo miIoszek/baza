@@ -41,6 +41,7 @@ export class IdentitySchema1789700000001 implements MigrationInterface {
         "family_id" uuid NOT NULL,
         "token_hash" char(64) NOT NULL UNIQUE,
         "generation" integer NOT NULL,
+        "session_epoch" integer NOT NULL,
         "used_at" timestamptz NULL,
         "revoked_at" timestamptz NULL,
         "revoked_reason" varchar(32) NULL,

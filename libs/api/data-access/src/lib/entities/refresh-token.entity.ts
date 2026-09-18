@@ -32,6 +32,13 @@ export class RefreshToken {
   @Column({ type: 'integer' })
   generation!: number;
 
+  /**
+   * The account's `session_epoch` when this token was issued. A token from an older epoch is dead
+   * even if it survived a revocation race (see RefreshTokenService).
+   */
+  @Column({ name: 'session_epoch', type: 'integer' })
+  sessionEpoch!: number;
+
   @Column({ name: 'used_at', type: 'timestamptz', nullable: true })
   usedAt!: Date | null;
 
