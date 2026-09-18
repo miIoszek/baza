@@ -4,6 +4,10 @@ import { guestAuthGuard } from './core/guards/guest-auth.guard';
 import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
+import { CheckEmailPage } from './pages/check-email/check-email';
+import { ForgotPasswordPage } from './pages/forgot-password/forgot-password';
+import { ResetPasswordPage } from './pages/reset-password/reset-password';
+import { VerifyEmailPage } from './pages/verify-email/verify-email';
 import { CompanyProfilePage } from './pages/company/company-profile-page';
 import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
@@ -50,6 +54,10 @@ export const appRoutes: Route[] = [
     component: RegisterPage,
     canActivate: [guestAuthGuard],
   },
+  { path: 'check-email', component: CheckEmailPage, canActivate: [guestAuthGuard] },
+  { path: 'verify-email', component: VerifyEmailPage },
+  { path: 'forgot-password', component: ForgotPasswordPage, canActivate: [guestAuthGuard] },
+  { path: 'reset-password', component: ResetPasswordPage },
   {
     path: 'company',
     pathMatch: 'full',

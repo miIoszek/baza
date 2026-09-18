@@ -5,8 +5,6 @@ import { localEnvironment } from './environment.local';
 export const environment: BazaEnvironment = {
   production: false,
   apiBaseUrl: localEnvironment.apiBaseUrl ?? '',
-  supabaseUrl: localEnvironment.supabaseUrl,
-  supabaseAnonKey: localEnvironment.supabaseAnonKey,
   sentryDsn: localEnvironment.sentryDsn ?? '',
   sentryRelease: localEnvironment.sentryRelease ?? '',
 };

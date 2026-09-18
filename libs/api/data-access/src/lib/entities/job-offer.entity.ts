@@ -7,8 +7,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { RouteDirection } from '@baza/shared-types';
 import { Company } from './company.entity';
+
+/** Stored shape of one route leg (structurally identical to the API contract's RouteDirection). */
+export interface StoredRouteDirection {
+  from: { code: string; name: string };
+  to: { code: string; name: string };
+}
 
 @Entity({ name: 'job_offers' })
 export class JobOffer {
@@ -41,7 +46,7 @@ export class JobOffer {
   licenseCategory!: string;
 
   @Column({ type: 'jsonb', default: () => `'[]'::jsonb` })
-  routes!: RouteDirection[];
+  routes!: StoredRouteDirection[];
 
   /** numeric(12,2) — the driver returns a string; callers convert with Number(). */
   @Column({

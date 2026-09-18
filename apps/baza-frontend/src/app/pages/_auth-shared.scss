@@ -144,3 +144,11 @@
 .auth-terms--invalid {
   color: var(--mat-sys-error);
 }
+
+.auth-forgot {
+  align-self: flex-end;
+  margin: -0.25rem 0 0.5rem;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-primary);
+  text-decoration: none;
+}

@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthApiService } from '../../core/auth-api.service';
 import { AuthService } from '../../core/auth.service';
 
 @Component({
@@ -35,6 +36,7 @@ export class LoginPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly authApi = inject(AuthApiService);
 
   protected readonly hidePassword = signal(true);
   protected readonly submitting = signal(false);
@@ -53,8 +55,15 @@ export class LoginPage {
     this.submitting.set(true);
     const { email, password } = this.form.getRawValue();
     try {
-      const { error } = await this.auth.signIn(email, password);
+      const { error, code } = await this.auth.signIn(email, password);
       if (error) {
+        if (code === 'EMAIL_NOT_VERIFIED') {
+          this.snackBar
+            .open(error, 'Wyślij link ponownie', { duration: 10000 })
+            .onAction()
+            .subscribe(() => void this.authApi.resendVerification(email));
+          return;
+        }
         this.snackBar.open(error, 'OK', { duration: 5000 });
         return;
       }

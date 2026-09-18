@@ -6,9 +6,7 @@ import type { BazaEnvironment } from './environment.model';
  */
 export const environment: BazaEnvironment = {
   production: true,
-  apiBaseUrl: 'https://baza-api-production-4306.up.railway.app',
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  apiBaseUrl: '',
   sentryDsn: '',
   sentryRelease: '',
 };

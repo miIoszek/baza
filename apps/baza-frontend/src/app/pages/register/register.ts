@@ -17,6 +17,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import type { RegisterCompanyResponse } from '@baza/shared-types';
 import { AuthService } from '../../core/auth.service';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
@@ -164,9 +165,19 @@ export class RegisterPage {
         formData.append('photo', this.photoFile);
       }
 
-      await firstValueFrom(
-        this.http.post(`${environment.apiBaseUrl}/api/auth/register`, formData)
+      const result = await firstValueFrom(
+        this.http.post<RegisterCompanyResponse>(
+          `${environment.apiBaseUrl}/api/auth/register`,
+          formData
+        )
       );
+
+      if (result.emailVerificationRequired) {
+        await this.router.navigate(['/check-email'], {
+          queryParams: { email: raw.email },
+        });
+        return;
+      }
 
       const { error } = await this.auth.signIn(raw.email, raw.password);
       if (error) {

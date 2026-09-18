@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { ApiCoreModule } from '@baza/api-core';
 import { ApiDataAccessModule } from '@baza/api-data-access';
@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyModule } from './company/company.module';
 import { GeoModule } from './geo/geo.module';
 import { AccessTokenGuard } from './identity/guards/access-token.guard';
+import { ProxyAwareThrottlerGuard } from './identity/guards/proxy-aware-throttler.guard';
 import { RolesGuard } from './identity/guards/roles.guard';
 import { IdentityModule } from './identity/identity.module';
 
@@ -36,7 +37,7 @@ import { IdentityModule } from './identity/identity.module';
   providers: [
     AppService,
     // Order matters: throttle first (cheap, no DB), then authenticate, then authorise.
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: ProxyAwareThrottlerGuard },
     { provide: APP_GUARD, useClass: AccessTokenGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

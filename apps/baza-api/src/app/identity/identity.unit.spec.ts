@@ -1,6 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto';
 import * as jwt from 'jsonwebtoken';
 import { resolveCorsOrigins } from '@baza/api-core';
+import { ProxyAwareThrottlerGuard } from './guards/proxy-aware-throttler.guard';
 import { loadIdentityConfig, parseSigningKeys } from './identity.config';
 import { isAcceptablePassword } from './password-policy.util';
 import { JwtSigningService } from './services/jwt-signing.service';
@@ -160,5 +161,39 @@ describe('CORS origins', () => {
     expect(() => resolveCorsOrigins({ NODE_ENV: 'production' })).toThrow();
     expect(resolveCorsOrigins({})).toEqual(['http://localhost:4200']);
     expect(resolveCorsOrigins({ CORS_ORIGIN: 'https://a.com, https://b.com' })).toEqual(['https://a.com', 'https://b.com']);
+  });
+});
+
+describe('ProxyAwareThrottlerGuard', () => {
+  // getTracker only reads the request; skip the framework constructor.
+  const guard = Object.create(ProxyAwareThrottlerGuard.prototype) as {
+    getTracker(req: unknown): Promise<string>;
+  };
+  const OLD = process.env['PROXY_SHARED_SECRET'];
+  afterEach(() => {
+    if (OLD === undefined) delete process.env['PROXY_SHARED_SECRET'];
+    else process.env['PROXY_SHARED_SECRET'] = OLD;
+  });
+
+  const req = (headers: Record<string, string>, ip = '10.0.0.1') => ({ ip, headers });
+
+  it('uses the real client IP only when the shared secret matches', async () => {
+    process.env['PROXY_SHARED_SECRET'] = 's3cret';
+    expect(
+      await guard.getTracker(req({ 'x-baza-proxy-secret': 's3cret', 'x-baza-client-ip': '203.0.113.7' }))
+    ).toBe('203.0.113.7');
+  });
+
+  it('ignores a spoofed IP header with a wrong or missing secret', async () => {
+    process.env['PROXY_SHARED_SECRET'] = 's3cret';
+    expect(await guard.getTracker(req({ 'x-baza-proxy-secret': 'nope', 'x-baza-client-ip': '203.0.113.7' }))).toBe('10.0.0.1');
+    expect(await guard.getTracker(req({ 'x-baza-client-ip': '203.0.113.7' }))).toBe('10.0.0.1');
+  });
+
+  it('is inert when no secret is configured, and rejects non-IP values', async () => {
+    delete process.env['PROXY_SHARED_SECRET'];
+    expect(await guard.getTracker(req({ 'x-baza-proxy-secret': 'x', 'x-baza-client-ip': '203.0.113.7' }))).toBe('10.0.0.1');
+    process.env['PROXY_SHARED_SECRET'] = 's3cret';
+    expect(await guard.getTracker(req({ 'x-baza-proxy-secret': 's3cret', 'x-baza-client-ip': 'not-an-ip' }))).toBe('10.0.0.1');
   });
 });
