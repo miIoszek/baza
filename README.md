@@ -48,6 +48,12 @@ npm run build
 npm run graph
 ```
 
+## Notatki i zadania
+
+`vault/` to vault Obsidiana z notatkami, zadaniami i decyzjami wokół projektu — otwórz katalog w Obsidianie (*Open folder as vault*) albo czytaj markdown bezpośrednio.
+
+Start: [`vault/00 Start tutaj.md`](vault/00%20Start%20tutaj.md) · Zadania: [`vault/01 Zadania/Tablica zadań.md`](vault/01%20Zadania/Tablica%20zada%C5%84.md)
+
 ## Course toolkit
 
-`context/`, `skills/`, `prompts/`, `.cursor/` to tooling kursu / agentów — nie traktuj ich jako kodu runtime aplikacji.
+`context/`, `skills/`, `prompts/`, `.cursor/` to tooling kursu / agentów, a `vault/` to notatki właściciela — nie traktuj ich jako kodu runtime aplikacji.

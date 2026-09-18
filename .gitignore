@@ -64,3 +64,10 @@ __screenshots__/
 apps/baza-frontend/src/environments/environment.local.ts
 apps/baza-frontend/src/environments/environment.production.local.ts
 .cursor/hooks/hook-fire.log
+
+# Obsidian — stan roboczy (układ paneli, cache wtyczek); treść vaulta jest wersjonowana
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/cache
+vault/.obsidian/plugins/
+vault/.trash/
