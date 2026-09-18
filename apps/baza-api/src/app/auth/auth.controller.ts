@@ -29,7 +29,7 @@ const ALLOWED_UPLOAD_MIME = new Set([
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // TODO(error-system): see context/changes/auth-company-logo-r2/follow-ups/backend-error-handling.md
+  // TODO(error-system): see context/archive/2026-09-04-auth-company-logo-r2/follow-ups/backend-error-handling.md
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })

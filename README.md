@@ -54,6 +54,6 @@ npm run graph
 
 Start: [`vault/00 Start tutaj.md`](vault/00%20Start%20tutaj.md) · Zadania: [`vault/01 Zadania/Tablica zadań.md`](vault/01%20Zadania/Tablica%20zada%C5%84.md)
 
-## Course toolkit
+## Dokumentacja i tooling
 
-`context/`, `skills/`, `prompts/`, `.cursor/` to tooling kursu / agentów, a `vault/` to notatki właściciela — nie traktuj ich jako kodu runtime aplikacji.
+`context/` (PRD, roadmapa, tech-stack, historia zmian), `vault/` (notatki, zadania, decyzje) oraz `.cursor/` i `.claude/` (hooki lint/typecheck, config MCP) to dokumentacja i tooling — nie kod runtime aplikacji.
