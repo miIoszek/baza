@@ -1,176 +1,109 @@
-<section class="job-offers">
-  <header class="job-offers__header">
-    <h1>Oferty pracy</h1>
-    <p>Praca dla kierowców w branży transportu — według tras i powrotów do domu</p>
-  </header>
+<section class="job-offers" [class.job-offers--split]="isDesktop()">
+  <ng-template #chrome>
+    <header class="job-offers__header">
+      <h1>Oferty pracy</h1>
+      <p>Praca dla kierowców w branży transportu — według tras i powrotów do domu</p>
+    </header>
 
-  <div class="job-offers__filters">
-    <mat-form-field class="job-offers__field">
-      <mat-label>Kraje trasy</mat-label>
-      <mat-select
-        multiple
-        [ngModel]="filters().countries"
-        (ngModelChange)="onCountriesChange($event)"
-      >
-        @for (c of countries; track c.code) {
-        <mat-option [value]="c.code">{{ c.namePl }} ({{ c.code }})</mat-option>
+    <baza-filter-bar
+      [value]="filtersVm()"
+      [resultCount]="offers().length"
+      [view]="filters().view"
+      [mobile]="!isDesktop()"
+      [cadenceLabels]="cadenceLabels"
+      (valueChange)="onFiltersChange($event)"
+      (clear)="clearFilters()"
+      (useLocation)="useMyLocation()"
+      (viewChange)="onViewChange($event)"
+    />
+
+    @if (geoError(); as geo) {
+      <p class="job-offers__status job-offers__status--error">{{ geo }}</p>
+    }
+    @if (filters().nearLat !== null && filters().nearLng !== null) {
+      <p class="job-offers__status">
+        Sortowanie: najbliższe bazy względem Twojej lokalizacji
+      </p>
+    }
+  </ng-template>
+
+  <ng-template #results>
+    @if (loading()) {
+      <div class="job-offers__list" aria-busy="true">
+        @for (s of skeletons; track s) {
+          <baza-offer-card-skeleton />
         }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="job-offers__field">
-      <mat-label>Powrót do domu</mat-label>
-      <mat-select
-        [ngModel]="filters().cadence"
-        (ngModelChange)="onCadenceChange($event)"
-      >
-        <mat-option value="">Dowolna</mat-option>
-        @for (c of cadences; track c) {
-        <mat-option [value]="c">{{ cadenceLabels[c] }}</mat-option>
+      </div>
+    } @else if (error()) {
+      <baza-state-block
+        variant="error"
+        icon="alert"
+        title="Nie udało się wczytać ofert"
+        message="Sprawdź połączenie — na trasie zasięg bywa słaby. Twoje filtry zostają zapisane."
+        actionLabel="Spróbuj ponownie"
+        (action)="retryLoad()"
+      />
+    } @else if (offers().length === 0 && hasFilters()) {
+      <baza-state-block
+        variant="empty"
+        icon="search"
+        message="Brak ofert dla wybranych filtrów. Spróbuj poluzować kraj lub kadencję."
+        actionLabel="Wyczyść filtry"
+        (action)="clearFilters()"
+      />
+    } @else if (offers().length === 0) {
+      <baza-state-block
+        variant="empty"
+        icon="offers"
+        message="Brak opublikowanych ofert."
+      />
+    } @else {
+      <ul class="job-offers__list">
+        @for (card of offerCards(); track card.id) {
+          <li>
+            <baza-offer-card
+              [offer]="card"
+              [highlighted]="highlightedOfferId() === card.id"
+              (hovered)="onCardHovered($event)"
+            />
+          </li>
         }
-      </mat-select>
-    </mat-form-field>
+      </ul>
+    }
+  </ng-template>
 
-    <mat-form-field class="job-offers__field">
-      <mat-label>Prawo jazdy</mat-label>
-      <mat-select
-        [ngModel]="filters().license"
-        (ngModelChange)="onLicenseChange($event)"
-      >
-        <mat-option value="">Dowolna</mat-option>
-        @for (l of licenses; track l.code) {
-        <mat-option [value]="l.code">{{ l.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="job-offers__field">
-      <mat-label>Typ transportu</mat-label>
-      <mat-select
-        [ngModel]="filters().transport"
-        (ngModelChange)="onTransportChange($event)"
-      >
-        <mat-option value="">Dowolny</mat-option>
-        @for (t of transportTypes; track t.code) {
-        <mat-option [value]="t.code">{{ t.namePl }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <div class="job-offers__filter-actions">
-      <button mat-stroked-button type="button" (click)="useMyLocation()">
-        Użyj mojej lokalizacji
-      </button>
-      @if (hasFilters()) {
-      <button mat-button type="button" (click)="clearFilters()">
-        Wyczyść filtry
-      </button>
+  @if (isDesktop()) {
+    <baza-split-list-map>
+      <div bazaList>
+        <ng-container [ngTemplateOutlet]="chrome" />
+        <ng-container [ngTemplateOutlet]="results" />
+      </div>
+      <div bazaMap class="job-offers__map-slot">
+        <baza-offer-route-map
+          [bases]="mapBases()"
+          [legs]="mapLegs()"
+          [highlightedLabel]="highlightedOfferId()"
+          (pinHovered)="onPinHovered($event)"
+          (pinClicked)="onPinClicked($event)"
+        />
+      </div>
+    </baza-split-list-map>
+  } @else {
+    <div class="job-offers__mobile">
+      <ng-container [ngTemplateOutlet]="chrome" />
+      @if (filters().view === 'map') {
+        <div class="job-offers__mobile-map">
+          <baza-offer-route-map
+            [bases]="mapBases()"
+            [legs]="mapLegs()"
+            [highlightedLabel]="highlightedOfferId()"
+            (pinHovered)="onPinHovered($event)"
+            (pinClicked)="onPinClicked($event)"
+          />
+        </div>
+      } @else {
+        <ng-container [ngTemplateOutlet]="results" />
       }
     </div>
-  </div>
-
-  @if (geoError(); as geo) {
-  <p class="job-offers__status job-offers__status--error">{{ geo }}</p>
-  } @if (filters().nearLat !== null && filters().nearLng !== null) {
-  <p class="job-offers__status">
-    Sortowanie: najbliższe bazy względem Twojej lokalizacji
-  </p>
-  }
-
-  @if (loading()) {
-  <baza-async-status kind="loading" message="Ładowanie ofert…" />
-  } @else if (error(); as err) {
-  <baza-async-status kind="error" [message]="err">
-    <button mat-button type="button" (click)="retryLoad()">
-      Spróbuj ponownie
-    </button>
-  </baza-async-status>
-  } @else if (offers().length === 0 && hasFilters()) {
-  <baza-async-status
-    kind="empty"
-    message="Brak ofert dla wybranych filtrów. Spróbuj poluzować kraj lub kadencję."
-  >
-    <button mat-flat-button color="primary" type="button" (click)="clearFilters()">
-      Wyczyść filtry
-    </button>
-  </baza-async-status>
-  } @else if (offers().length === 0) {
-  <baza-async-status kind="empty" message="Brak opublikowanych ofert." />
-  } @else {
-  <ul class="job-offers__list">
-    @for (o of offers(); track o.id) {
-    <li>
-      <article
-        class="job-offers__card"
-        role="link"
-        tabindex="0"
-        [attr.aria-label]="'Oferta: ' + o.title"
-        (click)="openOffer(o.id)"
-        (keydown)="onCardKeydown($event, o.id)"
-      >
-        <div class="job-offers__card-top">
-          <a
-            class="job-offers__company"
-            [routerLink]="['/companies', o.companyId]"
-            (click)="$event.stopPropagation()"
-            (keydown)="$event.stopPropagation()"
-          >
-            @if (logoUrl(o); as logo) {
-            <img
-              class="job-offers__logo"
-              [src]="logo"
-              alt=""
-              width="48"
-              height="48"
-            />
-            } @else {
-            <span class="job-offers__logo job-offers__logo--placeholder" aria-hidden="true">
-              {{ (o.companyName || '?').charAt(0).toUpperCase() }}
-            </span>
-            }
-            <span class="job-offers__company-name">{{
-              o.companyName || 'Firma'
-            }}</span>
-          </a>
-          @if (o.companyBaseLocationText) {
-          <p class="job-offers__loc">{{ o.companyBaseLocationText }}</p>
-          }
-        </div>
-
-        <h2 class="job-offers__card-title">{{ o.title }}</h2>
-
-        <div class="job-offers__routes">
-          <span class="job-offers__routes-label">Trasy</span>
-          <ul class="job-offers__pills" aria-label="Trasy">
-            @for (r of o.routes; track $index) {
-            <li class="job-offers__pill job-offers__pill--route">
-              {{ r.from.code }}→{{ r.to.code }}
-            </li>
-            }
-          </ul>
-        </div>
-
-        <ul class="job-offers__pills" aria-label="Szczegóły oferty">
-          <li class="job-offers__pill job-offers__pill--license">
-            Prawo jazdy
-            {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
-          </li>
-          <li class="job-offers__pill job-offers__pill--cadence">
-            {{ cadenceLabel(o.homeReturnCadence) }}
-          </li>
-          <li class="job-offers__pill job-offers__pill--transport">
-            {{ transportLabel(o.requiredTransportType) }}
-          </li>
-          <li class="job-offers__pill job-offers__pill--experience">
-            min. {{ o.requiredYearsExperience }} lat
-          </li>
-          @if (salaryPill(o); as salary) {
-          <li class="job-offers__pill job-offers__pill--salary">{{ salary }}</li>
-          }
-        </ul>
-      </article>
-    </li>
-    }
-  </ul>
   }
 </section>

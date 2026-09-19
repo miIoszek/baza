@@ -41,21 +41,7 @@
 .company-profile__offer-link {
   flex: 1 1 0;
   min-width: 0;
-  height: 48px !important;
-  border-radius: 14px !important;
   justify-content: center;
-  margin-left: 0 !important;
-  font-weight: 600 !important;
-  text-decoration: none !important;
-}
-
-.company-profile__offer-links a.mat-mdc-outlined-button {
-  --mdc-outlined-button-outline-color: var(--mat-sys-primary);
-  --mdc-outlined-button-label-text-color: var(--mat-sys-primary);
-  border-color: var(--mat-sys-primary);
-  color: var(--mat-sys-primary) !important;
-}
-
-.company-profile__offer-links a.baza-btn-premium {
-  color: var(--mat-sys-on-primary) !important;
+  text-decoration: none;
+  font-weight: 600;
 }

@@ -47,7 +47,7 @@
   margin-bottom: 0.25rem;
   display: block;
   text-align: center;
-  padding: 0 0.5rem !important;
+  padding: 0 0.5rem;
 }
 
 .auth-card mat-card-title {
@@ -59,7 +59,7 @@
 
 .auth-card mat-card-subtitle {
   color: var(--mat-sys-on-surface-variant);
-  margin-top: 0.35rem !important;
+  margin-top: 0.35rem;
   justify-content: center;
   text-align: center;
 }
@@ -76,10 +76,6 @@
   width: 100%;
 }
 
-.auth-field .mat-mdc-form-field-subscript-wrapper {
-  margin-top: 0.35rem;
-}
-
 .auth-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -87,8 +83,7 @@
   align-items: start;
 }
 
-.auth-row .auth-field mat-error,
-.auth-row .mat-mdc-form-field-error {
+.auth-row .auth-field mat-error {
   white-space: nowrap;
 }
 
@@ -101,8 +96,7 @@
     grid-template-columns: 1fr;
   }
 
-  .auth-row .auth-field mat-error,
-  .auth-row .mat-mdc-form-field-error {
+  .auth-row .auth-field mat-error {
     white-space: normal;
   }
 }

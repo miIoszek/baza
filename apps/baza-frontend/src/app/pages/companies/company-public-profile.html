@@ -2,80 +2,67 @@
   @if (loading()) {
   <p class="company-public__status">Ładowanie profilu…</p>
   } @else if (notFound()) {
-  <mat-card appearance="outlined" class="company-public__card">
-    <mat-card-header>
-      <mat-card-title>Nie znaleziono firmy</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>Ten profil nie istnieje lub adres jest nieprawidłowy.</p>
-      <a mat-button routerLink="/">← Oferty</a>
-    </mat-card-content>
-  </mat-card>
+  <baza-state-block
+    variant="empty"
+    icon="search"
+    title="Nie znaleziono firmy"
+    message="Ten profil nie istnieje lub adres jest nieprawidłowy."
+  />
+  <p class="company-public__status">
+    <a mat-button routerLink="/">← Oferty</a>
+  </p>
   } @else if (profile(); as company) {
-  <mat-card appearance="outlined" class="company-public__card">
-    <div class="company-public__actions">
-      <a mat-button routerLink="/">← Oferty</a>
-    </div>
+  <a mat-button routerLink="/">← Oferty</a>
 
-    <div class="company-public__identity">
-      @if (logoUrl(company); as logo) {
-      <img
-        class="company-public__logo"
-        [src]="logo"
-        alt=""
-        width="96"
-        height="96"
-      />
-      } @else {
-      <span
-        class="company-public__logo company-public__logo--placeholder"
-        aria-hidden="true"
-        >{{ company.name.charAt(0).toUpperCase() }}</span
-      >
+  <div class="company-public__identity">
+    <baza-logo-avatar
+      [name]="company.name"
+      [logoUrl]="logoUrl(company)"
+      [size]="96"
+    />
+    <h1 class="company-public__name">{{ company.name }}</h1>
+    <p class="company-public__nip">NIP: {{ company.nip }}</p>
+  </div>
+
+  <dl class="company-public__fields">
+    <div class="company-public__field-row">
+      <dt>Lokalizacja bazy</dt>
+      <dd>{{ company.baseLocation }}</dd>
+    </div>
+    <div class="company-public__field-row company-public__field-row--description">
+      <dt>O firmie</dt>
+      <dd class="company-public__description">{{ company.description }}</dd>
+    </div>
+  </dl>
+
+  <section class="company-public__offers">
+    <h2 class="company-public__offers-title">Oferty pracy</h2>
+    @if (offersLoading()) {
+    <p class="company-public__offers-status">Ładowanie ofert…</p>
+    } @else if (offersError()) {
+    <baza-state-block
+      variant="error"
+      icon="alert"
+      title="Nie udało się wczytać ofert"
+      message="Spróbuj ponownie — oferty tej firmy są bezpieczne."
+      actionLabel="Spróbuj ponownie"
+      (action)="retryOffers()"
+    />
+    } @else if (offers().length === 0) {
+    <baza-state-block
+      variant="empty"
+      icon="offers"
+      message="Brak opublikowanych ofert."
+    />
+    } @else {
+    <ul class="company-public__offers-list">
+      @for (card of offerCards(); track card.id) {
+      <li>
+        <baza-offer-card [offer]="card" variant="compact" />
+      </li>
       }
-      <h1 class="company-public__name">{{ company.name }}</h1>
-      <p class="company-public__nip">NIP: {{ company.nip }}</p>
-    </div>
-
-    <mat-card-content>
-      <dl class="company-public__fields">
-        <div class="company-public__field-row">
-          <dt>Lokalizacja bazy</dt>
-          <dd>{{ company.baseLocation }}</dd>
-        </div>
-        <div class="company-public__field-row company-public__field-row--description">
-          <dt>O firmie</dt>
-          <dd class="company-public__description">{{ company.description }}</dd>
-        </div>
-      </dl>
-
-      <section class="company-public__offers">
-        <h2 class="company-public__offers-title">Oferty pracy</h2>
-        @if (offersLoading()) {
-        <p class="company-public__offers-status">Ładowanie ofert…</p>
-        } @else if (offersError(); as err) {
-        <p class="company-public__offers-error">{{ err }}</p>
-        <button mat-button type="button" (click)="retryOffers()">
-          Spróbuj ponownie
-        </button>
-        } @else if (offers().length === 0) {
-        <p class="company-public__offers-status">Brak opublikowanych ofert.</p>
-        } @else {
-        <ul class="company-public__offers-list">
-          @for (o of offers(); track o.id) {
-          <li>
-            <a class="company-public__offer" [routerLink]="['/job-offers', o.id]">
-              <strong class="company-public__offer-title">{{ o.title }}</strong>
-              <span class="company-public__offer-routes">{{
-                routesSummary(o)
-              }}</span>
-            </a>
-          </li>
-          }
-        </ul>
-        }
-      </section>
-    </mat-card-content>
-  </mat-card>
+    </ul>
+    }
+  </section>
   }
 </section>

@@ -7,23 +7,32 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { NgTemplateOutlet } from '@angular/common';
 import {
-  COUNTRIES,
-  DRIVER_LICENSES,
   HOME_RETURN_CADENCES,
-  TRANSPORT_TYPES,
+  type CountryCentroid,
   type JobOffer,
 } from '@baza/shared-types';
-import { AsyncStatus } from '@baza/ui';
-import { catchError, combineLatest, debounceTime, of, switchMap, tap } from 'rxjs';
+import {
+  BazaFilterBar,
+  BazaOfferCard,
+  BazaOfferCardSkeleton,
+  BazaSplitListMap,
+  BazaStateBlock,
+  toOfferCardVm,
+  type OfferFiltersVm,
+} from '../../ui';
+import { catchError, combineLatest, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { pickCompanyLogoUrl } from './company-logo-url';
+import { OfferRouteMapComponent } from './offer-route-map';
+import {
+  buildRouteMapLegs,
+  type MapBasePin,
+} from './route-map-geometry';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
   daily: 'Codziennie',
@@ -40,6 +49,7 @@ export type JobOffersQueryModel = {
   transport: string;
   nearLat: number | null;
   nearLng: number | null;
+  view: 'list' | 'map';
 };
 
 /** Pure helpers — unit-tested without TestBed. */
@@ -66,6 +76,7 @@ export function parseJobOffersQueryParams(
     transport: get('transport') ?? '',
     nearLat: nearLat != null && !Number.isNaN(nearLat) ? nearLat : null,
     nearLng: nearLng != null && !Number.isNaN(nearLng) ? nearLng : null,
+    view: get('view') === 'map' ? 'map' : 'list',
   };
 }
 
@@ -102,6 +113,7 @@ export function jobOffersQueryToRouterParams(
     transport: model.transport || null,
     nearLat: model.nearLat != null ? String(model.nearLat) : null,
     nearLng: model.nearLng != null ? String(model.nearLng) : null,
+    view: model.view === 'map' ? 'map' : null,
   };
 }
 
@@ -115,16 +127,26 @@ export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
   );
 }
 
+export function filtersVmFromQuery(model: JobOffersQueryModel): OfferFiltersVm {
+  return {
+    routeCountries: model.countries,
+    cadence: model.cadence || null,
+    licence: model.license || null,
+    transport: model.transport || null,
+  };
+}
+
 @Component({
   selector: 'baza-job-offers-page',
   standalone: true,
   imports: [
-    RouterLink,
-    FormsModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    AsyncStatus,
+    NgTemplateOutlet,
+    BazaFilterBar,
+    BazaOfferCard,
+    BazaOfferCardSkeleton,
+    BazaSplitListMap,
+    BazaStateBlock,
+    OfferRouteMapComponent,
   ],
   templateUrl: './job-offers-page.html',
   styleUrl: './job-offers-page.scss',
@@ -134,17 +156,16 @@ export class JobOffersPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly breakpoint = inject(BreakpointObserver);
 
-  protected readonly countries = COUNTRIES;
-  protected readonly cadences = HOME_RETURN_CADENCES;
-  protected readonly licenses = DRIVER_LICENSES;
-  protected readonly transportTypes = TRANSPORT_TYPES;
   protected readonly cadenceLabels = CADENCE_LABELS;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly geoError = signal<string | null>(null);
   protected readonly offers = signal<JobOffer[]>([]);
+  protected readonly centroids = signal<CountryCentroid[]>([]);
+  protected readonly highlightedOfferId = signal<string | null>(null);
   protected readonly filters = signal<JobOffersQueryModel>({
     countries: [],
     cadence: '',
@@ -152,17 +173,66 @@ export class JobOffersPage implements OnInit {
     transport: '',
     nearLat: null,
     nearLng: null,
+    view: 'list',
   });
 
   /** Bumped by retryLoad() so refetch shares the queryParamMap → switchMap pipe. */
   private readonly reloadTick = signal(0);
   private readonly reloadTick$ = toObservable(this.reloadTick);
 
+  protected readonly isDesktop = toSignal(
+    this.breakpoint
+      .observe('(min-width: 900px)')
+      .pipe(map((r) => r.matches)),
+    { initialValue: false }
+  );
+
   protected readonly hasFilters = computed(() =>
     hasActiveJobOfferFilters(this.filters())
   );
+  protected readonly filtersVm = computed(() =>
+    filtersVmFromQuery(this.filters())
+  );
+  protected readonly offerCards = computed(() =>
+    this.offers().map((o) =>
+      toOfferCardVm(o, pickCompanyLogoUrl(o.companyPhotoUrls))
+    )
+  );
+  protected readonly skeletons = [0, 1, 2];
+  protected readonly mapBases = computed((): MapBasePin[] =>
+    this.offers()
+      .filter(
+        (o) =>
+          o.baseLocation &&
+          Number.isFinite(o.baseLocation.lat) &&
+          Number.isFinite(o.baseLocation.lng)
+      )
+      .map((o) => ({
+        id: o.id,
+        lat: o.baseLocation!.lat,
+        lng: o.baseLocation!.lng,
+        label: o.title,
+      }))
+  );
+  protected readonly mapLegs = computed(() => {
+    const centroids = this.centroids();
+    return this.offers().flatMap((offer) =>
+      buildRouteMapLegs(offer.routes, centroids).map((leg) => ({
+        ...leg,
+        label: offer.id,
+      }))
+    );
+  });
 
   ngOnInit(): void {
+    this.http
+      .get<CountryCentroid[]>(`${environment.apiBaseUrl}/api/geo/countries`)
+      .pipe(
+        catchError(() => of([] as CountryCentroid[])),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((list) => this.centroids.set(list));
+
     combineLatest([this.route.queryParamMap, this.reloadTick$])
       .pipe(
         tap(([params]) => {
@@ -196,27 +266,41 @@ export class JobOffersPage implements OnInit {
     this.reloadTick.update((n) => n + 1);
   }
 
-  protected onCountriesChange(codes: string[]): void {
-    this.writeQuery({ ...this.filters(), countries: codes });
+  protected onFiltersChange(value: OfferFiltersVm): void {
+    this.writeQuery({
+      ...this.filters(),
+      countries: value.routeCountries,
+      cadence: value.cadence ?? '',
+      license: value.licence ?? '',
+      transport: value.transport ?? '',
+    });
   }
 
-  protected onCadenceChange(cadence: string): void {
-    this.writeQuery({ ...this.filters(), cadence: cadence ?? '' });
+  protected onViewChange(view: 'list' | 'map'): void {
+    this.writeQuery({ ...this.filters(), view });
   }
 
-  protected onLicenseChange(license: string): void {
-    this.writeQuery({ ...this.filters(), license: license ?? '' });
+  protected onCardHovered(id: string | null): void {
+    if (this.isDesktop()) {
+      this.highlightedOfferId.set(id);
+    }
   }
 
-  protected onTransportChange(transport: string): void {
-    this.writeQuery({ ...this.filters(), transport: transport ?? '' });
+  protected onPinHovered(id: string | null): void {
+    this.highlightedOfferId.set(id);
+  }
+
+  protected onPinClicked(id: string): void {
+    void this.router.navigate(['/job-offers', id], {
+      queryParamsHandling: 'preserve',
+    });
   }
 
   protected clearFilters(): void {
     this.geoError.set(null);
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: {},
+      queryParams: { view: this.filters().view === 'map' ? 'map' : null },
     });
   }
 
@@ -236,53 +320,11 @@ export class JobOffersPage implements OnInit {
       },
       () => {
         this.geoError.set(
-          'Nie udało się pobrać lokalizacji. Sprawdź uprawnienia w przeglądarce.'
+          'Nie udało się ustalić Twojej lokalizacji. Sprawdź uprawnienia w przeglądarce albo wybierz kraje tras ręcznie.'
         );
       },
       { enableHighAccuracy: false, timeout: 10000 }
     );
-  }
-
-  protected openOffer(id: string): void {
-    void this.router.navigate(['/job-offers', id]);
-  }
-
-  protected onCardKeydown(event: KeyboardEvent, id: string): void {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.openOffer(id);
-    }
-  }
-
-  protected logoUrl(offer: JobOffer): string | null {
-    return pickCompanyLogoUrl(offer.companyPhotoUrls);
-  }
-
-  protected salaryPill(offer: JobOffer): string | null {
-    const s = offer.salary;
-    if (!s) {
-      return null;
-    }
-    const parts: string[] = [];
-    if (s.min != null && s.max != null) {
-      parts.push(`${s.min}–${s.max}`);
-    } else if (s.min != null) {
-      parts.push(`od ${s.min}`);
-    } else if (s.max != null) {
-      parts.push(`do ${s.max}`);
-    }
-    if (parts.length === 0) {
-      return null;
-    }
-    return `${parts.join(' ')} ${s.currency}`;
-  }
-
-  protected cadenceLabel(code: string): string {
-    return CADENCE_LABELS[code as keyof typeof CADENCE_LABELS] ?? code;
-  }
-
-  protected transportLabel(code: string): string {
-    return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
   }
 
   private writeQuery(model: JobOffersQueryModel): void {
@@ -295,10 +337,10 @@ export class JobOffersPage implements OnInit {
 
   private extractError(err: unknown): string {
     if (!(err instanceof HttpErrorResponse)) {
-      return 'Nie udało się pobrać ofert';
+      return 'Nie udało się wczytać ofert';
     }
     if (err.status === 0) {
-      return 'Nie udało się pobrać ofert';
+      return 'Nie udało się wczytać ofert';
     }
     const raw = err.error;
     const msg =
@@ -317,6 +359,6 @@ export class JobOffersPage implements OnInit {
     ) {
       return msg;
     }
-    return 'Nie udało się pobrać ofert';
+    return 'Nie udało się wczytać ofert';
   }
 }

@@ -1,10 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .offer-route-map {
   width: 100%;
   height: 100%;
   min-height: 100%;
   border-radius: 0;
   overflow: hidden;
-  background: #0f172a;
+  background: var(--baza-map-bg);
 }
 
 @media (max-width: 767px) {

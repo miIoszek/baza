@@ -1,6 +1,9 @@
 <baza-app-shell
   [accountLabel]="auth.accountLabel()"
   [accountAvatarUrl]="auth.accountAvatarUrl()"
+  [flush]="flushLayout"
+  [dark]="isDark()"
+  (themeToggle)="onThemeToggle()"
   (logout)="onLogout()"
 >
   <router-outlet />

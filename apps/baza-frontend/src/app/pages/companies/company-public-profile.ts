@@ -1,15 +1,26 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import type { CompanyPublicProfile, JobOffer } from '@baza/shared-types';
+import {
+  BazaLogoAvatar,
+  BazaOfferCard,
+  BazaStateBlock,
+  toOfferCardVm,
+} from '../../ui';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'baza-company-public-profile',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    RouterLink,
+    BazaLogoAvatar,
+    BazaOfferCard,
+    BazaStateBlock,
+  ],
   templateUrl: './company-public-profile.html',
   styleUrl: './company-public-profile.scss',
 })
@@ -23,6 +34,9 @@ export class CompanyPublicProfilePage implements OnInit {
   protected readonly offers = signal<JobOffer[]>([]);
   protected readonly offersLoading = signal(false);
   protected readonly offersError = signal<string | null>(null);
+  protected readonly offerCards = computed(() =>
+    this.offers().map((o) => toOfferCardVm(o))
+  );
   private companyId: string | null = null;
 
   ngOnInit(): void {
@@ -75,10 +89,6 @@ export class CompanyPublicProfilePage implements OnInit {
       urls['original'] ??
       null
     );
-  }
-
-  protected routesSummary(offer: JobOffer): string {
-    return offer.routes.map((r) => `${r.from.code}→${r.to.code}`).join(', ');
   }
 
   private loadOffers(companyId: string): void {

@@ -1,0 +1,45 @@
+<a
+  class="baza-offer-card"
+  [class.baza-offer-card--highlighted]="highlighted()"
+  [class.baza-offer-card--compact]="variant() === 'compact'"
+  [routerLink]="['/job-offers', offer().id]"
+  queryParamsHandling="preserve"
+  [attr.aria-label]="'Oferta: ' + offer().title"
+  (mouseenter)="hovered.emit(offer().id)"
+  (mouseleave)="hovered.emit(null)"
+>
+  @if (variant() === 'full') {
+    <div class="baza-offer-card__company">
+      <baza-logo-avatar
+        [name]="offer().companyName"
+        [logoUrl]="offer().companyLogoUrl"
+        [size]="48"
+      />
+      <div class="baza-offer-card__company-text">
+        <span class="baza-offer-card__company-name">{{ offer().companyName }}</span>
+        @if (offer().baseCity) {
+          <span class="baza-offer-card__city">{{ offer().baseCity }}</span>
+        }
+      </div>
+    </div>
+  }
+
+  <h2 class="baza-offer-card__title">{{ offer().title }}</h2>
+
+  <div class="baza-offer-card__tags">
+    @for (route of offer().routes; track route) {
+      <baza-tag variant="route">{{ route }}</baza-tag>
+    }
+    <baza-tag variant="cadence" icon="home">{{ offer().cadence }}</baza-tag>
+  </div>
+
+  <div class="baza-offer-card__tags">
+    <baza-tag>Prawo jazdy {{ offer().licence }}</baza-tag>
+    <baza-tag>{{ offer().transport }}</baza-tag>
+    <baza-tag>{{ offer().experience }}</baza-tag>
+  </div>
+
+  @if (offer().salary; as salary) {
+    <p class="baza-offer-card__salary">{{ salary }}</p>
+  }
+</a>

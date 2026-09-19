@@ -42,12 +42,12 @@ describe('CompanyDirectoryPage', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Acme Transport');
-    expect(text).toContain('Oferty: 3');
+    expect(text).toContain('3 oferty');
     expect(text).toContain('Warsaw');
     http.verify();
   });
 
-  it('hides blank address and still shows Oferty: 0', async () => {
+  it('hides blank address and still shows 0 oferty', async () => {
     const fixture = TestBed.createComponent(CompanyDirectoryPage);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -67,7 +67,7 @@ describe('CompanyDirectoryPage', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Empty Addr');
-    expect(text).toContain('Oferty: 0');
+    expect(text).toContain('0 oferty');
     expect(
       (fixture.nativeElement as HTMLElement).querySelector(
         '.company-directory__loc'
@@ -106,7 +106,7 @@ describe('CompanyDirectoryPage', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Nie udało się pobrać listy pracodawców');
+    expect(el.textContent).toContain('Nie udało się wczytać pracodawców.');
     expect(el.textContent).toContain('Spróbuj ponownie');
 
     el.querySelector('button')?.click();

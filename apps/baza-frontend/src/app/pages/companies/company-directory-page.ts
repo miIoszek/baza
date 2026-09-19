@@ -3,14 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import type { CompanyDirectoryItem } from '@baza/shared-types';
-import { AsyncStatus } from '@baza/ui';
+import {
+  BazaLogoAvatar,
+  BazaSkeleton,
+  BazaStateBlock,
+} from '../../ui';
 import { environment } from '../../../environments/environment';
 import { pickCompanyLogoUrl } from '../job-offers/company-logo-url';
 
 @Component({
   selector: 'baza-company-directory-page',
   standalone: true,
-  imports: [MatButtonModule, AsyncStatus],
+  imports: [MatButtonModule, BazaLogoAvatar, BazaSkeleton, BazaStateBlock],
   templateUrl: './company-directory-page.html',
   styleUrl: './company-directory-page.scss',
 })
@@ -21,6 +25,7 @@ export class CompanyDirectoryPage implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly companies = signal<CompanyDirectoryItem[]>([]);
+  protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     this.load();
@@ -62,7 +67,7 @@ export class CompanyDirectoryPage implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('Nie udało się pobrać listy pracodawców');
+          this.error.set('Nie udało się wczytać pracodawców.');
           this.loading.set(false);
         },
       });

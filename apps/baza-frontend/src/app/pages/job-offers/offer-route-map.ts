@@ -2,15 +2,19 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   effect,
+  inject,
   input,
+  output,
   untracked,
   viewChild,
 } from '@angular/core';
 import type { GeoPoint } from '@baza/shared-types';
 import * as L from 'leaflet';
 import { addCountryBasemap } from './country-basemap';
+import { resolveCssColor } from './css-var-color';
 import {
   routeArrowsPixels,
   routeDashSegments,
@@ -18,6 +22,7 @@ import {
 } from './route-map-arrow';
 import {
   routeMapLegEmphasis,
+  type MapBasePin,
   type RouteMapLeg,
 } from './route-map-geometry';
 
@@ -31,50 +36,42 @@ const DIM_OPACITY = 0.22;
 @Component({
   selector: 'baza-offer-route-map',
   standalone: true,
-  template: `<div #mapHost class="offer-route-map" role="presentation"></div>`,
+  template: `<div #mapHost class="offer-route-map baza-map-surface" role="presentation"></div>`,
   styleUrl: './offer-route-map.scss',
 })
 export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
+  private readonly zone = inject(NgZone);
+
   readonly baseLocation = input<GeoPoint | null>(null);
+  readonly bases = input<MapBasePin[]>([]);
   readonly legs = input<RouteMapLeg[]>([]);
   readonly highlightedLabel = input<string | null>(null);
+  readonly pinHovered = output<string | null>();
+  readonly pinClicked = output<string>();
 
   private readonly mapHost =
     viewChild.required<ElementRef<HTMLDivElement>>('mapHost');
   private map: L.Map | null = null;
   private layer: L.LayerGroup | null = null;
   private viewReady = false;
+  private resizeObserver: ResizeObserver | null = null;
   private readonly onZoomEnd = (): void => {
-    this.paint(
-      this.baseLocation(),
-      this.legs(),
-      this.highlightedLabel(),
-      false
-    );
+    this.paint(false);
   };
 
   constructor() {
     effect(() => {
-      const base = this.baseLocation();
-      const routeLegs = this.legs();
+      this.baseLocation();
+      this.bases();
+      this.legs();
       if (this.viewReady) {
-        this.paint(
-          base,
-          routeLegs,
-          untracked(() => this.highlightedLabel()),
-          true
-        );
+        untracked(() => this.paint(true));
       }
     });
     effect(() => {
-      const highlighted = this.highlightedLabel();
+      this.highlightedLabel();
       if (this.viewReady) {
-        this.paint(
-          untracked(() => this.baseLocation()),
-          untracked(() => this.legs()),
-          highlighted,
-          false
-        );
+        untracked(() => this.paint(false));
       }
     });
   }
@@ -82,10 +79,12 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.initMap();
-    this.paint(this.baseLocation(), this.legs(), this.highlightedLabel(), true);
+    this.paint(true);
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.map?.off('zoomend', this.onZoomEnd);
     this.map?.remove();
     this.map = null;
@@ -101,6 +100,12 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     addCountryBasemap(this.map);
     this.layer = L.layerGroup().addTo(this.map);
     this.map.on('zoomend', this.onZoomEnd);
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.map?.invalidateSize();
+      });
+      this.resizeObserver.observe(el);
+    }
     setTimeout(() => this.map?.invalidateSize(), 0);
   }
 
@@ -111,21 +116,20 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
   } {
     const el = this.mapHost().nativeElement;
     return {
-      from: resolveCssColor(el, '--baza-map-route-from', FALLBACK_FROM),
-      to: resolveCssColor(el, '--baza-map-route-to', FALLBACK_TO),
-      line: resolveCssColor(el, '--baza-map-route-line', FALLBACK_LINE),
+      from: resolveCssColor(el, '--baza-map-point-from', FALLBACK_FROM),
+      to: resolveCssColor(el, '--baza-map-point-to', FALLBACK_TO),
+      line: resolveCssColor(el, '--baza-map-route', FALLBACK_LINE),
     };
   }
 
-  private paint(
-    base: GeoPoint | null,
-    routeLegs: RouteMapLeg[],
-    highlightedLabel: string | null,
-    fit: boolean
-  ): void {
+  private paint(fit: boolean): void {
     if (!this.map || !this.layer) {
       return;
     }
+    const base = this.baseLocation();
+    const bases = this.bases();
+    const routeLegs = this.legs();
+    const highlightedLabel = this.highlightedLabel();
     this.layer.clearLayers();
     const colors = this.resolveThemeColors();
     const bounds = L.latLngBounds([]);
@@ -141,17 +145,43 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       return 0;
     });
 
-    if (base && Number.isFinite(base.lat) && Number.isFinite(base.lng)) {
-      const pin = L.circleMarker([base.lat, base.lng], {
-        radius: 8,
+    const pins =
+      bases.length > 0
+        ? bases
+        : base && Number.isFinite(base.lat) && Number.isFinite(base.lng)
+          ? [
+              {
+                id: 'base',
+                lat: base.lat,
+                lng: base.lng,
+                label: 'Baza firmy',
+              },
+            ]
+          : [];
+
+    for (const pin of pins) {
+      const emphasized = highlightedLabel === pin.id;
+      const marker = L.circleMarker([pin.lat, pin.lng], {
+        radius: emphasized ? 11 : 8,
         color: colors.from,
         weight: 2,
         fillColor: colors.from,
-        fillOpacity: 0.35,
+        fillOpacity: emphasized ? 0.7 : 0.35,
       });
-      pin.bindPopup('Baza firmy');
-      pin.addTo(this.layer);
-      bounds.extend([base.lat, base.lng]);
+      marker.bindPopup(escapeHtml(pin.label));
+      if (pin.id !== 'base') {
+        marker.on('mouseover', () =>
+          this.zone.run(() => this.pinHovered.emit(pin.id))
+        );
+        marker.on('mouseout', () =>
+          this.zone.run(() => this.pinHovered.emit(null))
+        );
+        marker.on('click', () =>
+          this.zone.run(() => this.pinClicked.emit(pin.id))
+        );
+      }
+      marker.addTo(this.layer);
+      bounds.extend([pin.lat, pin.lng]);
       hasPoint = true;
     }
 
@@ -281,22 +311,6 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     }
     return this.map.layerPointToLatLng(L.point(point.x, point.y));
   }
-}
-
-function resolveCssColor(
-  host: HTMLElement,
-  varName: string,
-  fallback: string
-): string {
-  const probe = document.createElement('span');
-  probe.style.color = `var(${varName})`;
-  host.appendChild(probe);
-  const color = getComputedStyle(probe).color;
-  host.removeChild(probe);
-  if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'transparent') {
-    return fallback;
-  }
-  return color;
 }
 
 function escapeHtml(text: string): string {

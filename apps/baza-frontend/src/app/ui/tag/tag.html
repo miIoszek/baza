@@ -1,0 +1,34 @@
+@if (icon() === 'home') {
+  <svg
+    class="baza-tag__icon"
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 12l9-9 9 9" />
+    <path d="M5 10v10h14V10" />
+  </svg>
+} @else if (icon() === 'arrow') {
+  <svg
+    class="baza-tag__icon"
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+}
+<span class="baza-tag__label"><ng-content /></span>

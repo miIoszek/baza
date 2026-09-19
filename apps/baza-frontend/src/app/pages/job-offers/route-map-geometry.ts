@@ -6,6 +6,13 @@ export type RouteMapLeg = {
   label: string;
 };
 
+export type MapBasePin = {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+};
+
 export function routeLegLabel(fromCode: string, toCode: string): string {
   return `${fromCode}→${toCode}`;
 }

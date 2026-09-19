@@ -1,15 +1,13 @@
 import * as L from 'leaflet';
+import { resolveCssColor } from './css-var-color';
 
 /** Pinned SHA so the file cannot drift with `master`. */
 const COUNTRIES_GEOJSON =
   'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/9380cca83db5f9aef52d5e762765100745f84b27/geojson/ne_110m_admin_0_countries.geojson';
 
-const COUNTRY_STYLE: L.PathOptions = {
-  color: 'rgba(100, 116, 139, 0.9)',
-  weight: 1,
-  fillColor: '#1e293b',
-  fillOpacity: 1,
-};
+const FALLBACK_LAND = '#0f172a';
+const FALLBACK_STROKE = '#1e293b';
+const FALLBACK_BG = '#020617';
 
 let countriesGeojson: Promise<GeoJSON.FeatureCollection> | null = null;
 
@@ -18,7 +16,16 @@ let countriesGeojson: Promise<GeoJSON.FeatureCollection> | null = null;
  * on a navy pane. No raster tiles — they already draw borders/labels.
  */
 export function addCountryBasemap(map: L.Map): void {
-  map.getContainer().style.background = '#020617';
+  const el = map.getContainer();
+  el.classList.add('baza-map-surface');
+  el.style.background = resolveCssColor(el, '--baza-map-bg', FALLBACK_BG);
+
+  const countryStyle: L.PathOptions = {
+    color: resolveCssColor(el, '--baza-map-land-stroke', FALLBACK_STROKE),
+    weight: 1,
+    fillColor: resolveCssColor(el, '--baza-map-land', FALLBACK_LAND),
+    fillOpacity: 1,
+  };
 
   if (!map.getPane('countries')) {
     map.createPane('countries');
@@ -35,7 +42,7 @@ export function addCountryBasemap(map: L.Map): void {
       }
       L.geoJSON(data, {
         pane: 'countries',
-        style: COUNTRY_STYLE,
+        style: countryStyle,
         onEachFeature: (feature, layer) => {
           const name = countryName(feature);
           if (!name) {

@@ -7,7 +7,6 @@
 
 .company-directory__header h1 {
   margin: 0 0 0.25rem;
-  font-size: 1.5rem;
 }
 
 .company-directory__header p {
@@ -34,18 +33,18 @@
   padding: 0.85rem 1rem;
   text-align: left;
   cursor: pointer;
-  border: 1px solid var(--mat-sys-outline-variant, #475569);
-  border-radius: 0.75rem;
-  background: var(--baza-glass-bg, rgba(30, 41, 59, 0.42));
+  border: 1px solid var(--baza-border);
+  border-radius: var(--baza-card-radius);
+  background: var(--baza-surface);
   color: inherit;
-  box-shadow: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  box-shadow: var(--baza-card-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .company-directory__card:hover,
 .company-directory__card:focus-visible {
-  border-color: var(--mat-sys-primary, #90caf9);
-  background: var(--mat-sys-surface-container-high, #273548);
+  border-color: var(--baza-border-strong);
+  box-shadow: var(--baza-card-shadow-hover);
   outline: none;
 }
 
@@ -60,9 +59,9 @@
   flex-shrink: 0;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 0.45rem;
+  border-radius: 12px;
   object-fit: cover;
-  background: var(--mat-sys-surface-container-highest, #334155);
+  background: var(--baza-surface-sunken);
 }
 
 .company-directory__logo--placeholder {
@@ -71,8 +70,8 @@
   justify-content: center;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--mat-sys-on-primary-container, #cfe4ff);
-  background: var(--mat-sys-primary-container, #004b7a);
+  color: var(--baza-text-secondary);
+  background: var(--baza-surface-sunken);
 }
 
 .company-directory__name {
@@ -88,7 +87,7 @@
 .company-directory__loc {
   margin: 0;
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: var(--baza-text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -96,5 +95,10 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--baza-text-muted);
+}
+
+.company-directory__card--skeleton {
+  cursor: default;
+  gap: 10px;
 }

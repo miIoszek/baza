@@ -10,37 +10,50 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(15, 23, 42, 0.55);
+  box-sizing: border-box;
+  min-height: var(--baza-shell-toolbar-height, 80px);
+  height: var(--baza-shell-toolbar-height, 80px);
+  padding-inline: 28px 20px;
+  background: var(--baza-surface);
+  color: var(--mat-sys-on-surface);
+  border-bottom: 1px solid var(--baza-border);
+}
+
+:host-context(.baza-panel) .baza-app-shell__toolbar {
+  background: color-mix(in srgb, var(--baza-surface) 55%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  color: var(--mat-sys-on-surface);
-  border-bottom: 1px solid var(--baza-glass-border, var(--mat-sys-outline-variant));
 }
 
 .baza-app-shell__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  font: var(--mat-sys-title-large);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--mat-sys-primary);
+  gap: 0.7rem;
+  font: var(--mat-sys-headline-medium);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--baza-text);
   text-decoration: none;
 }
 
 .baza-app-shell__logo {
   display: block;
-  width: 36px;
+  width: 44px;
   height: auto;
   object-fit: contain;
 }
 
 .baza-app-shell__brand-text {
-  line-height: 1;
+  line-height: 1.15;
 }
 
 .baza-app-shell__spacer {
   flex: 1 1 auto;
+}
+
+.baza-app-shell__theme {
+  margin-inline-start: 0.15rem;
+  flex-shrink: 0;
 }
 
 .baza-app-shell__account-wrap {
@@ -72,8 +85,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid var(--baza-glass-border, var(--mat-sys-outline-variant));
-  background: var(--mat-sys-surface-container-high, #273548);
+  border: 1px solid var(--baza-border);
+  background: var(--baza-surface-sunken);
 }
 
 .baza-app-shell__avatar--placeholder {
@@ -91,7 +104,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--baza-text-secondary);
 }
 
 .baza-app-shell__main {
@@ -106,9 +119,21 @@
   background: transparent;
 }
 
-a.baza-app-shell__active.mat-mdc-button {
-  --mdc-text-button-label-text-color: var(--mat-sys-on-primary);
-  background: color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
-  color: var(--mat-sys-primary) !important;
-  border-radius: 999px;
+a.baza-app-shell__active {
+  font-weight: 700;
+}
+
+:host.baza-app-shell--flush {
+  height: 100dvh;
+}
+
+:host.baza-app-shell--flush .baza-app-shell__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }

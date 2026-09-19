@@ -47,7 +47,15 @@ describe('job-offers query helpers', () => {
       transport: 'silo',
       nearLat: 52.1,
       nearLng: 21.0,
+      view: 'list',
     });
+  });
+
+  it('parses map view from query params', () => {
+    const model = parseJobOffersQueryParams((k) =>
+      k === 'view' ? 'map' : null
+    );
+    expect(model.view).toBe('map');
   });
 
   it('builds HttpParams with C_E never as C+E', () => {
@@ -58,6 +66,7 @@ describe('job-offers query helpers', () => {
       transport: 'curtain',
       nearLat: null,
       nearLng: null,
+      view: 'list',
     };
     const params = jobOffersQueryToHttpParams(model);
     expect(params.get('countries')).toBe('IT');
@@ -75,6 +84,7 @@ describe('job-offers query helpers', () => {
       transport: '',
       nearLat: null,
       nearLng: null,
+      view: 'list',
     });
     expect(params).toEqual({
       countries: null,
@@ -83,6 +93,7 @@ describe('job-offers query helpers', () => {
       transport: null,
       nearLat: null,
       nearLng: null,
+      view: null,
     });
   });
 
@@ -95,6 +106,7 @@ describe('job-offers query helpers', () => {
         transport: '',
         nearLat: null,
         nearLng: null,
+        view: 'list',
       })
     ).toBe(false);
     expect(
@@ -105,6 +117,7 @@ describe('job-offers query helpers', () => {
         transport: '',
         nearLat: null,
         nearLng: null,
+        view: 'list',
       })
     ).toBe(true);
     expect(
@@ -115,6 +128,7 @@ describe('job-offers query helpers', () => {
         transport: 'silo',
         nearLat: null,
         nearLng: null,
+        view: 'list',
       })
     ).toBe(true);
   });
@@ -128,6 +142,7 @@ describe('job-offers query helpers', () => {
         transport: '',
         nearLat: 52,
         nearLng: 21,
+        view: 'list',
       })
     ).toBe(true);
   });
@@ -140,6 +155,7 @@ describe('job-offers query helpers', () => {
       transport: '',
       nearLat: 1,
       nearLng: 2,
+      view: 'map',
     });
     expect(params).toBeInstanceOf(HttpParams);
     expect(params.toString()).toContain('nearLat=1');
@@ -153,6 +169,7 @@ describe('job-offers query helpers', () => {
       transport: 'silo',
       nearLat: 52.2,
       nearLng: 21.0,
+      view: 'list',
     });
     const keys = params.keys().sort();
     expect(keys).toEqual(

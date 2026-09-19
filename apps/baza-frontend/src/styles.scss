@@ -1,118 +1,25 @@
-@use './styles/theme' as baza;
-
-html {
-  min-height: 100%;
-  min-height: 100dvh;
-  @include baza.baza-dark-theme;
-}
-
-body {
-  margin: 0;
-  min-height: 100%;
-  min-height: 100dvh;
-  color: var(--mat-sys-on-background);
-  font: var(--mat-sys-body-medium);
-  background-color: #020617;
-  background-image: var(--baza-page-bg);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center top;
-}
+// Motyw, tokeny i podstawy dokumentu — wyłącznie w baza-theme.scss.
+@use './styles/baza-theme';
 
 baza-root {
   display: block;
   min-height: 100dvh;
-  background: transparent;
-  color: var(--mat-sys-on-background);
 }
 
-// ======================
-// GLOBAL PREMIUM STYLES
-// ======================
-
-.baza-glass-card {
-  // Kill Material opaque card fills so rgba + blur can show through
-  --mat-card-outlined-container-color: transparent !important;
-  --mat-card-elevated-container-color: transparent !important;
-  --mat-card-filled-container-color: transparent !important;
-  --mdc-elevated-card-container-color: transparent !important;
-  --mdc-outlined-card-container-color: transparent !important;
-  --mdc-outlined-card-outline-color: var(--baza-glass-border) !important;
-
-  background: var(--baza-glass-bg) !important;
-  background-color: var(--baza-glass-bg) !important;
-  backdrop-filter: blur(var(--baza-glass-blur)) saturate(1.2);
-  -webkit-backdrop-filter: blur(var(--baza-glass-blur)) saturate(1.2);
-  border: 1px solid var(--baza-glass-border) !important;
-  box-shadow: var(--baza-card-shadow) !important;
-  border-radius: 24px !important;
-  overflow: hidden;
-}
-
-.baza-btn-premium {
-  --mdc-filled-button-container-color: var(--mat-sys-primary) !important;
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-primary) !important;
-  --mdc-protected-button-container-color: var(--mat-sys-primary) !important;
-  --mdc-protected-button-label-text-color: var(--mat-sys-on-primary) !important;
-
-  height: 48px !important;
-  border-radius: 14px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.2px;
-  background-color: var(--mat-sys-primary) !important;
-  color: var(--mat-sys-on-primary) !important;
-  box-shadow: var(--baza-button-glow) !important;
-  transition: box-shadow 0.25s ease, transform 0.25s ease !important;
-
-  &:hover:not([disabled]) {
-    box-shadow:
-      0 0 28px rgba(144, 202, 249, 0.7),
-      0 0 64px rgba(144, 202, 249, 0.4) !important;
-    transform: translateY(-1px);
-  }
-
-  &:active:not([disabled]) {
-    transform: translateY(0);
-  }
-}
-
-.baza-btn-premium.full-width {
-  width: 100%;
-}
-
-// Form fields: filled appearance, labels always above
-.mat-mdc-form-field {
-  .mdc-text-field--filled {
-    border-radius: 14px;
-  }
-
-  .mdc-text-field--filled:not(.mdc-text-field--disabled) {
-    background-color: color-mix(
-      in srgb,
-      var(--mat-sys-surface-container-high, #273548) 72%,
-      transparent
-    );
-  }
-
-  .mat-mdc-form-field-focus-overlay {
-    background: transparent;
-  }
-}
-
+// Leaflet (biblioteka zewnętrzna) — mapa zawsze na ciemnej powierzchni
 .leaflet-container {
-  background: #020617;
+  background: var(--baza-map-bg);
 }
 
 .leaflet-tooltip.baza-country-label {
   background: none;
   border: none;
   box-shadow: none;
-  color: #cbd5e1;
+  color: var(--baza-map-label-strong, var(--baza-map-label));
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px rgba(2, 6, 23, 0.9);
+  text-shadow: 0 1px 2px var(--baza-map-bg);
   padding: 0;
   white-space: nowrap;
   pointer-events: none;

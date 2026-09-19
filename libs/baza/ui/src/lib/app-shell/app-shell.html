@@ -1,6 +1,6 @@
 <mat-toolbar class="baza-app-shell__toolbar">
   <a class="baza-app-shell__brand" routerLink="/" aria-label="Baza — strona główna">
-    <img class="baza-app-shell__logo" src="/baza-logo.png" alt="" width="36" height="44" />
+    <img class="baza-app-shell__logo" src="/baza-logo.png" alt="" width="44" height="54" />
     <span class="baza-app-shell__brand-text">Baza</span>
   </a>
   <span class="baza-app-shell__spacer"></span>
@@ -65,6 +65,18 @@
       Login
     </a>
   }
+  <button
+    mat-icon-button
+    type="button"
+    class="baza-app-shell__theme"
+    [attr.aria-label]="
+      dark() ? 'Włącz jasny motyw' : 'Włącz ciemny motyw'
+    "
+    [attr.aria-pressed]="dark()"
+    (click)="themeToggle.emit()"
+  >
+    <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
 </mat-toolbar>
 <main class="baza-app-shell__main">
   <ng-content />

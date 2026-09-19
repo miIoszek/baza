@@ -1,0 +1,174 @@
+<div class="baza-filter-bar">
+  <div class="baza-filter-bar__chips">
+    @if (mobile()) {
+      <mat-chip-set aria-label="Filtry ofert">
+        <mat-chip
+          [highlighted]="value().routeCountries.length > 0"
+          [removable]="value().routeCountries.length > 0"
+          (click)="openSheet()"
+          (removed)="clearCountries()"
+        >
+          {{ countriesLabel() }}
+          @if (value().routeCountries.length) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().cadence"
+          [removable]="!!value().cadence"
+          (click)="openSheet()"
+          (removed)="clearCadence()"
+        >
+          {{ cadenceLabel() }}
+          @if (value().cadence) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().licence"
+          [removable]="!!value().licence"
+          (click)="openSheet()"
+          (removed)="clearLicence()"
+        >
+          {{ licenceLabel() }}
+          @if (value().licence) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().transport"
+          [removable]="!!value().transport"
+          (click)="openSheet()"
+          (removed)="clearTransport()"
+        >
+          {{ transportLabel() }}
+          @if (value().transport) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+      </mat-chip-set>
+    } @else {
+      <mat-chip-set aria-label="Filtry ofert">
+        <mat-chip
+          [highlighted]="value().routeCountries.length > 0"
+          [removable]="value().routeCountries.length > 0"
+          [matMenuTriggerFor]="countriesMenu"
+          [attr.aria-label]="countriesLabel()"
+          (removed)="clearCountries()"
+        >
+          {{ countriesLabel() }}
+          @if (value().routeCountries.length) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().cadence"
+          [removable]="!!value().cadence"
+          [matMenuTriggerFor]="cadenceMenu"
+          (removed)="clearCadence()"
+        >
+          {{ cadenceLabel() }}
+          @if (value().cadence) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().licence"
+          [removable]="!!value().licence"
+          [matMenuTriggerFor]="licenceMenu"
+          (removed)="clearLicence()"
+        >
+          {{ licenceLabel() }}
+          @if (value().licence) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+        <mat-chip
+          [highlighted]="!!value().transport"
+          [removable]="!!value().transport"
+          [matMenuTriggerFor]="transportMenu"
+          (removed)="clearTransport()"
+        >
+          {{ transportLabel() }}
+          @if (value().transport) {
+            <mat-icon matChipRemove>cancel</mat-icon>
+          }
+        </mat-chip>
+      </mat-chip-set>
+    }
+  </div>
+
+  <div class="baza-filter-bar__meta">
+    <span class="baza-filter-bar__count">{{ countLabel() }}</span>
+    @if (hasFilters()) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="baza-filter-bar__clear"
+        (click)="clear.emit()"
+      >
+        Wyczyść filtry
+      </button>
+    }
+    <button mat-stroked-button type="button" (click)="useLocation.emit()">
+      Użyj mojej lokalizacji
+    </button>
+    @if (mobile()) {
+      <div class="baza-filter-bar__view" role="group" aria-label="Widok listy lub mapy">
+        <button
+          type="button"
+          class="baza-filter-bar__view-btn"
+          [class.baza-filter-bar__view-btn--active]="view() === 'list'"
+          (click)="viewChange.emit('list')"
+        >
+          Lista
+        </button>
+        <button
+          type="button"
+          class="baza-filter-bar__view-btn"
+          [class.baza-filter-bar__view-btn--active]="view() === 'map'"
+          (click)="viewChange.emit('map')"
+        >
+          Mapa
+        </button>
+      </div>
+    }
+  </div>
+</div>
+
+<mat-menu #countriesMenu="matMenu" class="baza-filter-menu">
+  @for (c of countries; track c.code) {
+    <button mat-menu-item type="button" (click)="$event.stopPropagation(); toggleCountry(c.code)">
+      <mat-checkbox [checked]="isCountrySelected(c.code)">
+        {{ c.namePl }} ({{ c.code }})
+      </mat-checkbox>
+    </button>
+  }
+</mat-menu>
+
+<mat-menu #cadenceMenu="matMenu">
+  <button mat-menu-item type="button" (click)="emit({ cadence: null })">Dowolna</button>
+  @for (c of cadences; track c) {
+    <button mat-menu-item type="button" (click)="emit({ cadence: c })">
+      {{ cadenceLabels()[c] }}
+    </button>
+  }
+</mat-menu>
+
+<mat-menu #licenceMenu="matMenu">
+  <button mat-menu-item type="button" (click)="emit({ licence: null })">Dowolna</button>
+  @for (l of licenses; track l.code) {
+    <button mat-menu-item type="button" (click)="emit({ licence: l.code })">
+      {{ l.label }}
+    </button>
+  }
+</mat-menu>
+
+<mat-menu #transportMenu="matMenu">
+  <button mat-menu-item type="button" (click)="emit({ transport: null })">Dowolny</button>
+  @for (t of transportTypes; track t.code) {
+    <button mat-menu-item type="button" (click)="emit({ transport: t.code })">
+      {{ t.namePl }}
+    </button>
+  }
+</mat-menu>

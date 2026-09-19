@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  background: var(--baza-skeleton);
+  border-radius: 5px;
+  height: 10px;
+}
+
+:host(.baza-skeleton--circle) {
+  border-radius: 999px;
+}

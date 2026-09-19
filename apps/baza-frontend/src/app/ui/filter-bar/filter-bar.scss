@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.baza-filter-bar__chips {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin: 0 0 10px;
+}
+
+.baza-filter-bar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+}
+
+.baza-filter-bar__count {
+  font-size: 13px;
+  color: var(--baza-text-secondary);
+}
+
+.baza-filter-bar__clear {
+  min-height: 36px;
+}
+
+.baza-filter-bar__view {
+  display: flex;
+  margin-left: auto;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container);
+}
+
+.baza-filter-bar__view-btn {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--baza-text-secondary);
+}
+
+.baza-filter-bar__view-btn--active {
+  background: var(--baza-surface);
+  color: var(--baza-text);
+}

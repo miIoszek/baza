@@ -1,0 +1,49 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--baza-tag-neutral-fg);
+  background: var(--baza-tag-neutral-bg);
+  border: 1px solid var(--baza-tag-neutral-border);
+}
+
+:host(.baza-tag--route) {
+  color: var(--baza-tag-route-fg);
+  background: var(--baza-tag-route-bg);
+  border-color: var(--baza-tag-route-border);
+}
+
+:host(.baza-tag--cadence) {
+  color: var(--baza-tag-cadence-fg);
+  background: var(--baza-tag-cadence-bg);
+  border-color: var(--baza-tag-cadence-border);
+}
+
+:host(.baza-tag--published) {
+  color: var(--baza-tag-published-fg);
+  background: var(--baza-tag-published-bg);
+  border-color: var(--baza-tag-published-border);
+}
+
+:host(.baza-tag--draft) {
+  color: var(--baza-tag-draft-fg);
+  background: var(--baza-tag-draft-bg);
+  border-color: var(--baza-tag-draft-border);
+}
+
+.baza-tag__icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.baza-tag__label {
+  display: inline;
+}
