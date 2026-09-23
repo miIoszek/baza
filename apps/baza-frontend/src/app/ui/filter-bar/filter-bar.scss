@@ -8,11 +8,13 @@
   gap: 22px;
 }
 
+// Always as tall as the "Wyczyść" button, so it appears without pushing the
+// filters down (and it never wraps to a line of its own).
 .baza-filter-bar__meta {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+  min-height: 40px;
 }
 
 .baza-filter-bar__count {
@@ -39,17 +41,15 @@
   color: var(--baza-text-muted);
 }
 
-mat-chip-set {
+mat-chip-listbox {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-mat-chip {
-  cursor: pointer;
-}
-
 .baza-filter-bar__more {
+  margin-top: 4px;
+  margin-left: -12px;
   font-weight: 600;
 }
 
