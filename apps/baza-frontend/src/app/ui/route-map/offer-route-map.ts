@@ -91,13 +91,19 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     const interactive = !this.preview();
     this.map = L.map(el, {
       scrollWheelZoom: false,
-      zoomControl: interactive,
+      zoomControl: false,
       dragging: interactive,
       touchZoom: interactive,
       doubleClickZoom: interactive,
       boxZoom: interactive,
       keyboard: interactive,
     }).setView([52.1, 19.4], 5);
+    if (interactive) {
+      // Leaflet's own labels are English ("Zoom in"); screen readers read these.
+      L.control
+        .zoom({ zoomInTitle: 'Przybliż mapę', zoomOutTitle: 'Oddal mapę' })
+        .addTo(this.map);
+    }
     addCountryBasemap(this.map);
     this.layer = L.layerGroup().addTo(this.map);
     this.map.on('zoomend', this.onZoomEnd);

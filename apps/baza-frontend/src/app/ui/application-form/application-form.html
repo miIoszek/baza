@@ -19,35 +19,17 @@
 
     <form class="baza-application-form__body" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       @if (state() === 'error-network') {
-        <div class="baza-application-form__banner baza-application-form__banner--error" role="alert">
-          <svg class="baza-application-form__banner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <line x1="12" y1="8" x2="12" y2="13" />
-            <line x1="12" y1="16.5" x2="12" y2="16.5" />
-          </svg>
-          <span>
-            <span class="baza-application-form__banner-title">Nie udało się wysłać aplikacji</span>
-            <span class="baza-application-form__banner-text">{{
-              errorMessage() ??
-                'Sprawdź połączenie i spróbuj ponownie — Twoje dane i plik zostają w formularzu.'
-            }}</span>
-          </span>
-        </div>
+        <baza-banner class="baza-application-form__banner" variant="error" title="Nie udało się wysłać aplikacji">
+          {{
+            errorMessage() ??
+              'Sprawdź połączenie i spróbuj ponownie — Twoje dane i plik zostają w formularzu.'
+          }}
+        </baza-banner>
       } @else if (state() === 'error-duplicate') {
-        <div class="baza-application-form__banner baza-application-form__banner--warn" role="alert">
-          <svg class="baza-application-form__banner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <line x1="12" y1="8" x2="12" y2="13" />
-            <line x1="12" y1="16.5" x2="12" y2="16.5" />
-          </svg>
-          <span>
-            <span class="baza-application-form__banner-title">Już aplikowałeś na tę ofertę</span>
-            <span class="baza-application-form__banner-text">
-              Z tego adresu e-mail wysłałeś już aplikację. Firma widzi tę pierwszą
-              aplikację — nie musisz wysyłać jej ponownie.
-            </span>
-          </span>
-        </div>
+        <baza-banner class="baza-application-form__banner" variant="warn" title="Już aplikowałeś na tę ofertę">
+          Z tego adresu e-mail wysłałeś już aplikację. Firma widzi tę pierwszą aplikację — nie musisz
+          wysyłać jej ponownie.
+        </baza-banner>
       }
 
       <mat-form-field class="baza-application-form__field" subscriptSizing="dynamic">

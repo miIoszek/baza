@@ -62,7 +62,7 @@ describe('BazaApplicationForm', () => {
     fixture.componentRef.setInput('state', 'error-duplicate');
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.baza-application-form__banner--warn')?.textContent).toContain(
+    expect(el.querySelector('baza-banner.baza-banner--warn')?.textContent).toContain(
       'Już aplikowałeś na tę ofertę'
     );
     expect(form['form'].controls.email.value).toBe('a@b.pl');

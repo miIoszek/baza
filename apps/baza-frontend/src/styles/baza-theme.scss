@@ -120,7 +120,6 @@ $baza-red-400: #f87171;
   --baza-tag-neutral-border: transparent;
 
   --baza-skeleton: #eef2f7;
-  --baza-skeleton-soft: #f1f5f9;
 
   // Stany
   --baza-error-fg: #b91c1c;
@@ -137,26 +136,9 @@ $baza-red-400: #f87171;
   --baza-page-pad: 64px;
   --baza-content-max: 90rem;
   --baza-content-min: 80rem;
-  --baza-form-max: 80rem;
-  --baza-form-gap: 0.7rem;
   --baza-shell-toolbar-height: 80px;
 
-  // Aliasy pod istniejące ekrany (7 starych tagów → 5 wariantów z planu)
-  --baza-tag-license-fg: var(--baza-tag-neutral-fg);
-  --baza-tag-license-bg: var(--baza-tag-neutral-bg);
-  --baza-tag-license-border: var(--baza-tag-neutral-border);
-  --baza-tag-transport-fg: var(--baza-tag-neutral-fg);
-  --baza-tag-transport-bg: var(--baza-tag-neutral-bg);
-  --baza-tag-transport-border: var(--baza-tag-neutral-border);
-  --baza-tag-experience-fg: var(--baza-tag-neutral-fg);
-  --baza-tag-experience-bg: var(--baza-tag-neutral-bg);
-  --baza-tag-experience-border: var(--baza-tag-neutral-border);
-  --baza-tag-salary-fg: var(--baza-text);
-  --baza-tag-salary-bg: transparent;
-  --baza-tag-salary-border: transparent;
-  --baza-tag-location-fg: var(--baza-text-muted);
-  --baza-tag-location-bg: transparent;
-  --baza-tag-location-border: transparent;
+  // Tag statusu oferty („Moje oferty”)
   --baza-tag-published-fg: var(--baza-tag-cadence-fg);
   --baza-tag-published-bg: var(--baza-tag-cadence-bg);
   --baza-tag-published-border: var(--baza-tag-cadence-border);
@@ -179,10 +161,6 @@ $baza-red-400: #f87171;
   --baza-map-point-from: #{$baza-sky-300};
   --baza-map-point-to: #{$baza-green-300};
   --baza-map-route: #{$baza-amber-400};
-  --baza-map-route-dim: rgba(251, 191, 36, 0.22);
-  --baza-map-route-from: var(--baza-map-point-from);
-  --baza-map-route-to: var(--baza-map-point-to);
-  --baza-map-route-line: var(--baza-map-route);
 }
 
 @media (max-width: 767px) {
@@ -262,7 +240,6 @@ $baza-red-400: #f87171;
   --baza-tag-draft-border: rgba(251, 191, 36, 0.35);
 
   --baza-skeleton: rgba(100, 116, 139, 0.35);
-  --baza-skeleton-soft: rgba(100, 116, 139, 0.22);
 
   --baza-error-fg: #fca5a5;
   --baza-error-bg: rgba(248, 113, 113, 0.12);
@@ -383,7 +360,6 @@ $baza-red-400: #f87171;
   --baza-map-point-from: #{$baza-sky-300}; // punkt A / baza firmy
   --baza-map-point-to: #{$baza-green-300}; // punkt B / kraj docelowy
   --baza-map-route: #{$baza-amber-400}; // łuk trasy
-  --baza-map-route-dim: rgba(251, 191, 36, 0.22); // trasa przygaszona (hover innej)
 
   background: var(--baza-map-bg);
   color: #e2e8f0;
@@ -396,17 +372,7 @@ $baza-red-400: #f87171;
 // Na jasnej liście publicznej backdrop-filter jest zabroniony — zabija FPS
 // przy przewijaniu na średnim Androidzie (D2 z brief).
 .baza-panel {
-  .baza-glass,
-  .baza-glass-card {
-    // Karta Material musi być przezroczysta, żeby rozmycie było widać
-    @include mat.card-overrides(
-      (
-        outlined-container-color: transparent,
-        elevated-container-color: transparent,
-        outlined-outline-color: var(--baza-border),
-      )
-    );
-
+  .baza-glass {
     background: var(--baza-glass-bg);
     backdrop-filter: blur(var(--baza-glass-blur));
     border: 1px solid var(--baza-border);
@@ -414,14 +380,9 @@ $baza-red-400: #f87171;
     box-shadow: var(--baza-card-shadow-hover);
   }
 
-  .baza-glow,
-  .baza-btn-premium {
+  .baza-glow {
     box-shadow: var(--baza-button-glow);
   }
-}
-
-.baza-btn-premium.full-width {
-  width: 100%;
 }
 
 // -----------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import type { CompanyDirectoryItem } from '@baza/shared-types';
 import {
   BazaLogoAvatar,
@@ -14,7 +13,7 @@ import { pickCompanyLogoUrl } from '../job-offers/company-logo-url';
 @Component({
   selector: 'baza-company-directory-page',
   standalone: true,
-  imports: [MatButtonModule, BazaLogoAvatar, BazaSkeleton, BazaStateBlock],
+  imports: [BazaLogoAvatar, BazaSkeleton, BazaStateBlock],
   templateUrl: './company-directory-page.html',
   styleUrl: './company-directory-page.scss',
 })

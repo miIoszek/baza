@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { APPLICATION_FIELD_LIMITS } from '@baza/shared-types';
+import { BazaBanner } from '../banner/banner';
 import { BazaFileDrop } from '../file-drop/file-drop';
 import { trimmedEmailValidator } from '../../core/form-validators';
 import { applicationPhoneValidator } from './application-form.validators';
@@ -46,6 +47,7 @@ export interface BazaApplicationSubmit {
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    BazaBanner,
     BazaFileDrop,
   ],
   templateUrl: './application-form.html',

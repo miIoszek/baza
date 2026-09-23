@@ -17,11 +17,11 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+// Focus keeps the theme's focus ring on top of the hover look.
 .baza-offer-card:hover,
 .baza-offer-card:focus-visible {
   border-color: var(--baza-border-strong);
   box-shadow: var(--baza-card-shadow-hover);
-  outline: none;
 }
 
 .baza-offer-card__company {
