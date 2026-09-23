@@ -79,6 +79,18 @@
           }
         </mat-form-field>
 
+        <mat-form-field class="auth-field">
+          <mat-label>Forma zatrudnienia</mat-label>
+          <mat-select formControlName="employmentForms" multiple>
+            @for (f of employmentFormOptions; track f.code) {
+            <mat-option [value]="f.code">{{ f.namePl }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.employmentForms.touched && form.controls.employmentForms.hasError('required')) {
+          <mat-error>Wybierz co najmniej jedną formę zatrudnienia</mat-error>
+          }
+        </mat-form-field>
+
         <p class="offer-form__section-hint">Trasy</p>
         <div formArrayName="routes" class="offer-routes">
           @for (r of routes.controls; track $index; let i = $index) {

@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import type {
+  CountryOption,
   CreateJobApplicationResponse,
   JobOffer,
 } from '@baza/shared-types';
@@ -39,6 +40,11 @@ export class OffersPublicController {
     return this.jobOfferService.listPublished(
       this.jobOfferService.parseListQuery(query)
     );
+  }
+
+  @Get('countries')
+  listCountries(): Promise<CountryOption[]> {
+    return this.jobOfferService.listPublishedRouteCountries();
   }
 
   @Get(':id')

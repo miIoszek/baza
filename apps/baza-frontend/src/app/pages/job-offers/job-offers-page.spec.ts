@@ -1,11 +1,12 @@
-import { HttpParams } from '@angular/common/http';
 import { describe, expect, it } from 'vitest';
 import { pickCompanyLogoUrl } from './company-logo-url';
 import {
+  buildActiveFilterTags,
   hasActiveJobOfferFilters,
   jobOffersQueryToHttpParams,
   jobOffersQueryToRouterParams,
   parseJobOffersQueryParams,
+  removeFilterTagFromQuery,
   type JobOffersQueryModel,
 } from './job-offers-page';
 
@@ -30,21 +31,23 @@ describe('pickCompanyLogoUrl', () => {
 });
 
 describe('job-offers query helpers', () => {
-  it('parses countries, cadence, license, transport and near from query params', () => {
+  it('parses multiselect filter query params', () => {
     const map: Record<string, string> = {
       countries: 'pl,de',
-      cadence: 'weekly',
-      license: 'C_E',
-      transport: 'silo',
+      cadence: 'weekly,daily',
+      license: 'C,C_E',
+      transport: 'silo,curtain',
+      employment: 'uop,b2b',
       nearLat: '52.1',
       nearLng: '21.0',
     };
     const model = parseJobOffersQueryParams((k) => map[k] ?? null);
     expect(model).toEqual({
       countries: ['PL', 'DE'],
-      cadence: 'weekly',
-      license: 'C_E',
-      transport: 'silo',
+      cadences: ['weekly', 'daily'],
+      licenses: ['C', 'C_E'],
+      transports: ['silo', 'curtain'],
+      employmentForms: ['uop', 'b2b'],
       nearLat: 52.1,
       nearLng: 21.0,
       view: 'list',
@@ -58,30 +61,33 @@ describe('job-offers query helpers', () => {
     expect(model.view).toBe('map');
   });
 
-  it('builds HttpParams with C_E never as C+E', () => {
+  it('builds HttpParams with comma-separated multiselect values', () => {
     const model: JobOffersQueryModel = {
       countries: ['IT'],
-      cadence: 'flexible',
-      license: 'C_E',
-      transport: 'curtain',
+      cadences: ['flexible', 'weekly'],
+      licenses: ['C_E'],
+      transports: ['curtain', 'silo'],
+      employmentForms: ['uop'],
       nearLat: null,
       nearLng: null,
       view: 'list',
     };
     const params = jobOffersQueryToHttpParams(model);
     expect(params.get('countries')).toBe('IT');
-    expect(params.get('cadence')).toBe('flexible');
+    expect(params.get('cadence')).toBe('flexible,weekly');
     expect(params.get('license')).toBe('C_E');
-    expect(params.get('transport')).toBe('curtain');
+    expect(params.get('transport')).toBe('curtain,silo');
+    expect(params.get('employment')).toBe('uop');
     expect(params.get('nearLat')).toBeNull();
   });
 
   it('maps empty filters to null router params for clear', () => {
     const params = jobOffersQueryToRouterParams({
       countries: [],
-      cadence: '',
-      license: '',
-      transport: '',
+      cadences: [],
+      licenses: [],
+      transports: [],
+      employmentForms: [],
       nearLat: null,
       nearLng: null,
       view: 'list',
@@ -91,6 +97,7 @@ describe('job-offers query helpers', () => {
       cadence: null,
       license: null,
       transport: null,
+      employment: null,
       nearLat: null,
       nearLng: null,
       view: null,
@@ -101,9 +108,10 @@ describe('job-offers query helpers', () => {
     expect(
       hasActiveJobOfferFilters({
         countries: [],
-        cadence: '',
-        license: '',
-        transport: '',
+        cadences: [],
+        licenses: [],
+        transports: [],
+        employmentForms: [],
         nearLat: null,
         nearLng: null,
         view: 'list',
@@ -112,9 +120,10 @@ describe('job-offers query helpers', () => {
     expect(
       hasActiveJobOfferFilters({
         countries: ['DE'],
-        cadence: '',
-        license: '',
-        transport: '',
+        cadences: [],
+        licenses: [],
+        transports: [],
+        employmentForms: [],
         nearLat: null,
         nearLng: null,
         view: 'list',
@@ -123,9 +132,22 @@ describe('job-offers query helpers', () => {
     expect(
       hasActiveJobOfferFilters({
         countries: [],
-        cadence: '',
-        license: '',
-        transport: 'silo',
+        cadences: [],
+        licenses: [],
+        transports: ['silo'],
+        employmentForms: [],
+        nearLat: null,
+        nearLng: null,
+        view: 'list',
+      })
+    ).toBe(true);
+    expect(
+      hasActiveJobOfferFilters({
+        countries: [],
+        cadences: [],
+        licenses: [],
+        transports: [],
+        employmentForms: ['uop'],
         nearLat: null,
         nearLng: null,
         view: 'list',
@@ -137,9 +159,10 @@ describe('job-offers query helpers', () => {
     expect(
       hasActiveJobOfferFilters({
         countries: [],
-        cadence: '',
-        license: '',
-        transport: '',
+        cadences: [],
+        licenses: [],
+        transports: [],
+        employmentForms: [],
         nearLat: 52,
         nearLng: 21,
         view: 'list',
@@ -147,41 +170,73 @@ describe('job-offers query helpers', () => {
     ).toBe(true);
   });
 
-  it('HttpParams instance is usable', () => {
-    const params = jobOffersQueryToHttpParams({
-      countries: ['PL'],
-      cadence: '',
-      license: '',
-      transport: '',
-      nearLat: 1,
-      nearLng: 2,
-      view: 'map',
-    });
-    expect(params).toBeInstanceOf(HttpParams);
-    expect(params.toString()).toContain('nearLat=1');
-  });
-
   it('HttpParams keys match Nest ListOffersQueryDto wire names (Risk #4)', () => {
     const params = jobOffersQueryToHttpParams({
       countries: ['PL', 'DE'],
-      cadence: 'weekly',
-      license: 'C_E',
-      transport: 'silo',
+      cadences: ['weekly'],
+      licenses: ['C_E'],
+      transports: ['silo'],
+      employmentForms: ['uop'],
       nearLat: 52.2,
       nearLng: 21.0,
       view: 'list',
     });
     const keys = params.keys().sort();
     expect(keys).toEqual(
-      ['cadence', 'countries', 'license', 'nearLat', 'nearLng', 'transport'].sort()
+      [
+        'cadence',
+        'countries',
+        'employment',
+        'license',
+        'nearLat',
+        'nearLng',
+        'transport',
+      ].sort()
     );
     expect(params.get('countries')).toBe('PL,DE');
     expect(params.get('cadence')).toBe('weekly');
     expect(params.get('license')).toBe('C_E');
     expect(params.get('transport')).toBe('silo');
-    // Product names must NOT appear on the wire
+    expect(params.get('employment')).toBe('uop');
     expect(params.get('homeReturnCadence')).toBeNull();
     expect(params.get('licenseCategory')).toBeNull();
     expect(params.get('requiredTransportType')).toBeNull();
+    expect(params.get('employmentForms')).toBeNull();
+  });
+
+  it('builds removable active filter tags from query', () => {
+    const query: JobOffersQueryModel = {
+      countries: ['PL', 'DE'],
+      cadences: ['weekly'],
+      licenses: ['C_E'],
+      transports: ['curtain'],
+      employmentForms: ['uop'],
+      nearLat: 52,
+      nearLng: 21,
+      view: 'list',
+    };
+    const tags = buildActiveFilterTags(query, { weekly: 'Co tydzień' }, [
+      { code: 'PL', namePl: 'Polska' },
+      { code: 'DE', namePl: 'Niemcy' },
+    ]);
+    expect(tags.map((t) => t.id)).toEqual([
+      'country:PL',
+      'country:DE',
+      'cadence:weekly',
+      'license:C_E',
+      'transport:curtain',
+      'employment:uop',
+      'near',
+    ]);
+    expect(removeFilterTagFromQuery(query, 'country:PL').countries).toEqual([
+      'DE',
+    ]);
+    expect(removeFilterTagFromQuery(query, 'cadence:weekly').cadences).toEqual(
+      []
+    );
+    expect(
+      removeFilterTagFromQuery(query, 'employment:uop').employmentForms
+    ).toEqual([]);
+    expect(removeFilterTagFromQuery(query, 'near').nearLat).toBeNull();
   });
 });

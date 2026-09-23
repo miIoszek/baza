@@ -3,6 +3,7 @@ export * from './lib/country';
 export * from './lib/country-centroid';
 export * from './lib/transport-type';
 export * from './lib/driver-license';
+export * from './lib/employment-form';
 export * from './lib/route-direction';
 export * from './lib/company';
 export * from './lib/job-offer';

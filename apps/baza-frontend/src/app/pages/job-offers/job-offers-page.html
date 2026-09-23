@@ -1,21 +1,64 @@
-<section class="job-offers" [class.job-offers--split]="isDesktop()">
-  <ng-template #chrome>
-    <header class="job-offers__header">
-      <h1>Oferty pracy</h1>
-      <p>Praca dla kierowców w branży transportu — według tras i powrotów do domu</p>
-    </header>
+<section class="job-offers">
+  <div class="job-offers__scroll">
+    <div class="job-offers__layout">
+      <aside class="job-offers__filters">
+        <baza-filter-bar
+          [value]="filtersVm()"
+          [resultCount]="offers().length"
+          [cadenceLabels]="cadenceLabels"
+          [countries]="routeCountries()"
+          (valueChange)="onFiltersChange($event)"
+          (clear)="clearFilters()"
+          (useLocation)="useMyLocation()"
+        />
+      </aside>
 
-    <baza-filter-bar
-      [value]="filtersVm()"
-      [resultCount]="offers().length"
-      [view]="filters().view"
-      [mobile]="!isDesktop()"
-      [cadenceLabels]="cadenceLabels"
-      (valueChange)="onFiltersChange($event)"
-      (clear)="clearFilters()"
-      (useLocation)="useMyLocation()"
-      (viewChange)="onViewChange($event)"
-    />
+      <div class="job-offers__main">
+        <header class="job-offers__header">
+          <div class="job-offers__header-row">
+            <h1>Oferty pracy</h1>
+            @if (isMobile()) {
+              <button
+                mat-stroked-button
+                type="button"
+                class="job-offers__filters-open"
+                (click)="openFiltersSheet()"
+              >
+                <mat-icon aria-hidden="true">tune</mat-icon>
+                Filtry
+                @if (activeFilterTags().length) {
+                  <span class="job-offers__filters-open-count">{{
+                    activeFilterTags().length
+                  }}</span>
+                }
+              </button>
+            }
+          </div>
+          <p>
+            Praca dla kierowców w branży transportu — według tras i powrotów do
+            domu
+          </p>
+        </header>
+
+        @if (isMobile() && activeFilterTags().length) {
+          <div class="job-offers__active-filters" aria-label="Aktywne filtry">
+            @for (tag of activeFilterTags(); track tag.id) {
+              <button
+                type="button"
+                class="job-offers__active-filter"
+                (click)="removeFilterTag(tag.id)"
+              >
+                {{ tag.label }}
+                <span class="job-offers__active-filter-remove" aria-hidden="true"
+                  >×</span
+                >
+                <span class="cdk-visually-hidden"
+                  >Usuń filtr {{ tag.label }}</span
+                >
+              </button>
+            }
+          </div>
+        }
 
     @if (geoError(); as geo) {
       <p class="job-offers__status job-offers__status--error">{{ geo }}</p>
@@ -25,9 +68,7 @@
         Sortowanie: najbliższe bazy względem Twojej lokalizacji
       </p>
     }
-  </ng-template>
 
-  <ng-template #results>
     @if (loading()) {
       <div class="job-offers__list" aria-busy="true">
         @for (s of skeletons; track s) {
@@ -61,49 +102,12 @@
       <ul class="job-offers__list">
         @for (card of offerCards(); track card.id) {
           <li>
-            <baza-offer-card
-              [offer]="card"
-              [highlighted]="highlightedOfferId() === card.id"
-              (hovered)="onCardHovered($event)"
-            />
+            <baza-offer-card [offer]="card" />
           </li>
         }
       </ul>
     }
-  </ng-template>
-
-  @if (isDesktop()) {
-    <baza-split-list-map>
-      <div bazaList>
-        <ng-container [ngTemplateOutlet]="chrome" />
-        <ng-container [ngTemplateOutlet]="results" />
       </div>
-      <div bazaMap class="job-offers__map-slot">
-        <baza-offer-route-map
-          [bases]="mapBases()"
-          [legs]="mapLegs()"
-          [highlightedLabel]="highlightedOfferId()"
-          (pinHovered)="onPinHovered($event)"
-          (pinClicked)="onPinClicked($event)"
-        />
-      </div>
-    </baza-split-list-map>
-  } @else {
-    <div class="job-offers__mobile">
-      <ng-container [ngTemplateOutlet]="chrome" />
-      @if (filters().view === 'map') {
-        <div class="job-offers__mobile-map">
-          <baza-offer-route-map
-            [bases]="mapBases()"
-            [legs]="mapLegs()"
-            [highlightedLabel]="highlightedOfferId()"
-            (pinHovered)="onPinHovered($event)"
-            (pinClicked)="onPinClicked($event)"
-          />
-        </div>
-      } @else {
-        <ng-container [ngTemplateOutlet]="results" />
-      }
     </div>
-  }
+  </div>
 </section>

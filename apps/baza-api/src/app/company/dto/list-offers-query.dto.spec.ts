@@ -7,14 +7,17 @@ describe('ListOffersQueryDto', () => {
   it('accepts valid filter query', async () => {
     const dto = plainToInstance(ListOffersQueryDto, {
       countries: 'PL,DE',
-      cadence: 'weekly',
-      license: 'C_E',
-      transport: 'curtain',
+      cadence: 'weekly,daily',
+      license: 'C,C_E',
+      transport: 'curtain,silo',
+      employment: 'uop,b2b',
       nearLat: '52.2',
       nearLng: '21.0',
     });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
+    expect(dto.cadence).toBe('weekly,daily');
+    expect(dto.employment).toBe('uop,b2b');
     expect(dto.nearLat).toBe(52.2);
     expect(dto.nearLng).toBe(21.0);
   });
@@ -35,6 +38,12 @@ describe('ListOffersQueryDto', () => {
     const dto = plainToInstance(ListOffersQueryDto, { transport: 'spaceship' });
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'transport')).toBe(true);
+  });
+
+  it('rejects invalid employment form', async () => {
+    const dto = plainToInstance(ListOffersQueryDto, { employment: 'cash' });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'employment')).toBe(true);
   });
 
   it('maps empty nearLat/nearLng to null instead of 0', async () => {

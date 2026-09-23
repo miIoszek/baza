@@ -444,3 +444,9 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
   background-color: color-mix(in srgb, var(--baza-text-muted) 68%, transparent);
 }
+
+.baza-filters-sheet-panel {
+  border-radius: 16px 16px 0 0;
+  padding: 0;
+  overflow: hidden;
+}

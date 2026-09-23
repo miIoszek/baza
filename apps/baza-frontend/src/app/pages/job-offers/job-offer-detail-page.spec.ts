@@ -20,6 +20,7 @@ const OFFER: JobOffer = {
   requiredYearsExperience: 2,
   requiredTransportType: 'curtain',
   licenseCategory: 'C_E',
+  employmentForms: ['uop'],
   routes: [
     {
       from: { code: 'PL', name: 'Polska' },

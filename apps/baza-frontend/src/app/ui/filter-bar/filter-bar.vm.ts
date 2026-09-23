@@ -1,29 +1,33 @@
 import {
   COUNTRIES,
   DRIVER_LICENSES,
+  EMPLOYMENT_FORMS,
   TRANSPORT_TYPES,
 } from '@baza/shared-types';
 
 export interface OfferFiltersVm {
   routeCountries: string[];
-  cadence: string | null;
-  licence: string | null;
-  transport: string | null;
+  cadences: string[];
+  licences: string[];
+  transports: string[];
+  employmentForms: string[];
 }
 
 export const EMPTY_OFFER_FILTERS: OfferFiltersVm = {
   routeCountries: [],
-  cadence: null,
-  licence: null,
-  transport: null,
+  cadences: [],
+  licences: [],
+  transports: [],
+  employmentForms: [],
 };
 
 export function hasOfferFilters(value: OfferFiltersVm): boolean {
   return (
     value.routeCountries.length > 0 ||
-    !!value.cadence ||
-    !!value.licence ||
-    !!value.transport
+    value.cadences.length > 0 ||
+    value.licences.length > 0 ||
+    value.transports.length > 0 ||
+    value.employmentForms.length > 0
   );
 }
 
@@ -53,29 +57,83 @@ export function countriesChipLabel(codes: string[]): string {
 }
 
 export function cadenceChipLabel(
-  cadence: string | null,
+  cadences: string[],
   labels: Record<string, string>
 ): string {
-  if (!cadence) {
+  if (!cadences.length) {
     return 'Powrót do domu';
   }
-  return `Powrót do domu: ${labels[cadence] ?? cadence}`;
+  if (cadences.length === 1) {
+    return `Powrót do domu: ${labels[cadences[0]] ?? cadences[0]}`;
+  }
+  return `Powrót do domu: ${cadences.length} wybrane`;
 }
 
-export function licenceChipLabel(licence: string | null): string {
-  if (!licence) {
+export function licenceChipLabel(licences: string[]): string {
+  if (!licences.length) {
     return 'Prawo jazdy';
   }
-  const label =
-    DRIVER_LICENSES.find((l) => l.code === licence)?.label ?? licence;
-  return `Prawo jazdy: ${label}`;
+  if (licences.length === 1) {
+    const label =
+      DRIVER_LICENSES.find((l) => l.code === licences[0])?.label ?? licences[0];
+    return `Prawo jazdy: ${label}`;
+  }
+  return `Prawo jazdy: ${licences.length} wybrane`;
 }
 
-export function transportChipLabel(transport: string | null): string {
-  if (!transport) {
+export function transportChipLabel(transports: string[]): string {
+  if (!transports.length) {
     return 'Typ transportu';
   }
-  const name =
-    TRANSPORT_TYPES.find((t) => t.code === transport)?.namePl ?? transport;
-  return `Typ transportu: ${name}`;
+  if (transports.length === 1) {
+    const name =
+      TRANSPORT_TYPES.find((t) => t.code === transports[0])?.namePl ??
+      transports[0];
+    return `Typ transportu: ${name}`;
+  }
+  return `Typ transportu: ${transports.length} wybrane`;
+}
+
+export function employmentChipLabel(forms: string[]): string {
+  if (!forms.length) {
+    return 'Forma zatrudnienia';
+  }
+  if (forms.length === 1) {
+    const name =
+      EMPLOYMENT_FORMS.find((f) => f.code === forms[0])?.namePl ?? forms[0];
+    return `Forma zatrudnienia: ${name}`;
+  }
+  return `Forma zatrudnienia: ${forms.length} wybrane`;
+}
+
+export const COUNTRY_CHIP_COLLAPSE_LIMIT = 5;
+
+export function visibleCountryChips<T extends { code: string }>(
+  countries: readonly T[],
+  selectedCodes: readonly string[],
+  expanded: boolean
+): { visible: T[]; hiddenCount: number } {
+  if (expanded || countries.length <= COUNTRY_CHIP_COLLAPSE_LIMIT) {
+    return { visible: [...countries], hiddenCount: 0 };
+  }
+
+  const selected = new Set(selectedCodes);
+  const picked = new Set<string>();
+  for (const country of countries) {
+    if (selected.has(country.code)) {
+      picked.add(country.code);
+    }
+  }
+  for (const country of countries) {
+    if (picked.size >= COUNTRY_CHIP_COLLAPSE_LIMIT) {
+      break;
+    }
+    picked.add(country.code);
+  }
+
+  const visible = countries.filter((country) => picked.has(country.code));
+  return {
+    visible,
+    hiddenCount: countries.length - visible.length,
+  };
 }

@@ -1,5 +1,6 @@
 import {
   driverLicenseLabel,
+  employmentFormsLabel,
   TRANSPORT_TYPES,
   type JobOffer,
 } from '@baza/shared-types';
@@ -15,6 +16,7 @@ export interface OfferCardVm {
   cadence: string;
   licence: string;
   transport: string;
+  employment: string;
   experience: string;
   salary?: string | null;
 }
@@ -55,6 +57,7 @@ export function toOfferCardVm(
     transport:
       TRANSPORT_TYPES.find((t) => t.code === offer.requiredTransportType)
         ?.namePl ?? offer.requiredTransportType,
+    employment: employmentFormsLabel(offer.employmentForms),
     experience: experienceLabel(offer.requiredYearsExperience),
     salary: formatSalary(offer),
   };

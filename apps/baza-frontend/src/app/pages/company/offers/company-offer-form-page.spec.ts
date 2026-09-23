@@ -51,6 +51,17 @@ describe('CompanyOfferFormPage', () => {
     );
   });
 
+  it('requires at least one employment form', async () => {
+    const fixture = TestBed.createComponent(CompanyOfferFormPage);
+    const page = fixture.componentInstance;
+    await page.ngOnInit();
+
+    page['form'].controls.employmentForms.setValue([]);
+    expect(page['form'].controls.employmentForms.hasError('required')).toBe(
+      true
+    );
+  });
+
   it('rejects negative years of experience', async () => {
     const fixture = TestBed.createComponent(CompanyOfferFormPage);
     const page = fixture.componentInstance;

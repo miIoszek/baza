@@ -101,6 +101,10 @@
                 {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
               </dd>
             </div>
+            <div class="offer-detail__field-row">
+              <dt>Forma zatrudnienia</dt>
+              <dd>{{ employmentLabel(o) }}</dd>
+            </div>
             @if (salaryText(o); as salary) {
             <div class="offer-detail__field-row">
               <dt>Wynagrodzenie</dt>

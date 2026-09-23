@@ -6,6 +6,41 @@ export type RouteMapLeg = {
   label: string;
 };
 
+/** One unique hop on the overview map (many offers can share PL→DE). */
+export type RouteCorridor = {
+  from: GeoPoint;
+  to: GeoPoint;
+  count: number;
+  labels: string[];
+};
+
+function pointKey(point: GeoPoint): string {
+  return `${point.lat.toFixed(3)},${point.lng.toFixed(3)}`;
+}
+
+/** Collapse identical hops so the rest state is one line per corridor. */
+export function aggregateRouteCorridors(
+  legs: readonly RouteMapLeg[]
+): RouteCorridor[] {
+  const byKey = new Map<string, RouteCorridor>();
+  for (const leg of legs) {
+    const key = `${pointKey(leg.from)}>${pointKey(leg.to)}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.labels.push(leg.label);
+    } else {
+      byKey.set(key, {
+        from: { ...leg.from },
+        to: { ...leg.to },
+        count: 1,
+        labels: [leg.label],
+      });
+    }
+  }
+  return [...byKey.values()];
+}
+
 export type MapBasePin = {
   id: string;
   lat: number;

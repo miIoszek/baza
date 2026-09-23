@@ -18,6 +18,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {
   COUNTRIES,
   DRIVER_LICENSES,
+  EMPLOYMENT_FORMS,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPES,
   countryNamePl,
@@ -54,6 +55,15 @@ function salaryRangeValidator(
   return null;
 }
 
+function minSelected(min: number) {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    return Array.isArray(value) && value.length >= min
+      ? null
+      : { required: true };
+  };
+}
+
 @Component({
   selector: 'baza-company-offer-form-page',
   standalone: true,
@@ -81,6 +91,7 @@ export class CompanyOfferFormPage implements OnInit {
   protected readonly countries = COUNTRIES;
   protected readonly transportTypes = TRANSPORT_TYPES;
   protected readonly licenses = DRIVER_LICENSES;
+  protected readonly employmentFormOptions = EMPLOYMENT_FORMS;
   protected readonly cadences = HOME_RETURN_CADENCES;
   protected readonly cadenceLabels = CADENCE_LABELS;
   protected readonly loading = signal(true);
@@ -102,6 +113,7 @@ export class CompanyOfferFormPage implements OnInit {
       requiredYearsExperience: [0, [Validators.required, Validators.min(0)]],
       requiredTransportType: ['curtain' as string, Validators.required],
       licenseCategory: ['C' as string, Validators.required],
+      employmentForms: [['uop'] as string[], [minSelected(1)]],
       routes: this.fb.array([this.newRouteGroup()]),
       salaryMin: [null as number | null, [Validators.min(0)]],
       salaryMax: [null as number | null, [Validators.min(0)]],
@@ -176,6 +188,7 @@ export class CompanyOfferFormPage implements OnInit {
       requiredYearsExperience: Number(raw.requiredYearsExperience),
       requiredTransportType: raw.requiredTransportType,
       licenseCategory: raw.licenseCategory,
+      employmentForms: raw.employmentForms,
       routes: raw.routes.map((r) => ({
         from: { code: r.fromCode, name: r.fromName },
         to: { code: r.toCode, name: r.toName },
@@ -259,6 +272,7 @@ export class CompanyOfferFormPage implements OnInit {
         requiredYearsExperience: offer.requiredYearsExperience,
         requiredTransportType: offer.requiredTransportType,
         licenseCategory: offer.licenseCategory,
+        employmentForms: offer.employmentForms,
         salaryMin: offer.salary?.min ?? null,
         salaryMax: offer.salary?.max ?? null,
         salaryCurrency: offer.salary?.currency ?? 'PLN',

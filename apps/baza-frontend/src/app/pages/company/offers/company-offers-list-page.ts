@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import type { JobOffer } from '@baza/shared-types';
+import { employmentFormsLabel, type JobOffer } from '@baza/shared-types';
 import { AsyncStatus } from '@baza/ui';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -29,6 +29,10 @@ export class CompanyOffersListPage implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly offers = signal<JobOffer[]>([]);
+
+  protected employmentLabel(offer: JobOffer): string {
+    return employmentFormsLabel(offer.employmentForms);
+  }
 
   async ngOnInit(): Promise<void> {
     await this.reload();

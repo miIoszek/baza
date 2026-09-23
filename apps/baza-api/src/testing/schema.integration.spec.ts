@@ -85,18 +85,40 @@ describeDb('database schema (migrations)', () => {
     const userId = await insertUser('owner2@example.com');
     const companyId = await insertCompany(userId, '9876543210');
 
+    await expect(
+      q(
+        `INSERT INTO job_offers
+           (company_id, title, description, home_return_cadence,
+            required_years_experience, required_transport_type)
+         VALUES ($1, 'Kierowca', 'Opis', 'weekly', 2, 'tir')`,
+        [companyId],
+      ),
+    ).rejects.toBeInstanceOf(QueryFailedError);
+
     const offer = await q(
       `INSERT INTO job_offers
          (company_id, title, description, home_return_cadence,
-          required_years_experience, required_transport_type)
-       VALUES ($1, 'Kierowca', 'Opis', 'weekly', 2, 'tir') RETURNING id, license_category`,
+          required_years_experience, required_transport_type, employment_forms)
+       VALUES ($1, 'Kierowca', 'Opis', 'weekly', 2, 'tir', ARRAY['uop']::text[]) RETURNING id, license_category, employment_forms`,
       [companyId],
     );
     expect(offer[0].license_category).toBe('C');
+    expect(offer[0].employment_forms).toEqual(['uop']);
     const offerId = offer[0].id as string;
 
     await expect(
       q(`UPDATE job_offers SET license_category = 'Z' WHERE id = $1`, [offerId]),
+    ).rejects.toBeInstanceOf(QueryFailedError);
+    await expect(
+      q(`UPDATE job_offers SET employment_forms = ARRAY[]::text[] WHERE id = $1`, [
+        offerId,
+      ]),
+    ).rejects.toBeInstanceOf(QueryFailedError);
+    await expect(
+      q(
+        `UPDATE job_offers SET employment_forms = ARRAY['uop', 'cash']::text[] WHERE id = $1`,
+        [offerId],
+      ),
     ).rejects.toBeInstanceOf(QueryFailedError);
     await expect(
       q(`UPDATE job_offers SET salary_min = 5000 WHERE id = $1`, [offerId]),

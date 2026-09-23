@@ -51,6 +51,7 @@
               <span class="offers-list__meta">
                 {{ o.published ? 'Opublikowana' : 'Wycofana' }} ·
                 Prawo jazdy {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }} ·
+                {{ employmentLabel(o) }} ·
                 {{ o.routes.length }} tras
               </span>
             </div>

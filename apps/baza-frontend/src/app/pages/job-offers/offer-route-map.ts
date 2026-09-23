@@ -21,8 +21,10 @@ import {
   type PixelPoint,
 } from './route-map-arrow';
 import {
+  aggregateRouteCorridors,
   routeMapLegEmphasis,
   type MapBasePin,
+  type RouteCorridor,
   type RouteMapLeg,
 } from './route-map-geometry';
 
@@ -32,6 +34,8 @@ const FALLBACK_LINE = '#fbbf24';
 const LINE_WEIGHT = 4;
 const LINE_OPACITY = 0.95;
 const DIM_OPACITY = 0.22;
+const QUIET_OPACITY = 0.38;
+const QUIET_WEIGHT = 2;
 
 @Component({
   selector: 'baza-offer-route-map',
@@ -45,6 +49,8 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
   readonly baseLocation = input<GeoPoint | null>(null);
   readonly bases = input<MapBasePin[]>([]);
   readonly legs = input<RouteMapLeg[]>([]);
+  /** List map: one line per corridor until a card/pin is hovered. */
+  readonly overview = input(false);
   readonly highlightedLabel = input<string | null>(null);
   readonly pinHovered = output<string | null>();
   readonly pinClicked = output<string>();
@@ -64,6 +70,7 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       this.baseLocation();
       this.bases();
       this.legs();
+      this.overview();
       if (this.viewReady) {
         untracked(() => this.paint(true));
       }
@@ -134,16 +141,6 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     const colors = this.resolveThemeColors();
     const bounds = L.latLngBounds([]);
     let hasPoint = false;
-    const labels = routeLegs.map((leg) => leg.label);
-    const ordered = [...routeLegs].sort((a, b) => {
-      if (a.label === highlightedLabel) {
-        return 1;
-      }
-      if (b.label === highlightedLabel) {
-        return -1;
-      }
-      return 0;
-    });
 
     const pins =
       bases.length > 0
@@ -159,14 +156,15 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
             ]
           : [];
 
+    const overview = this.overview();
     for (const pin of pins) {
       const emphasized = highlightedLabel === pin.id;
       const marker = L.circleMarker([pin.lat, pin.lng], {
-        radius: emphasized ? 11 : 8,
+        radius: emphasized ? 11 : overview ? 6 : 8,
         color: colors.from,
         weight: 2,
         fillColor: colors.from,
-        fillOpacity: emphasized ? 0.7 : 0.35,
+        fillOpacity: emphasized ? 0.7 : overview ? 0.28 : 0.35,
       });
       marker.bindPopup(escapeHtml(pin.label));
       if (pin.id !== 'base') {
@@ -185,46 +183,14 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       hasPoint = true;
     }
 
-    for (const leg of ordered) {
-      const fromLL: L.LatLngExpression = [leg.from.lat, leg.from.lng];
-      const toLL: L.LatLngExpression = [leg.to.lat, leg.to.lng];
-      const { dimmed, emphasized } = routeMapLegEmphasis(
-        highlightedLabel,
-        leg.label,
-        labels
-      );
-      const opacity = dimmed ? DIM_OPACITY : LINE_OPACITY;
-      const weight = emphasized ? LINE_WEIGHT + 1 : LINE_WEIGHT;
-
-      this.addDashedRoute(fromLL, toLL, colors.line, leg.label, opacity, weight);
-
-      const fromMarker = L.circleMarker(fromLL, {
-        radius: emphasized ? 11 : 10,
-        color: '#0f172a',
-        weight: 2,
-        fillColor: colors.from,
-        fillOpacity: opacity,
-        opacity,
-      });
-      fromMarker.bindPopup(`A · ${escapeHtml(leg.label)}`);
-      fromMarker.addTo(this.layer);
-
-      const toMarker = L.circleMarker(toLL, {
-        radius: emphasized ? 11 : 10,
-        color: '#0f172a',
-        weight: 2,
-        fillColor: colors.to,
-        fillOpacity: opacity,
-        opacity,
-      });
-      toMarker.bindPopup(`B · ${escapeHtml(leg.label)}`);
-      toMarker.addTo(this.layer);
-
-      this.addRouteArrows(fromLL, toLL, colors.line, opacity);
-
-      bounds.extend([leg.from.lat, leg.from.lng]);
-      bounds.extend([leg.to.lat, leg.to.lng]);
-      hasPoint = true;
+    if (overview) {
+      hasPoint =
+        this.paintOverview(routeLegs, highlightedLabel, colors, bounds) ||
+        hasPoint;
+    } else {
+      hasPoint =
+        this.paintDetailLegs(routeLegs, highlightedLabel, colors, bounds) ||
+        hasPoint;
     }
 
     if (fit) {
@@ -235,6 +201,149 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       }
     }
     setTimeout(() => this.map?.invalidateSize(), 0);
+  }
+
+  private paintOverview(
+    routeLegs: RouteMapLeg[],
+    highlightedLabel: string | null,
+    colors: { from: string; to: string; line: string },
+    bounds: L.LatLngBounds
+  ): boolean {
+    const corridors = aggregateRouteCorridors(routeLegs);
+    let hasPoint = corridors.length > 0;
+    for (const corridor of corridors) {
+      const active =
+        highlightedLabel != null && corridor.labels.includes(highlightedLabel);
+      if (active) {
+        continue;
+      }
+      this.addQuietCorridor(
+        corridor,
+        colors,
+        highlightedLabel ? DIM_OPACITY : QUIET_OPACITY,
+        bounds
+      );
+    }
+    if (highlightedLabel) {
+      for (const leg of routeLegs) {
+        if (leg.label !== highlightedLabel) {
+          continue;
+        }
+        this.addDetailHop(leg, colors, true, bounds);
+        hasPoint = true;
+      }
+    }
+    return hasPoint;
+  }
+
+  private paintDetailLegs(
+    routeLegs: RouteMapLeg[],
+    highlightedLabel: string | null,
+    colors: { from: string; to: string; line: string },
+    bounds: L.LatLngBounds
+  ): boolean {
+    const labels = routeLegs.map((leg) => leg.label);
+    const ordered = [...routeLegs].sort((a, b) => {
+      if (a.label === highlightedLabel) {
+        return 1;
+      }
+      if (b.label === highlightedLabel) {
+        return -1;
+      }
+      return 0;
+    });
+    for (const leg of ordered) {
+      const { dimmed, emphasized } = routeMapLegEmphasis(
+        highlightedLabel,
+        leg.label,
+        labels
+      );
+      this.addDetailHop(
+        leg,
+        colors,
+        emphasized,
+        bounds,
+        dimmed ? DIM_OPACITY : LINE_OPACITY
+      );
+    }
+    return ordered.length > 0;
+  }
+
+  private addQuietCorridor(
+    corridor: RouteCorridor,
+    colors: { from: string; to: string; line: string },
+    opacity: number,
+    bounds: L.LatLngBounds
+  ): void {
+    if (!this.layer) {
+      return;
+    }
+    const fromLL: L.LatLngExpression = [corridor.from.lat, corridor.from.lng];
+    const toLL: L.LatLngExpression = [corridor.to.lat, corridor.to.lng];
+    const line = L.polyline([fromLL, toLL], {
+      color: colors.line,
+      weight: quietWeight(corridor.count),
+      opacity,
+      lineCap: 'round',
+    });
+    line.bindPopup(escapeHtml(quietCorridorLabel(corridor.count)));
+    line.addTo(this.layer);
+
+    L.circleMarker(toLL, {
+      radius: 6,
+      color: '#0f172a',
+      weight: 1,
+      fillColor: colors.to,
+      fillOpacity: opacity,
+      opacity,
+    }).addTo(this.layer);
+
+    bounds.extend(fromLL);
+    bounds.extend(toLL);
+  }
+
+  private addDetailHop(
+    leg: RouteMapLeg,
+    colors: { from: string; to: string; line: string },
+    emphasized: boolean,
+    bounds: L.LatLngBounds,
+    opacity = LINE_OPACITY
+  ): void {
+    if (!this.layer) {
+      return;
+    }
+    const fromLL: L.LatLngExpression = [leg.from.lat, leg.from.lng];
+    const toLL: L.LatLngExpression = [leg.to.lat, leg.to.lng];
+    const weight = emphasized ? LINE_WEIGHT + 1 : LINE_WEIGHT;
+
+    this.addDashedRoute(fromLL, toLL, colors.line, leg.label, opacity, weight);
+
+    const fromMarker = L.circleMarker(fromLL, {
+      radius: emphasized ? 11 : 10,
+      color: '#0f172a',
+      weight: 2,
+      fillColor: colors.from,
+      fillOpacity: opacity,
+      opacity,
+    });
+    fromMarker.bindPopup(`A · ${escapeHtml(leg.label)}`);
+    fromMarker.addTo(this.layer);
+
+    const toMarker = L.circleMarker(toLL, {
+      radius: emphasized ? 11 : 10,
+      color: '#0f172a',
+      weight: 2,
+      fillColor: colors.to,
+      fillOpacity: opacity,
+      opacity,
+    });
+    toMarker.bindPopup(`B · ${escapeHtml(leg.label)}`);
+    toMarker.addTo(this.layer);
+
+    this.addRouteArrows(fromLL, toLL, colors.line, opacity);
+
+    bounds.extend(fromLL);
+    bounds.extend(toLL);
   }
 
   private addDashedRoute(
@@ -311,6 +420,22 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     }
     return this.map.layerPointToLatLng(L.point(point.x, point.y));
   }
+}
+
+function quietWeight(count: number): number {
+  return Math.min(5, QUIET_WEIGHT + Math.round(Math.log2(Math.max(1, count))));
+}
+
+function quietCorridorLabel(count: number): string {
+  const abs = Math.abs(count) % 100;
+  const last = abs % 10;
+  if (count === 1) {
+    return '1 oferta na tej trasie';
+  }
+  if (last >= 2 && last <= 4 && (abs < 12 || abs > 14)) {
+    return `${count} oferty na tej trasie`;
+  }
+  return `${count} ofert na tej trasie`;
 }
 
 function escapeHtml(text: string): string {

@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import {
   APPLICATION_FIELD_LIMITS,
+  employmentFormsLabel,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPES,
   type CountryCentroid,
@@ -229,6 +230,10 @@ export class JobOfferDetailPage implements OnInit {
 
   protected transportLabel(code: string): string {
     return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
+  }
+
+  protected employmentLabel(offer: JobOffer): string {
+    return employmentFormsLabel(offer.employmentForms);
   }
 
   protected logoUrl(offer: JobOffer): string | null {

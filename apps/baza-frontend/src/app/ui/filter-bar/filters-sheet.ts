@@ -1,72 +1,65 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_BOTTOM_SHEET_DATA,
   MatBottomSheetRef,
 } from '@angular/material/bottom-sheet';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import {
-  COUNTRIES,
-  DRIVER_LICENSES,
-  HOME_RETURN_CADENCES,
-  TRANSPORT_TYPES,
-} from '@baza/shared-types';
+import { MatIconModule } from '@angular/material/icon';
+import type { CountryOption } from '@baza/shared-types';
+import { BazaFilterBar } from './filter-bar';
 import type { OfferFiltersVm } from './filter-bar.vm';
 
 export type FiltersSheetData = {
   value: OfferFiltersVm;
+  resultCount: number;
   cadenceLabels: Record<string, string>;
+  countries: readonly CountryOption[];
 };
+
+export type FiltersSheetDismiss = OfferFiltersVm | 'use-location';
 
 @Component({
   selector: 'baza-filters-sheet',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatSelectModule],
+  imports: [MatButtonModule, MatIconModule, BazaFilterBar],
   template: `
     <div class="baza-filters-sheet">
-      <h2 class="baza-filters-sheet__title">Filtry</h2>
-      <mat-form-field appearance="fill">
-        <mat-label>Kraje trasy</mat-label>
-        <mat-select [(ngModel)]="draft.routeCountries" multiple>
-          @for (c of countries; track c.code) {
-            <mat-option [value]="c.code">{{ c.namePl }} ({{ c.code }})</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Powrót do domu</mat-label>
-        <mat-select [(ngModel)]="draft.cadence">
-          <mat-option [value]="null">Dowolna</mat-option>
-          @for (c of cadences; track c) {
-            <mat-option [value]="c">{{ data.cadenceLabels[c] }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Prawo jazdy</mat-label>
-        <mat-select [(ngModel)]="draft.licence">
-          <mat-option [value]="null">Dowolna</mat-option>
-          @for (l of licenses; track l.code) {
-            <mat-option [value]="l.code">{{ l.label }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Typ transportu</mat-label>
-        <mat-select [(ngModel)]="draft.transport">
-          <mat-option [value]="null">Dowolny</mat-option>
-          @for (t of transportTypes; track t.code) {
-            <mat-option [value]="t.code">{{ t.namePl }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <div class="baza-filters-sheet__header">
+        <h2 class="baza-filters-sheet__title">Filtry</h2>
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Zamknij"
+          (click)="sheet.dismiss()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="baza-filters-sheet__body">
+        <baza-filter-bar
+          [value]="draft"
+          [resultCount]="data.resultCount"
+          [cadenceLabels]="data.cadenceLabels"
+          [countries]="data.countries"
+          (valueChange)="onDraftChange($event)"
+          (clear)="clearDraft()"
+          (useLocation)="useLocation()"
+        />
+      </div>
+
       <div class="baza-filters-sheet__actions">
-        <button mat-button type="button" (click)="sheet.dismiss()">Anuluj</button>
+        <button mat-stroked-button type="button" (click)="sheet.dismiss()">
+          Anuluj
+        </button>
         <button mat-flat-button color="primary" type="button" (click)="apply()">
-          Zastosuj
+          Pokaż wyniki
         </button>
       </div>
     </div>
@@ -75,35 +68,75 @@ export type FiltersSheetData = {
     .baza-filters-sheet {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      padding: 1.25rem 1.25rem 1.5rem;
+      gap: 0;
+      max-height: min(88dvh, 720px);
     }
+
+    .baza-filters-sheet__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 8px 0 20px;
+    }
+
     .baza-filters-sheet__title {
-      margin: 0 0 0.5rem;
-      font-size: 1.125rem;
+      margin: 0;
+      font: var(--mat-sys-title-medium);
       font-weight: 700;
     }
+
+    .baza-filters-sheet__body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 8px 20px 12px;
+    }
+
     .baza-filters-sheet__actions {
       display: flex;
       justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+      gap: 8px;
+      padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--baza-border);
+      background: var(--baza-surface);
     }
   `,
 })
 export class BazaFiltersSheet {
-  protected readonly sheet = inject(MatBottomSheetRef<BazaFiltersSheet, OfferFiltersVm>);
+  protected readonly sheet = inject(
+    MatBottomSheetRef<BazaFiltersSheet, FiltersSheetDismiss>
+  );
   protected readonly data = inject<FiltersSheetData>(MAT_BOTTOM_SHEET_DATA);
-  protected readonly countries = COUNTRIES;
-  protected readonly cadences = HOME_RETURN_CADENCES;
-  protected readonly licenses = DRIVER_LICENSES;
-  protected readonly transportTypes = TRANSPORT_TYPES;
-  protected readonly draft: OfferFiltersVm = {
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  protected draft: OfferFiltersVm = {
     routeCountries: [...this.data.value.routeCountries],
-    cadence: this.data.value.cadence,
-    licence: this.data.value.licence,
-    transport: this.data.value.transport,
+    cadences: [...this.data.value.cadences],
+    licences: [...this.data.value.licences],
+    transports: [...this.data.value.transports],
+    employmentForms: [...this.data.value.employmentForms],
   };
+
+  protected onDraftChange(value: OfferFiltersVm): void {
+    this.draft = value;
+    this.cdr.markForCheck();
+  }
+
+  protected clearDraft(): void {
+    this.draft = {
+      routeCountries: [],
+      cadences: [],
+      licences: [],
+      transports: [],
+      employmentForms: [],
+    };
+    this.cdr.markForCheck();
+  }
+
+  protected useLocation(): void {
+    this.sheet.dismiss('use-location');
+  }
 
   protected apply(): void {
     this.sheet.dismiss({ ...this.draft });

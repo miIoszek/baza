@@ -1,103 +1,4 @@
 <div class="baza-filter-bar">
-  <div class="baza-filter-bar__chips">
-    @if (mobile()) {
-      <mat-chip-set aria-label="Filtry ofert">
-        <mat-chip
-          [highlighted]="value().routeCountries.length > 0"
-          [removable]="value().routeCountries.length > 0"
-          (click)="openSheet()"
-          (removed)="clearCountries()"
-        >
-          {{ countriesLabel() }}
-          @if (value().routeCountries.length) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().cadence"
-          [removable]="!!value().cadence"
-          (click)="openSheet()"
-          (removed)="clearCadence()"
-        >
-          {{ cadenceLabel() }}
-          @if (value().cadence) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().licence"
-          [removable]="!!value().licence"
-          (click)="openSheet()"
-          (removed)="clearLicence()"
-        >
-          {{ licenceLabel() }}
-          @if (value().licence) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().transport"
-          [removable]="!!value().transport"
-          (click)="openSheet()"
-          (removed)="clearTransport()"
-        >
-          {{ transportLabel() }}
-          @if (value().transport) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-      </mat-chip-set>
-    } @else {
-      <mat-chip-set aria-label="Filtry ofert">
-        <mat-chip
-          [highlighted]="value().routeCountries.length > 0"
-          [removable]="value().routeCountries.length > 0"
-          [matMenuTriggerFor]="countriesMenu"
-          [attr.aria-label]="countriesLabel()"
-          (removed)="clearCountries()"
-        >
-          {{ countriesLabel() }}
-          @if (value().routeCountries.length) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().cadence"
-          [removable]="!!value().cadence"
-          [matMenuTriggerFor]="cadenceMenu"
-          (removed)="clearCadence()"
-        >
-          {{ cadenceLabel() }}
-          @if (value().cadence) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().licence"
-          [removable]="!!value().licence"
-          [matMenuTriggerFor]="licenceMenu"
-          (removed)="clearLicence()"
-        >
-          {{ licenceLabel() }}
-          @if (value().licence) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-        <mat-chip
-          [highlighted]="!!value().transport"
-          [removable]="!!value().transport"
-          [matMenuTriggerFor]="transportMenu"
-          (removed)="clearTransport()"
-        >
-          {{ transportLabel() }}
-          @if (value().transport) {
-            <mat-icon matChipRemove>cancel</mat-icon>
-          }
-        </mat-chip>
-      </mat-chip-set>
-    }
-  </div>
-
   <div class="baza-filter-bar__meta">
     <span class="baza-filter-bar__count">{{ countLabel() }}</span>
     @if (hasFilters()) {
@@ -107,68 +8,108 @@
         class="baza-filter-bar__clear"
         (click)="clear.emit()"
       >
-        Wyczyść filtry
+        Wyczyść
       </button>
     }
-    <button mat-stroked-button type="button" (click)="useLocation.emit()">
-      Użyj mojej lokalizacji
-    </button>
-    @if (mobile()) {
-      <div class="baza-filter-bar__view" role="group" aria-label="Widok listy lub mapy">
-        <button
-          type="button"
-          class="baza-filter-bar__view-btn"
-          [class.baza-filter-bar__view-btn--active]="view() === 'list'"
-          (click)="viewChange.emit('list')"
-        >
-          Lista
-        </button>
-        <button
-          type="button"
-          class="baza-filter-bar__view-btn"
-          [class.baza-filter-bar__view-btn--active]="view() === 'map'"
-          (click)="viewChange.emit('map')"
-        >
-          Mapa
-        </button>
-      </div>
-    }
   </div>
+
+  @if (countries().length) {
+    <section class="baza-filter-bar__group">
+      <h2 class="baza-filter-bar__label">Kraje trasy</h2>
+      <mat-chip-set aria-label="Kraje trasy">
+        @for (c of visibleCountries(); track c.code) {
+          <mat-chip
+            [highlighted]="isCountrySelected(c.code)"
+            (click)="toggleCountry(c.code)"
+          >
+            {{ c.namePl }}
+          </mat-chip>
+        }
+        @if (hiddenCountryCount() > 0) {
+          <mat-chip
+            class="baza-filter-bar__more"
+            (click)="expandCountries($event)"
+            [attr.aria-expanded]="false"
+            [attr.aria-label]="'+' + hiddenCountryCount() + ' więcej krajów'"
+          >
+            +{{ hiddenCountryCount() }} więcej
+          </mat-chip>
+        }
+        @if (canCollapseCountries()) {
+          <mat-chip
+            class="baza-filter-bar__more"
+            (click)="collapseCountries($event)"
+            [attr.aria-expanded]="true"
+          >
+            Zwiń
+          </mat-chip>
+        }
+      </mat-chip-set>
+    </section>
+  }
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Powrót do domu</h2>
+    <mat-chip-set aria-label="Powrót do domu">
+      @for (c of cadences; track c) {
+        <mat-chip
+          [highlighted]="isCadenceSelected(c)"
+          (click)="toggleCadence(c)"
+        >
+          {{ cadenceLabels()[c] }}
+        </mat-chip>
+      }
+    </mat-chip-set>
+  </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Prawo jazdy</h2>
+    <mat-chip-set aria-label="Prawo jazdy">
+      @for (l of licenses; track l.code) {
+        <mat-chip
+          [highlighted]="isLicenceSelected(l.code)"
+          (click)="toggleLicence(l.code)"
+        >
+          {{ l.label }}
+        </mat-chip>
+      }
+    </mat-chip-set>
+  </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Typ transportu</h2>
+    <mat-chip-set aria-label="Typ transportu">
+      @for (t of transportTypes; track t.code) {
+        <mat-chip
+          [highlighted]="isTransportSelected(t.code)"
+          (click)="toggleTransport(t.code)"
+        >
+          {{ t.namePl }}
+        </mat-chip>
+      }
+      </mat-chip-set>
+    </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Forma zatrudnienia</h2>
+    <mat-chip-set aria-label="Forma zatrudnienia">
+      @for (f of employmentFormOptions; track f.code) {
+        <mat-chip
+          [highlighted]="isEmploymentSelected(f.code)"
+          (click)="toggleEmployment(f.code)"
+        >
+          {{ f.namePl }}
+        </mat-chip>
+      }
+    </mat-chip-set>
+  </section>
+
+  <button
+    mat-stroked-button
+    type="button"
+    class="baza-filter-bar__location"
+    (click)="useLocation.emit()"
+  >
+    Użyj mojej lokalizacji
+  </button>
 </div>
-
-<mat-menu #countriesMenu="matMenu" class="baza-filter-menu">
-  @for (c of countries; track c.code) {
-    <button mat-menu-item type="button" (click)="$event.stopPropagation(); toggleCountry(c.code)">
-      <mat-checkbox [checked]="isCountrySelected(c.code)">
-        {{ c.namePl }} ({{ c.code }})
-      </mat-checkbox>
-    </button>
-  }
-</mat-menu>
-
-<mat-menu #cadenceMenu="matMenu">
-  <button mat-menu-item type="button" (click)="emit({ cadence: null })">Dowolna</button>
-  @for (c of cadences; track c) {
-    <button mat-menu-item type="button" (click)="emit({ cadence: c })">
-      {{ cadenceLabels()[c] }}
-    </button>
-  }
-</mat-menu>
-
-<mat-menu #licenceMenu="matMenu">
-  <button mat-menu-item type="button" (click)="emit({ licence: null })">Dowolna</button>
-  @for (l of licenses; track l.code) {
-    <button mat-menu-item type="button" (click)="emit({ licence: l.code })">
-      {{ l.label }}
-    </button>
-  }
-</mat-menu>
-
-<mat-menu #transportMenu="matMenu">
-  <button mat-menu-item type="button" (click)="emit({ transport: null })">Dowolny</button>
-  @for (t of transportTypes; track t.code) {
-    <button mat-menu-item type="button" (click)="emit({ transport: t.code })">
-      {{ t.namePl }}
-    </button>
-  }
-</mat-menu>

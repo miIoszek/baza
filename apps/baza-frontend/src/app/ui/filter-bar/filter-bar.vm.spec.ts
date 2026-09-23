@@ -6,6 +6,8 @@ import {
   licenceChipLabel,
   offerCountLabel,
   transportChipLabel,
+  employmentChipLabel,
+  visibleCountryChips,
 } from './filter-bar.vm';
 
 describe('filter-bar labels', () => {
@@ -26,17 +28,24 @@ describe('filter-bar labels', () => {
   });
 
   it('labels the other chips from selected values', () => {
-    expect(cadenceChipLabel(null, { weekly: 'Co tydzień' })).toBe(
+    expect(cadenceChipLabel([], { weekly: 'Co tydzień' })).toBe(
       'Powrót do domu'
     );
-    expect(cadenceChipLabel('weekly', { weekly: 'Co tydzień' })).toBe(
+    expect(cadenceChipLabel(['weekly'], { weekly: 'Co tydzień' })).toBe(
       'Powrót do domu: Co tydzień'
     );
-    expect(licenceChipLabel(null)).toBe('Prawo jazdy');
-    expect(licenceChipLabel('C_E')).toBe('Prawo jazdy: C+E');
-    expect(transportChipLabel(null)).toBe('Typ transportu');
-    expect(transportChipLabel('curtain')).toBe(
+    expect(cadenceChipLabel(['weekly', 'daily'], { weekly: 'Co tydzień' })).toBe(
+      'Powrót do domu: 2 wybrane'
+    );
+    expect(licenceChipLabel([])).toBe('Prawo jazdy');
+    expect(licenceChipLabel(['C_E'])).toBe('Prawo jazdy: C+E');
+    expect(transportChipLabel([])).toBe('Typ transportu');
+    expect(transportChipLabel(['curtain'])).toBe(
       'Typ transportu: Plandeka / firanka'
+    );
+    expect(employmentChipLabel([])).toBe('Forma zatrudnienia');
+    expect(employmentChipLabel(['uop'])).toBe(
+      'Forma zatrudnienia: Umowa o pracę'
     );
   });
 
@@ -44,18 +53,72 @@ describe('filter-bar labels', () => {
     expect(
       hasOfferFilters({
         routeCountries: [],
-        cadence: null,
-        licence: null,
-        transport: null,
+        cadences: [],
+        licences: [],
+        transports: [],
+        employmentForms: [],
       })
     ).toBe(false);
     expect(
       hasOfferFilters({
         routeCountries: ['DE'],
-        cadence: null,
-        licence: null,
-        transport: null,
+        cadences: [],
+        licences: [],
+        transports: [],
+        employmentForms: [],
       })
     ).toBe(true);
+    expect(
+      hasOfferFilters({
+        routeCountries: [],
+        cadences: [],
+        licences: [],
+        transports: [],
+        employmentForms: ['uop'],
+      })
+    ).toBe(true);
+  });
+});
+
+describe('visibleCountryChips', () => {
+  const countries = [
+    { code: 'PL' },
+    { code: 'DE' },
+    { code: 'CZ' },
+    { code: 'SK' },
+    { code: 'AT' },
+    { code: 'HU' },
+    { code: 'LT' },
+  ];
+
+  it('shows every country when there are five or fewer', () => {
+    expect(visibleCountryChips(countries.slice(0, 5), [], false)).toEqual({
+      visible: countries.slice(0, 5),
+      hiddenCount: 0,
+    });
+  });
+
+  it('keeps the first five and reports the rest when collapsed', () => {
+    expect(visibleCountryChips(countries, [], false)).toEqual({
+      visible: countries.slice(0, 5),
+      hiddenCount: 2,
+    });
+  });
+
+  it('keeps a selected country visible even if it is past the first five', () => {
+    const result = visibleCountryChips(countries, ['LT'], false);
+    expect(result.visible.map((c) => c.code)).toEqual([
+      'PL',
+      'DE',
+      'CZ',
+      'SK',
+      'LT',
+    ]);
+    expect(result.hiddenCount).toBe(2);
+  });
+
+  it('shows all countries when expanded', () => {
+    expect(visibleCountryChips(countries, [], true).hiddenCount).toBe(0);
+    expect(visibleCountryChips(countries, [], true).visible).toEqual(countries);
   });
 });

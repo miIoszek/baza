@@ -64,6 +64,7 @@ describe('CompanyOffersListPage', () => {
         requiredYearsExperience: 2,
         requiredTransportType: 'ftl',
         licenseCategory: 'C',
+        employmentForms: ['uop'],
         description: '',
         baseLocation: null,
         companyBaseLocationText: null,

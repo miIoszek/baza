@@ -45,6 +45,9 @@ export class JobOffer {
   @Column({ name: 'license_category', type: 'varchar', length: 8, default: 'C' })
   licenseCategory!: string;
 
+  @Column({ name: 'employment_forms', type: 'text', array: true })
+  employmentForms!: string[];
+
   @Column({ type: 'jsonb', default: () => `'[]'::jsonb` })
   routes!: StoredRouteDirection[];
 

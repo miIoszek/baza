@@ -1,4 +1,5 @@
 import {
+  aggregateRouteCorridors,
   buildRouteMapLegs,
   hasRouteMapGeometry,
   routeMapLegEmphasis,
@@ -61,6 +62,26 @@ describe('route-map-geometry', () => {
         },
       ])
     ).toBe(true);
+  });
+
+  it('aggregates identical hops and keeps distinct corridors separate', () => {
+    const plDe = {
+      from: { lat: 52.1, lng: 19.4 },
+      to: { lat: 51.2, lng: 10.5 },
+    };
+    const corridors = aggregateRouteCorridors([
+      { ...plDe, label: 'offer-1' },
+      { ...plDe, label: 'offer-2' },
+      { ...plDe, label: 'offer-3' },
+      {
+        from: { lat: 52.1, lng: 19.4 },
+        to: { lat: 47.6, lng: 14.1 },
+        label: 'offer-1',
+      },
+    ]);
+    expect(corridors.map((c) => c.count).sort((a, b) => b - a)).toEqual([3, 1]);
+    const busy = corridors.find((c) => c.count === 3);
+    expect(busy?.labels).toEqual(['offer-1', 'offer-2', 'offer-3']);
   });
 
   it('dims other hops when a hovered route is on the map', () => {

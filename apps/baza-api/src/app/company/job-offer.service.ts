@@ -9,7 +9,9 @@ import {
 import { DataSource } from 'typeorm';
 import { Company, JobOffer as JobOfferEntity } from '@baza/api-data-access';
 import type {
+  CountryOption,
   DriverLicenseCategory,
+  EmploymentForm,
   GeoPoint,
   HomeReturnCadence,
   JobOffer,
@@ -17,7 +19,13 @@ import type {
   RouteDirection,
   TransportType,
 } from '@baza/shared-types';
-import { isDriverLicenseCategory, isTransportType } from '@baza/shared-types';
+import {
+  employmentFormsOverlap,
+  isDriverLicenseCategory,
+  isEmploymentForm,
+  isTransportType,
+  normalizeEmploymentForms,
+} from '@baza/shared-types';
 import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import { R2StorageService } from '../storage/r2-storage.service';
 import {
@@ -25,6 +33,17 @@ import {
   UpdateJobOfferDto,
 } from './dto/job-offer.dto';
 import { ListOffersQueryDto } from './dto/list-offers-query.dto';
+import { uniqueRouteCountries } from './unique-route-countries';
+
+function splitCsv(raw: string | undefined): string[] {
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
 
 @Injectable()
 export class JobOfferService {
@@ -44,31 +63,42 @@ export class JobOfferService {
       );
     }
 
-    const countries = query.countries
-      ? query.countries
-          .split(',')
-          .map((c) => c.trim().toUpperCase())
-          .filter(Boolean)
-      : undefined;
+    const countries = splitCsv(query.countries);
+    const cadences = splitCsv(query.cadence);
+    const licenses = splitCsv(query.license);
+    const transports = splitCsv(query.transport);
+    const employments = splitCsv(query.employment);
 
     const filters: JobOfferFilters = {};
-    if (countries?.length) {
-      filters.countries = countries;
+    if (countries.length) {
+      filters.countries = countries.map((c) => c.toUpperCase());
     }
-    if (query.cadence) {
-      filters.homeReturnCadence = query.cadence as HomeReturnCadence;
+    if (cadences.length) {
+      filters.homeReturnCadences = cadences as HomeReturnCadence[];
     }
-    if (query.license) {
-      if (!isDriverLicenseCategory(query.license)) {
-        throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
+    if (licenses.length) {
+      for (const code of licenses) {
+        if (!isDriverLicenseCategory(code)) {
+          throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
+        }
       }
-      filters.licenseCategory = query.license;
+      filters.licenseCategories = licenses as DriverLicenseCategory[];
     }
-    if (query.transport) {
-      if (!isTransportType(query.transport)) {
-        throw new BadRequestException('Nieprawidłowy typ transportu');
+    if (transports.length) {
+      for (const code of transports) {
+        if (!isTransportType(code)) {
+          throw new BadRequestException('Nieprawidłowy typ transportu');
+        }
       }
-      filters.requiredTransportType = query.transport;
+      filters.requiredTransportTypes = transports as TransportType[];
+    }
+    if (employments.length) {
+      for (const code of employments) {
+        if (!isEmploymentForm(code)) {
+          throw new BadRequestException('Nieprawidłowa forma zatrudnienia');
+        }
+      }
+      filters.employmentForms = normalizeEmploymentForms(employments);
     }
     if (hasLat && hasLng) {
       filters.near = { lat: query.nearLat as number, lng: query.nearLng as number };
@@ -193,6 +223,21 @@ export class JobOfferService {
     }
   }
 
+  async listPublishedRouteCountries(): Promise<CountryOption[]> {
+    try {
+      const rows = await this.offers.find({
+        where: { published: true },
+        select: { routes: true },
+      });
+      return uniqueRouteCountries(rows.map((r) => r.routes ?? []));
+    } catch (error) {
+      this.logger.warn(
+        `Published route countries failed: ${errorMessage(error)}`
+      );
+      throw new BadRequestException('Nie udało się pobrać krajów tras');
+    }
+  }
+
   async listPublished(filters: JobOfferFilters = {}): Promise<JobOffer[]> {
     let rows: JobOfferEntity[];
     try {
@@ -250,23 +295,32 @@ export class JobOfferService {
       }
     }
 
-    if (filters.homeReturnCadence) {
-      const f = filters.homeReturnCadence;
+    if (filters.homeReturnCadences?.length) {
       const o = offer.homeReturnCadence;
-      const ok = f === 'flexible' || o === 'flexible' || f === o;
+      const ok = filters.homeReturnCadences.some(
+        (f) => f === 'flexible' || o === 'flexible' || f === o
+      );
       if (!ok) {
         return false;
       }
     }
 
-    if (filters.licenseCategory) {
-      if (offer.licenseCategory !== filters.licenseCategory) {
+    if (filters.licenseCategories?.length) {
+      if (!filters.licenseCategories.includes(offer.licenseCategory)) {
         return false;
       }
     }
 
-    if (filters.requiredTransportType) {
-      if (offer.requiredTransportType !== filters.requiredTransportType) {
+    if (filters.requiredTransportTypes?.length) {
+      if (!filters.requiredTransportTypes.includes(offer.requiredTransportType)) {
+        return false;
+      }
+    }
+
+    if (filters.employmentForms?.length) {
+      if (
+        !employmentFormsOverlap(offer.employmentForms, filters.employmentForms)
+      ) {
         return false;
       }
     }
@@ -416,6 +470,7 @@ export class JobOfferService {
       requiredYearsExperience: dto.requiredYearsExperience,
       requiredTransportType: dto.requiredTransportType,
       licenseCategory: dto.licenseCategory,
+      employmentForms: this.requireEmploymentForms(dto.employmentForms),
       routes: dto.routes,
       salaryMin:
         hasSalary && dto.salaryMin != null ? String(dto.salaryMin) : null,
@@ -451,6 +506,7 @@ export class JobOfferService {
       requiredYearsExperience: row.requiredYearsExperience,
       requiredTransportType: row.requiredTransportType as TransportType,
       licenseCategory: this.resolveLicenseCategory(row),
+      employmentForms: this.resolveEmploymentForms(row),
       routes: row.routes,
       salary,
       baseLocation,
@@ -475,6 +531,27 @@ export class JobOfferService {
       `Unexpected license_category on job_offers.id=${row.id}: ${JSON.stringify(raw)}`
     );
     throw new InternalServerErrorException('Nieprawidłowe dane oferty');
+  }
+
+  private requireEmploymentForms(values: string[] | undefined): EmploymentForm[] {
+    const normalized = normalizeEmploymentForms(values ?? []);
+    if (!normalized.length) {
+      throw new BadRequestException(
+        'Wybierz co najmniej jedną formę zatrudnienia'
+      );
+    }
+    return normalized;
+  }
+
+  private resolveEmploymentForms(row: JobOfferEntity): EmploymentForm[] {
+    const normalized = normalizeEmploymentForms(row.employmentForms ?? []);
+    if (!normalized.length) {
+      this.logger.error(
+        `Missing employment_forms on job_offers.id=${row.id}: ${JSON.stringify(row.employmentForms)}`
+      );
+      throw new InternalServerErrorException('Nieprawidłowe dane oferty');
+    }
+    return normalized;
   }
 }
 

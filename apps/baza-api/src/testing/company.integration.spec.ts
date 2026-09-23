@@ -58,6 +58,7 @@ describeDb('companies, offers and applications (HTTP, real Postgres)', () => {
     requiredYearsExperience: 2,
     requiredTransportType: TRANSPORT_TYPE_CODES[0],
     licenseCategory: DRIVER_LICENSE_CODES[0],
+    employmentForms: ['uop'],
     routes: [
       {
         from: { code: COUNTRY_CODES[0], name: 'A' },
@@ -222,5 +223,31 @@ describeDb('companies, offers and applications (HTTP, real Postgres)', () => {
       expect(o.licenseCategory).toBe(other);
     }
     expect((await http().get('/api/offers').query({ license: 'ZZ' })).status).toBe(400);
+  });
+
+  it('filters public offers by employment form overlap', async () => {
+    const { token } = await company('Employment Co');
+    await setCoords(token);
+    await http()
+      .post('/api/company/offers')
+      .set(bearer(token))
+      .send(offerPayload({ employmentForms: ['uop'], title: 'Tylko UoP' }));
+    await http()
+      .post('/api/company/offers')
+      .set(bearer(token))
+      .send(offerPayload({ employmentForms: ['b2b', 'zlecenie'], title: 'B2B' }));
+
+    const filtered = await http().get('/api/offers').query({ employment: 'uop' });
+    expect(filtered.status).toBe(200);
+    expect(filtered.body.length).toBeGreaterThan(0);
+    for (const o of filtered.body) {
+      expect(o.employmentForms).toEqual(expect.arrayContaining(['uop']));
+    }
+    expect(filtered.body.some((o: { title: string }) => o.title === 'B2B')).toBe(
+      false
+    );
+    expect((await http().get('/api/offers').query({ employment: 'cash' })).status).toBe(
+      400
+    );
   });
 });

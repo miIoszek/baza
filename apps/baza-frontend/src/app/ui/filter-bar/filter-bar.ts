@@ -2,30 +2,23 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  inject,
   input,
   output,
+  signal,
 } from '@angular/core';
-import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import {
-  COUNTRIES,
   DRIVER_LICENSES,
+  EMPLOYMENT_FORMS,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPES,
+  type CountryOption,
 } from '@baza/shared-types';
-import { BazaFiltersSheet } from './filters-sheet';
 import {
-  cadenceChipLabel,
-  countriesChipLabel,
   hasOfferFilters,
-  licenceChipLabel,
   offerCountLabel,
-  transportChipLabel,
+  visibleCountryChips,
   type OfferFiltersVm,
 } from './filter-bar.vm';
 
@@ -33,52 +26,58 @@ import {
   selector: 'baza-filter-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MatBottomSheetModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatChipsModule,
-    MatIconModule,
-    MatMenuModule,
-  ],
+  imports: [MatButtonModule, MatChipsModule],
   templateUrl: './filter-bar.html',
   styleUrl: './filter-bar.scss',
 })
 export class BazaFilterBar {
-  private readonly sheet = inject(MatBottomSheet);
-
   readonly value = input.required<OfferFiltersVm>();
   readonly resultCount = input(0);
-  readonly view = input<'list' | 'map'>('list');
-  readonly mobile = input(false);
   readonly cadenceLabels = input.required<Record<string, string>>();
+  readonly countries = input<readonly CountryOption[]>([]);
 
   readonly valueChange = output<OfferFiltersVm>();
   readonly clear = output<void>();
   readonly useLocation = output<void>();
-  readonly viewChange = output<'list' | 'map'>();
 
-  protected readonly countries = COUNTRIES;
   protected readonly cadences = HOME_RETURN_CADENCES;
   protected readonly licenses = DRIVER_LICENSES;
   protected readonly transportTypes = TRANSPORT_TYPES;
+  protected readonly employmentFormOptions = EMPLOYMENT_FORMS;
 
   protected readonly countLabel = computed(() =>
     offerCountLabel(this.resultCount())
   );
-  protected readonly countriesLabel = computed(() =>
-    countriesChipLabel(this.value().routeCountries)
-  );
-  protected readonly cadenceLabel = computed(() =>
-    cadenceChipLabel(this.value().cadence, this.cadenceLabels())
-  );
-  protected readonly licenceLabel = computed(() =>
-    licenceChipLabel(this.value().licence)
-  );
-  protected readonly transportLabel = computed(() =>
-    transportChipLabel(this.value().transport)
-  );
   protected readonly hasFilters = computed(() => hasOfferFilters(this.value()));
+  protected readonly countriesExpanded = signal(false);
+  private readonly countryChipState = computed(() =>
+    visibleCountryChips(
+      this.countries(),
+      this.value().routeCountries,
+      this.countriesExpanded()
+    )
+  );
+  protected readonly visibleCountries = computed(
+    () => this.countryChipState().visible
+  );
+  protected readonly hiddenCountryCount = computed(
+    () => this.countryChipState().hiddenCount
+  );
+  protected readonly canCollapseCountries = computed(
+    () => this.countries().length > 5 && this.countriesExpanded()
+  );
+
+  protected expandCountries(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.countriesExpanded.set(true);
+  }
+
+  protected collapseCountries(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.countriesExpanded.set(false);
+  }
 
   protected emit(patch: Partial<OfferFiltersVm>): void {
     this.valueChange.emit({ ...this.value(), ...patch });
@@ -96,39 +95,51 @@ export class BazaFilterBar {
     return this.value().routeCountries.includes(code);
   }
 
-  protected clearCountries(event?: Event): void {
-    event?.stopPropagation();
-    this.emit({ routeCountries: [] });
+  protected toggleCadence(cadence: string): void {
+    const current = this.value().cadences;
+    const next = current.includes(cadence)
+      ? current.filter((c) => c !== cadence)
+      : [...current, cadence];
+    this.emit({ cadences: next });
   }
 
-  protected clearCadence(event?: Event): void {
-    event?.stopPropagation();
-    this.emit({ cadence: null });
+  protected isCadenceSelected(cadence: string): boolean {
+    return this.value().cadences.includes(cadence);
   }
 
-  protected clearLicence(event?: Event): void {
-    event?.stopPropagation();
-    this.emit({ licence: null });
+  protected toggleLicence(licence: string): void {
+    const current = this.value().licences;
+    const next = current.includes(licence)
+      ? current.filter((l) => l !== licence)
+      : [...current, licence];
+    this.emit({ licences: next });
   }
 
-  protected clearTransport(event?: Event): void {
-    event?.stopPropagation();
-    this.emit({ transport: null });
+  protected isLicenceSelected(licence: string): boolean {
+    return this.value().licences.includes(licence);
   }
 
-  protected openSheet(): void {
-    this.sheet
-      .open(BazaFiltersSheet, {
-        data: {
-          value: this.value(),
-          cadenceLabels: this.cadenceLabels(),
-        },
-      })
-      .afterDismissed()
-      .subscribe((next) => {
-        if (next) {
-          this.valueChange.emit(next);
-        }
-      });
+  protected toggleTransport(transport: string): void {
+    const current = this.value().transports;
+    const next = current.includes(transport)
+      ? current.filter((t) => t !== transport)
+      : [...current, transport];
+    this.emit({ transports: next });
+  }
+
+  protected isTransportSelected(transport: string): boolean {
+    return this.value().transports.includes(transport);
+  }
+
+  protected toggleEmployment(code: string): void {
+    const current = this.value().employmentForms;
+    const next = current.includes(code)
+      ? current.filter((c) => c !== code)
+      : [...current, code];
+    this.emit({ employmentForms: next });
+  }
+
+  protected isEmploymentSelected(code: string): boolean {
+    return this.value().employmentForms.includes(code);
   }
 }
