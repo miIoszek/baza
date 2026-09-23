@@ -1,4 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './app-shell.scss',
   host: {
     '[class.baza-app-shell--flush]': 'flush()',
+    '(keydown.escape)': 'onEscape()',
   },
 })
 export class AppShell {
@@ -31,4 +39,21 @@ export class AppShell {
   readonly dark = input(false);
   readonly themeToggle = output<void>();
   readonly logout = output<void>();
+
+  /** Narrow screens: links live in a disclosure panel under the bar. */
+  protected readonly menuOpen = signal(false);
+  private readonly menuButton = viewChild('menuButton', { read: ElementRef });
+
+  protected closeMenu(): void {
+    this.menuOpen.set(false);
+  }
+
+  /** Escape closes the open menu and hands focus back to its button. */
+  protected onEscape(): void {
+    if (!this.menuOpen()) {
+      return;
+    }
+    this.menuOpen.set(false);
+    (this.menuButton()?.nativeElement as HTMLElement | undefined)?.focus();
+  }
 }

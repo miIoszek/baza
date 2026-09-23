@@ -28,3 +28,26 @@ baza-root {
 .leaflet-tooltip.baza-country-label::before {
   display: none;
 }
+
+// Zoom buttons: dark like the map and 44 px, a thumb-sized target on phones
+.baza-map-surface .leaflet-bar {
+  overflow: hidden;
+  border: 1px solid var(--baza-map-land-stroke);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.baza-map-surface .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+  color: inherit;
+  background: var(--baza-map-land);
+  border-bottom-color: var(--baza-map-land-stroke);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--baza-map-land-stroke);
+  }
+}
