@@ -52,3 +52,7 @@ Earlier hand-off (`starter_id: nestjs`, project `baza-api`) assumed Nest-first t
 3. **Later:** driver browse/filter/apply without account + company inbox (FR-005–FR-009).
 
 Infra for this slice: self-hosted email + password auth (company accounts) + Railway Postgres (company + offer data); map pin is lat/lng (plain columns, no PostGIS) or geocoded from base location; PostGIS can wait until route filters need it.
+
+### Base location: Polish localities from PRNG (no geocoding service)
+
+The company profile sets the base pin by picking a locality: `GET /api/geo/localities?q=` (signed-in) searches an in-memory list of ~52 000 Polish towns and villages, `apps/baza-api/src/app/geo/data/pl-localities.json`, built by `scripts/build-pl-localities.mjs` from the PRNG register (Państwowy Rejestr Nazw Geograficznych, GUGiK open data, `PRNG_MIEJSCOWOSCI_SHP.zip`). Locality precision on purpose: the street address stays free text (drivers see it as typed), coordinates stay the plain `base_lat`/`base_lng` columns, and a yard outside any locality can still get coordinates typed by hand. The frontend reaches the list only through the `ADDRESS_LOOKUP` token, so a street-level provider (Photon/OSM, Google Places) can replace it later without touching the UI. To refresh the data, rerun the script on a newer PRNG export.

@@ -11,3 +11,4 @@ export * from './lib/application';
 export * from './lib/auth';
 export * from './lib/password-policy';
 export * from './lib/nip';
+export * from './lib/locality';
