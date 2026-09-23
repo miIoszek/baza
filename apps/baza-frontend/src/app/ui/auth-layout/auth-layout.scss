@@ -1,0 +1,104 @@
+:host {
+  display: block;
+}
+
+.baza-auth {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 32px 16px;
+}
+
+.baza-auth__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin-bottom: 28px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--baza-text);
+  text-decoration: none;
+
+  img {
+    width: 40px;
+    height: auto;
+  }
+}
+
+// Background, border and shadow come from tokens; the theme's `.baza-glass`
+// adds the blur in the dark theme only.
+.baza-auth__card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  background: var(--baza-glass-bg);
+  border: 1px solid var(--baza-glass-border);
+  border-radius: var(--baza-card-radius);
+  box-shadow: var(--baza-card-shadow-hover);
+}
+
+.baza-auth__card--wide {
+  max-width: 520px;
+}
+
+.baza-auth__title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.baza-auth__subtitle {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--baza-text-secondary);
+}
+
+.baza-auth__footer {
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--baza-border);
+  font-size: 14px;
+  text-align: center;
+  color: var(--baza-text-secondary);
+
+  a {
+    font-weight: 600;
+    color: var(--baza-link);
+    text-decoration: none;
+  }
+}
+
+.baza-auth__back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 16px;
+  font-size: 13.5px;
+  color: var(--baza-text-secondary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--baza-text);
+  }
+}
+
+@media (max-width: 480px) {
+  .baza-auth {
+    justify-content: flex-start;
+    padding-top: 24px;
+  }
+
+  .baza-auth__brand {
+    margin-bottom: 20px;
+  }
+
+  .baza-auth__card {
+    padding: 24px 20px;
+  }
+}

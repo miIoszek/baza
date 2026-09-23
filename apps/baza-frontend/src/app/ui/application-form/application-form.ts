@@ -13,10 +13,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { APPLICATION_FIELD_LIMITS } from '@baza/shared-types';
 import { BazaFileDrop } from '../file-drop/file-drop';
-import {
-  applicationPhoneValidator,
-  trimmedEmailValidator,
-} from './application-form.validators';
+import { trimmedEmailValidator } from '../../core/form-validators';
+import { applicationPhoneValidator } from './application-form.validators';
 
 export type BazaApplicationState =
   | 'idle'

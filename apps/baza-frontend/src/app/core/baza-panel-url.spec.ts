@@ -1,4 +1,13 @@
-import { isBazaFlushLayoutUrl, isBazaPanelUrl } from './baza-panel-url';
+import { isBazaAuthUrl, isBazaFlushLayoutUrl, isBazaPanelUrl } from './baza-panel-url';
+
+describe('isBazaAuthUrl', () => {
+  it('drops the app bar only on sign-in and password screens', () => {
+    expect(isBazaAuthUrl('/login?returnUrl=%2Fcompany%2Finbox')).toBe(true);
+    expect(isBazaAuthUrl('/reset-password?token=x')).toBe(true);
+    expect(isBazaAuthUrl('/company/profile')).toBe(false);
+    expect(isBazaAuthUrl('/')).toBe(false);
+  });
+});
 
 describe('isBazaPanelUrl', () => {
   it('treats public marketplace routes as not panel', () => {

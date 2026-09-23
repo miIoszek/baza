@@ -1,21 +1,127 @@
-@use '../auth-shared';
+.register__progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
 
-.auth-photo {
+.register__steps {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.register__step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--baza-text-secondary);
+
+  // Connector between the two steps
+  &:first-child {
+    flex: 1;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      margin-left: 2px;
+      background: var(--baza-border);
+    }
+  }
+}
+
+.register__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid var(--baza-border-strong);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.register__step--active {
+  color: var(--baza-text);
+
+  .register__dot {
+    color: var(--mat-sys-on-primary);
+    background: var(--mat-sys-primary);
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.register__step--done .register__dot {
+  color: var(--mat-sys-primary);
+  border-color: var(--mat-sys-primary);
+}
+
+.register__count {
+  font-size: 12px;
+  color: var(--baza-text-secondary);
+  white-space: nowrap;
+}
+
+.register__banner {
+  margin-bottom: 18px;
+}
+
+.register__fields {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin: 0.25rem 0 0.75rem;
+  gap: 4px;
+
+  mat-form-field {
+    width: 100%;
+  }
 }
 
-.auth-photo__label {
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
+.register__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.auth-photo__preview {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--mat-sys-outline-variant);
+.register__terms {
+  margin: 4px 0 12px;
+}
+
+.register__error {
+  margin: 0;
+  padding-left: 40px;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-error);
+}
+
+.register__primary {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.register__actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+}
+
+.register__submit-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .register__row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }

@@ -1,68 +1,73 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthApiService } from '../../core/auth-api.service';
+import { trimmedEmailValidator } from '../../core/form-validators';
+import { BazaAuthLayout, BazaBanner } from '../../ui';
 
 @Component({
   selector: 'baza-forgot-password-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
+    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatIconModule,
+    MatProgressSpinnerModule,
+    BazaAuthLayout,
+    BazaBanner,
   ],
   template: `
-    <section class="auth-page">
-      <mat-card class="auth-card baza-glass-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Nie pamiętasz hasła?</mat-card-title>
-          <mat-card-subtitle>Wyślemy link do ustawienia nowego</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          @if (sent()) {
-            <p role="status">
-              Jeśli konto z tym adresem istnieje, wysłaliśmy na niego wiadomość z linkiem do resetu
-              hasła. Link jest ważny 15 minut.
-            </p>
-          } @else {
-            <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-              <mat-form-field class="auth-field">
-                <mat-label>Email</mat-label>
-                <mat-icon matPrefix>mail</mat-icon>
-                <input matInput type="email" formControlName="email" autocomplete="email" />
-                @if (form.controls.email.touched && form.controls.email.invalid) {
-                  <mat-error>Podaj poprawny adres email</mat-error>
-                }
-              </mat-form-field>
-              @if (error()) {
-                <p class="auth-field-error" role="alert">{{ error() }}</p>
-              }
-              <button
-                mat-flat-button
-                color="primary"
-                class="baza-btn-premium full-width"
-                type="submit"
-                [disabled]="submitting()"
-              >
+    <baza-auth-layout
+      title="Nie pamiętasz hasła?"
+      subtitle="Wyślemy link do ustawienia nowego"
+      footerLinkLabel="Wróć do logowania"
+      footerLink="/login"
+    >
+      @if (sent()) {
+        <baza-banner variant="success">
+          Jeśli konto z tym adresem istnieje, wysłaliśmy na niego wiadomość z linkiem do resetu
+          hasła. Link jest ważny 15 minut.
+        </baza-banner>
+      } @else {
+        @if (error()) {
+          <baza-banner class="forgot__banner">{{ error() }}</baza-banner>
+        }
+        <form class="forgot__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="biuro@twojafirma.pl"
+            />
+            <mat-error>Podaj poprawny adres email</mat-error>
+          </mat-form-field>
+          <button mat-flat-button type="submit" class="forgot__submit baza-glow" [disabled]="submitting()">
+            <span class="forgot__submit-content">
+              @if (submitting()) {
+                <mat-progress-spinner class="baza-button-spinner" mode="indeterminate" diameter="20" aria-hidden="true" />
+                Wysyłanie…
+              } @else {
                 Wyślij link
-              </button>
-            </form>
-          }
-        </mat-card-content>
-        <mat-card-footer class="auth-footer">
-          <a routerLink="/login">Wróć do logowania</a>
-        </mat-card-footer>
-      </mat-card>
-    </section>
+              }
+            </span>
+          </button>
+        </form>
+      }
+    </baza-auth-layout>
   `,
   styleUrl: './forgot-password.scss',
 })
@@ -74,7 +79,7 @@ export class ForgotPasswordPage {
   protected readonly sent = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, trimmedEmailValidator()]],
   });
 
   protected async onSubmit(): Promise<void> {
@@ -85,7 +90,7 @@ export class ForgotPasswordPage {
     this.submitting.set(true);
     this.error.set(null);
     try {
-      await this.api.forgotPassword(this.form.getRawValue().email);
+      await this.api.forgotPassword(this.form.getRawValue().email.trim());
       this.sent.set(true);
     } catch (err: unknown) {
       this.error.set(AuthApiService.messageOf(err, 'Nie udało się wysłać wiadomości'));

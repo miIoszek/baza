@@ -72,6 +72,7 @@ $baza-red-400: #f87171;
       surface-container-low: #f8fafc,
       background: #f8fafc,
       on-surface: $baza-navy-800,
+      on-background: $baza-navy-800,
       on-surface-variant: $baza-slate-500,
       outline: #cbd5e1,
       outline-variant: #e2e8f0,
@@ -210,6 +211,7 @@ $baza-red-400: #f87171;
       surface-container-low: #{$baza-navy-800},
       background: #{$baza-navy-800},
       on-surface: #e2e8f0,
+      on-background: #e2e8f0,
       on-surface-variant: #94a3b8,
       outline: #{$baza-slate-500},
       outline-variant: rgba(100, 116, 139, 0.35),
@@ -430,6 +432,11 @@ h1 {
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--baza-text);
+}
+
+// Podpowiedzi pod polami dziedziczą kolor (Material go nie ustawia): tekst drugorzędny.
+mat-hint {
+  color: var(--mat-sys-on-surface-variant);
 }
 
 // Focus widoczny wszędzie — nie usuwaj outline'u bez zamiennika.

@@ -28,8 +28,11 @@ export const PASSWORD_RESET_TTL_MS = 15 * 60 * 1000;
 export const MAX_FAILED_LOGIN_ATTEMPTS = 10;
 export const ACCOUNT_LOCK_DURATION_MS = 15 * 60 * 1000;
 
-export const MIN_PASSWORD_LENGTH = 10;
-export const MAX_PASSWORD_LENGTH = 128;
+/** Defined once in @baza/shared-types so the SPA forms validate exactly like the API. */
+export {
+  PASSWORD_MIN_LENGTH as MIN_PASSWORD_LENGTH,
+  PASSWORD_MAX_LENGTH as MAX_PASSWORD_LENGTH,
+} from '@baza/shared-types';
 export const MAX_EMAIL_LENGTH = 254;
 
 /** Guard's per-process account cache. A ban is visible on other replicas within this window. */

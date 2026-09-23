@@ -19,12 +19,6 @@
   border-bottom: 1px solid var(--baza-border);
 }
 
-:host-context(.baza-panel) .baza-app-shell__toolbar {
-  background: color-mix(in srgb, var(--baza-surface) 55%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
 .baza-app-shell__brand {
   display: inline-flex;
   align-items: center;
@@ -204,4 +198,10 @@ a.baza-app-shell__active {
       background: var(--baza-surface-sunken);
     }
   }
+}
+
+:host.baza-app-shell--bare .baza-app-shell__main {
+  min-width: 0;
+  max-width: none;
+  padding: 0;
 }

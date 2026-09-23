@@ -1,47 +1,61 @@
-import { Component, inject, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
 import {
-  AbstractControl,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import {
   FormBuilder,
   ReactiveFormsModule,
-  ValidationErrors,
   Validators,
+  type AbstractControl,
 } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import type { RegisterCompanyResponse } from '@baza/shared-types';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
+import {
+  matchesControlValidator,
+  nipValidator,
+  passwordPolicyValidator,
+  trimmedEmailValidator,
+} from '../../core/form-validators';
+import { BazaAuthLayout, BazaBanner } from '../../ui';
 
-function passwordsMatch(group: AbstractControl): ValidationErrors | null {
-  const password = group.get('password')?.value;
-  const confirm = group.get('confirmPassword')?.value;
-  if (!password || !confirm) {
-    return null;
-  }
-  return password === confirm ? null : { passwordMismatch: true };
-}
+/**
+ * "Dalej" submits the form, and Material's default matcher then flags every invalid field of
+ * step 2 before anyone touched it. Here a field shows its error once touched; each step marks
+ * its own fields touched when it is checked.
+ */
+const touchedOnly: ErrorStateMatcher = {
+  isErrorState: (control: AbstractControl | null) => !!(control?.invalid && control.touched),
+};
 
+/** Registration in two steps (canvas "Rejestracja"): the account, then the company. */
 @Component({
   selector: 'baza-register-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: ErrorStateMatcher, useValue: touchedOnly }],
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
+    MatButtonModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    BazaAuthLayout,
+    BazaBanner,
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -51,165 +65,128 @@ export class RegisterPage {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly snackBar = inject(MatSnackBar);
 
+  protected readonly step = signal<1 | 2>(1);
   protected readonly hidePassword = signal(true);
-  protected readonly hideConfirm = signal(true);
   protected readonly submitting = signal(false);
-  protected readonly photoPreview = signal<string | null>(null);
-  private photoFile: File | null = null;
+  protected readonly submitAttempted = signal(false);
+  protected readonly error = signal<string | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group(
-    {
+  protected readonly form = this.fb.nonNullable.group({
+    account: this.fb.nonNullable.group({
+      email: ['', [Validators.required, trimmedEmailValidator(), Validators.maxLength(254)]],
+      password: ['', [Validators.required, passwordPolicyValidator('email')]],
+      confirmPassword: ['', [Validators.required, matchesControlValidator('password')]],
+    }),
+    company: this.fb.nonNullable.group({
       companyName: [
         '',
-        [
-          Validators.required,
-          Validators.minLength(2),
-          Validators.maxLength(120),
-        ],
+        [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
       ],
-      nip: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
-      email: ['', [Validators.required, Validators.email]],
-      location: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(200),
-        ],
-      ],
-      description: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(1),
-          Validators.maxLength(2000),
-        ],
-      ],
-      password: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(8),
-          Validators.maxLength(128),
-        ],
-      ],
-      confirmPassword: ['', [Validators.required]],
+      nip: ['', [Validators.required, nipValidator()]],
+      location: ['', [Validators.required, Validators.maxLength(200)]],
+      description: ['', [Validators.required, Validators.maxLength(2000)]],
       terms: [false, [Validators.requiredTrue]],
-    },
-    { validators: passwordsMatch }
-  );
+    }),
+  });
 
-  protected onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+  protected readonly account = this.form.controls.account;
+  protected readonly company = this.form.controls.company;
 
-    const previousPreview = this.photoPreview();
-    if (previousPreview) {
-      URL.revokeObjectURL(previousPreview);
-    }
+  constructor() {
+    // Cross-field rules read the sibling value, so re-run them when it changes.
+    const { email, password, confirmPassword } = this.account.controls;
+    const destroyRef = inject(DestroyRef);
+    email.valueChanges
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe(() => password.updateValueAndValidity({ emitEvent: false }));
+    password.valueChanges
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe(() => confirmPassword.updateValueAndValidity({ emitEvent: false }));
+  }
 
-    if (!file) {
-      this.photoFile = null;
-      this.photoPreview.set(null);
-      return;
-    }
+  protected termsError(): boolean {
+    const terms = this.company.controls.terms;
+    return terms.invalid && (terms.touched || this.submitAttempted());
+  }
 
-    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
-    const maxBytes = 5 * 1024 * 1024;
-
-    if (!allowed.has(file.type)) {
-      input.value = '';
-      this.photoFile = null;
-      this.photoPreview.set(null);
-      this.snackBar.open(
-        'Dozwolone są tylko pliki JPEG, PNG lub WebP',
-        'OK',
-        { duration: 5000 }
-      );
-      return;
-    }
-
-    if (file.size > maxBytes) {
-      input.value = '';
-      this.photoFile = null;
-      this.photoPreview.set(null);
-      this.snackBar.open('Logo może mieć max. 5 MB', 'OK', { duration: 5000 });
-      return;
-    }
-
-    this.photoFile = file;
-    this.photoPreview.set(URL.createObjectURL(file));
+  protected back(): void {
+    this.error.set(null);
+    this.step.set(1);
   }
 
   protected async onSubmit(): Promise<void> {
-    if (this.form.invalid || this.submitting()) {
-      this.form.markAllAsTouched();
+    if (this.step() === 1) {
+      this.goToCompanyStep();
+      return;
+    }
+    this.submitAttempted.set(true);
+    if (this.company.invalid || this.submitting()) {
+      this.company.markAllAsTouched();
       return;
     }
 
-    const raw = this.form.getRawValue();
+    const { account, company } = this.form.getRawValue();
+    const email = account.email.trim();
+    const formData = new FormData();
+    formData.append('name', company.companyName.trim());
+    formData.append('nip', company.nip.replace(/[\s-]/g, ''));
+    formData.append('email', email);
+    formData.append('password', account.password);
+    formData.append('description', company.description.trim());
+    formData.append('baseLocation', company.location.trim());
+    formData.append('termsAccepted', String(company.terms));
 
     this.submitting.set(true);
+    this.error.set(null);
     try {
-      const formData = new FormData();
-      formData.append('name', raw.companyName);
-      formData.append('nip', raw.nip);
-      formData.append('email', raw.email);
-      formData.append('password', raw.password);
-      formData.append('description', raw.description);
-      formData.append('baseLocation', raw.location);
-      formData.append('termsAccepted', String(raw.terms));
-      if (this.photoFile) {
-        formData.append('photo', this.photoFile);
-      }
-
       const result = await firstValueFrom(
         this.http.post<RegisterCompanyResponse>(
           `${environment.apiBaseUrl}/api/auth/register`,
           formData
         )
       );
-
       if (result.emailVerificationRequired) {
-        await this.router.navigate(['/check-email'], {
-          queryParams: { email: raw.email },
-        });
+        await this.router.navigate(['/check-email'], { queryParams: { email } });
         return;
       }
-
-      const { error } = await this.auth.signIn(raw.email, raw.password);
+      const { error } = await this.auth.signIn(email, account.password);
       if (error) {
-        this.snackBar.open(error, 'OK', { duration: 5000 });
+        this.error.set(error);
         return;
       }
-
       await this.router.navigateByUrl('/company/profile');
     } catch (err: unknown) {
-      const message = this.extractError(err);
-      this.snackBar.open(message, 'OK', { duration: 6000 });
+      this.error.set(messageOf(err));
+      if (err instanceof HttpErrorResponse && err.error?.code === 'WEAK_PASSWORD') {
+        this.step.set(1);
+      }
     } finally {
       this.submitting.set(false);
     }
   }
 
-  private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const body = err.error as { message?: string | string[] } | string | null;
-      if (typeof body === 'string' && body.trim()) {
-        return body;
-      }
-      if (body && typeof body === 'object' && body.message) {
-        return Array.isArray(body.message)
-          ? body.message.join(', ')
-          : body.message;
-      }
-      return err.message || 'Rejestracja nie powiodła się';
+  private goToCompanyStep(): void {
+    if (this.account.invalid) {
+      this.account.markAllAsTouched();
+      return;
     }
-    if (err instanceof Error) {
-      return err.message;
-    }
-    return 'Rejestracja nie powiodła się';
+    this.error.set(null);
+    this.step.set(2);
+    // Keyboard and screen-reader users land on the first field of the new step.
+    setTimeout(() => document.getElementById('register-company-name')?.focus());
   }
+}
+
+function messageOf(err: unknown): string {
+  if (err instanceof HttpErrorResponse) {
+    if (err.status === 0) {
+      return 'Brak połączenia z serwerem. Spróbuj ponownie.';
+    }
+    const message = (err.error as { message?: string | string[] } | null)?.message;
+    if (message) {
+      return Array.isArray(message) ? message.join(', ') : message;
+    }
+  }
+  return 'Rejestracja nie powiodła się';
 }

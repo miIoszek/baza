@@ -1,20 +1,7 @@
 import { FormControl } from '@angular/forms';
 import { describe, expect, it } from 'vitest';
 import { isValidApplicationPhone } from '@baza/shared-types';
-import {
-  applicationPhoneValidator,
-  trimmedEmailValidator,
-} from './application-form.validators';
-
-describe('trimmedEmailValidator', () => {
-  it('accepts an address with surrounding spaces', () => {
-    expect(trimmedEmailValidator()(new FormControl(' jan@example.com '))).toBeNull();
-  });
-
-  it('still rejects a malformed address', () => {
-    expect(trimmedEmailValidator()(new FormControl('jan@'))).toEqual({ email: true });
-  });
-});
+import { applicationPhoneValidator } from './application-form.validators';
 
 describe('application phone', () => {
   it('rejects letters and short numbers', () => {

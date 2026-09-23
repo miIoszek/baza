@@ -4,7 +4,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AppShell } from '@baza/ui';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './core/auth.service';
-import { isBazaFlushLayoutUrl } from './core/baza-panel-url';
+import { isBazaAuthUrl, isBazaFlushLayoutUrl } from './core/baza-panel-url';
 import { ThemeService } from './core/theme.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class App implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   protected flushLayout = isBazaFlushLayoutUrl(this.router.url);
+  protected bareLayout = isBazaAuthUrl(this.router.url);
 
   ngOnInit(): void {
     void this.auth.init();
@@ -46,6 +47,7 @@ export class App implements OnInit {
 
   private applyRouteChrome(url: string): void {
     this.flushLayout = isBazaFlushLayoutUrl(url);
+    this.bareLayout = isBazaAuthUrl(url);
     this.theme.syncFromUrl(url);
   }
 }

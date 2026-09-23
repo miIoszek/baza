@@ -40,8 +40,11 @@ Jest (CJS) go nie transformuje, a projekt jest na Nest 11. Przypięto `@nestjs/t
 
 ### 6. Walidacja w DTO vs polityka hasła
 Stary `@MinLength(8)` w `RegisterCompanyDto` odrzucał hasło zanim zadziałała wspólna polityka (10 znaków),
-więc klient dostawał błąd bez kodu `WEAK_PASSWORD`. Siła hasła jest w jednym miejscu
-(`password-policy.util.ts`); DTO tylko ogranicza długość górną (ochrona scrypt).
+więc klient dostawał błąd bez kodu `WEAK_PASSWORD`. Siła hasła jest w jednym miejscu:
+`isAcceptablePassword` w `@baza/shared-types` (`libs/shared/types/src/lib/password-policy.ts`;
+`password-policy.util.ts` w API to tylko re-eksport). Formularze SPA (rejestracja, reset) walidują
+tą samą funkcją, więc nie mogą obiecać hasła, którego API nie przyjmie. DTO tylko ogranicza długość
+górną (ochrona scrypt).
 
 ### 7. Słabe hasło nie może spalić linku resetu
 `resetPassword` sprawdza politykę bez emaila PRZED zużyciem tokenu (reguła "hasło = email" sprawdzana

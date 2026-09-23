@@ -25,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './app-shell.scss',
   host: {
     '[class.baza-app-shell--flush]': 'flush()',
+    '[class.baza-app-shell--bare]': 'bare()',
     '(keydown.escape)': 'onEscape()',
   },
 })
@@ -35,6 +36,8 @@ export class AppShell {
   readonly accountAvatarUrl = input<string | null>(null);
   /** Full-bleed layout for the public offers split view. */
   readonly flush = input(false);
+  /** No app bar and no page padding: screens that bring their own frame (sign-in). */
+  readonly bare = input(false);
   /** Current color scheme — sun in dark, moon in light. */
   readonly dark = input(false);
   readonly themeToggle = output<void>();

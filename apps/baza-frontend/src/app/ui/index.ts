@@ -25,3 +25,6 @@ export type {
   BazaApplicationState,
   BazaApplicationSubmit,
 } from './application-form/application-form';
+export { BazaBanner } from './banner/banner';
+export type { BazaBannerVariant } from './banner/banner';
+export { BazaAuthLayout } from './auth-layout/auth-layout';

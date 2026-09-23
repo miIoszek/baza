@@ -1,37 +1,43 @@
-import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthApiService } from '../../core/auth-api.service';
+import { BazaAuthLayout, BazaBanner } from '../../ui';
 
 /** Shown after registration when the address still has to be verified. */
 @Component({
   selector: 'baza-check-email-page',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatButtonModule, BazaAuthLayout, BazaBanner],
   template: `
-    <section class="auth-page">
-      <mat-card class="auth-card baza-glass-card" appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>Sprawdź skrzynkę</mat-card-title>
-          <mat-card-subtitle>Potwierdź adres email, aby się zalogować</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p>
-            Jeśli podany adres @if (email) { (<strong>{{ email }}</strong>) } jest poprawny,
-            wysłaliśmy na niego link potwierdzający. Jest ważny 24 godziny.
-          </p>
-          @if (email) {
-            <button mat-stroked-button type="button" (click)="resend()" [disabled]="busy() || sent()">
-              {{ sent() ? 'Wysłano ponownie' : 'Wyślij link ponownie' }}
-            </button>
-          }
-        </mat-card-content>
-        <mat-card-footer class="auth-footer">
-          <a routerLink="/login">Przejdź do logowania</a>
-        </mat-card-footer>
-      </mat-card>
-    </section>
+    <baza-auth-layout
+      title="Sprawdź skrzynkę"
+      subtitle="Potwierdź adres email, aby się zalogować"
+      footerLinkLabel="Przejdź do logowania"
+      footerLink="/login"
+    >
+      <p class="check-email__text">
+        Jeśli podany adres @if (email) {
+          (<strong>{{ email }}</strong>)
+        }
+        jest poprawny, wysłaliśmy na niego link potwierdzający. Jest ważny 24 godziny.
+      </p>
+      @if (email) {
+        @if (sent()) {
+          <baza-banner variant="success">Wysłaliśmy nowy link — sprawdź skrzynkę.</baza-banner>
+        } @else {
+          <button mat-stroked-button type="button" class="check-email__resend" (click)="resend()" [disabled]="busy()">
+            Wyślij link ponownie
+          </button>
+        }
+      }
+    </baza-auth-layout>
   `,
   styleUrl: './check-email.scss',
 })

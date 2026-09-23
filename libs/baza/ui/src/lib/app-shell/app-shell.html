@@ -1,3 +1,4 @@
+@if (!bare()) {
 <mat-toolbar class="baza-app-shell__toolbar">
   <a class="baza-app-shell__brand" routerLink="/" aria-label="Baza — strona główna">
     <img class="baza-app-shell__logo" src="/baza-logo.png" alt="" width="44" height="54" />
@@ -169,6 +170,7 @@
       >
     }
   </nav>
+}
 }
 <main class="baza-app-shell__main">
   <ng-content />
