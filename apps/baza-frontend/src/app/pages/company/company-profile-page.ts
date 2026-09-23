@@ -1,231 +1,243 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  OnDestroy,
+  OnInit,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-  type AbstractControl,
-  type ValidationErrors,
-} from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import type { AuthMeCompany } from '@baza/shared-types';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map, startWith } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
+import { coordinatesValidator, formatCoordinates, parseCoordinates } from '../../core/coordinates';
+import { nipValidator } from '../../core/form-validators';
+import {
+  BazaLogoAvatar,
+  BazaSkeleton,
+  BazaStateBlock,
+  OfferRouteMapComponent,
+} from '../../ui';
 
-const NIP_PATTERN = /^\d{10}$/;
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-function coordsPairValidator(
-  group: AbstractControl
-): ValidationErrors | null {
-  const lat = group.get('baseLat')?.value;
-  const lng = group.get('baseLng')?.value;
-  const hasLat = lat != null && lat !== '';
-  const hasLng = lng != null && lng !== '';
-  if (hasLat !== hasLng) {
-    return { coordsPair: true };
-  }
-  return null;
-}
-
+/**
+ * Company profile (canvas "ProfilFirmy"). Until the address search lands, the base
+ * is an address line plus coordinates pasted by hand; the map shows where they point.
+ */
 @Component({
   selector: 'baza-company-profile-page',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    MatCardModule,
+    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    BazaLogoAvatar,
+    BazaSkeleton,
+    BazaStateBlock,
+    OfferRouteMapComponent,
   ],
   templateUrl: './company-profile-page.html',
   styleUrl: './company-profile-page.scss',
 })
 export class CompanyProfilePage implements OnInit, OnDestroy {
-  private readonly fb = new FormBuilder();
+  private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
 
   protected readonly loading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
   protected readonly submitting = signal(false);
-  protected readonly companyId = signal<string | null>(null);
+  protected readonly company = signal<AuthMeCompany | null>(null);
   protected readonly photoPreview = signal<string | null>(null);
+  protected readonly photoName = signal<string | null>(null);
+  protected readonly photoError = signal<string | null>(null);
+  protected readonly showCoordinates = signal(false);
   private photoFile: File | null = null;
 
-  protected readonly form = this.fb.nonNullable.group(
-    {
-      name: [
-        '',
-        [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
-      ],
-      nip: ['', [Validators.required, Validators.pattern(NIP_PATTERN)]],
-      baseLocation: [
-        '',
-        [Validators.required, Validators.minLength(1), Validators.maxLength(200)],
-      ],
-      baseLat: [
-        null as number | null,
-        [Validators.min(-90), Validators.max(90)],
-      ],
-      baseLng: [
-        null as number | null,
-        [Validators.min(-180), Validators.max(180)],
-      ],
-      description: [
-        '',
-        [Validators.required, Validators.minLength(1), Validators.maxLength(2000)],
-      ],
-    },
-    { validators: [coordsPairValidator] }
+  protected readonly form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
+    nip: ['', [Validators.required, nipValidator()]],
+    description: ['', [Validators.required, Validators.maxLength(2000)]],
+    baseLocation: ['', [Validators.required, Validators.maxLength(200)]],
+    coordinates: ['', [coordinatesValidator()]],
+  });
+
+  /** The base as the map should show it, following what is typed. */
+  protected readonly pin = toSignal(
+    this.form.controls.coordinates.valueChanges.pipe(
+      startWith(null),
+      map(() => parseCoordinates(this.form.controls.coordinates.value))
+    ),
+    { requireSync: true }
   );
 
+  protected readonly pinLabel = computed(() => {
+    const pin = this.pin();
+    return pin ? formatCoordinates(pin) : null;
+  });
+
   async ngOnInit(): Promise<void> {
-    await this.auth.whenReady();
-    await this.auth.refreshMe();
-    const loadError = this.auth.meLoadError();
-    if (loadError) {
-      this.loading.set(false);
-      this.snackBar.open(loadError, 'OK', { duration: 7000 });
-      return;
-    }
-    const company = this.auth.company();
-    if (!company) {
-      this.loading.set(false);
-      const loggedIn = this.auth.isLoggedIn();
-      this.snackBar.open(
-        loggedIn
-          ? 'Brak profilu firmy dla tego konta — zarejestruj firmę ponownie (/register)'
-          : 'Nie znaleziono profilu firmy',
-        'OK',
-        { duration: 7000 }
-      );
-      return;
-    }
-    try {
-      this.applyCompany(company);
-    } catch (err: unknown) {
-      this.snackBar.open(
-        err instanceof Error ? err.message : 'Nie udało się wczytać profilu',
-        'OK',
-        { duration: 6000 }
-      );
-    }
-    this.loading.set(false);
+    await this.load();
   }
 
   ngOnDestroy(): void {
     this.revokePreview();
   }
 
+  protected async retryLoad(): Promise<void> {
+    if (!this.loading()) {
+      await this.load();
+    }
+  }
+
+  protected revealCoordinates(): void {
+    this.showCoordinates.set(true);
+    afterNextRender(
+      () => this.host.nativeElement.querySelector<HTMLElement>('#profile-coordinates')?.focus(),
+      { injector: this.injector }
+    );
+  }
+
   protected onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
-
-    this.revokePreview();
-
+    input.value = '';
     if (!file) {
-      this.photoFile = null;
-      this.photoPreview.set(null);
       return;
     }
-
     if (!PHOTO_MIME.has(file.type)) {
-      input.value = '';
-      this.photoFile = null;
-      this.photoPreview.set(null);
-      this.snackBar.open(
-        'Dozwolone są tylko pliki JPEG, PNG lub WebP',
-        'OK',
-        { duration: 5000 }
-      );
+      this.photoError.set('Logo musi być plikiem PNG, JPG lub WebP.');
       return;
     }
-
     if (file.size > PHOTO_MAX_BYTES) {
-      input.value = '';
-      this.photoFile = null;
-      this.photoPreview.set(null);
-      this.snackBar.open('Logo może mieć max. 5 MB', 'OK', { duration: 5000 });
+      this.photoError.set('Logo może mieć najwyżej 5 MB.');
       return;
     }
-
+    this.photoError.set(null);
+    this.revokePreview();
     this.photoFile = file;
+    this.photoName.set(file.name);
     this.photoPreview.set(URL.createObjectURL(file));
   }
 
+  /** "Anuluj": back to what is saved. */
+  protected discardChanges(): void {
+    const company = this.company();
+    if (company) {
+      this.applyCompany(company);
+    }
+  }
+
   protected async onSubmit(): Promise<void> {
-    if (this.form.invalid || this.submitting()) {
+    if (this.submitting()) {
+      return;
+    }
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      if (this.form.controls.coordinates.invalid) {
+        this.showCoordinates.set(true);
+      }
+      this.focusFirstInvalid();
       return;
     }
 
     const raw = this.form.getRawValue();
+    const coords = parseCoordinates(raw.coordinates);
+    const formData = new FormData();
+    formData.append('name', raw.name.trim());
+    formData.append('nip', raw.nip.replace(/[\s-]/g, ''));
+    formData.append('description', raw.description);
+    formData.append('baseLocation', raw.baseLocation.trim());
+    formData.append('baseLat', coords ? String(coords.lat) : '');
+    formData.append('baseLng', coords ? String(coords.lng) : '');
+    if (this.photoFile) {
+      formData.append('photo', this.photoFile);
+    }
+
     this.submitting.set(true);
     try {
-      const formData = new FormData();
-      formData.append('name', raw.name);
-      formData.append('nip', raw.nip);
-      formData.append('description', raw.description);
-      formData.append('baseLocation', raw.baseLocation);
-      if (raw.baseLat != null && raw.baseLng != null) {
-        formData.append('baseLat', String(raw.baseLat));
-        formData.append('baseLng', String(raw.baseLng));
-      } else {
-        formData.append('baseLat', '');
-        formData.append('baseLng', '');
-      }
-      if (this.photoFile) {
-        formData.append('photo', this.photoFile);
-      }
-
       const updated = await firstValueFrom(
-        this.http.patch<AuthMeCompany>(
-          `${environment.apiBaseUrl}/api/company/profile`,
-          formData
-        )
+        this.http.patch<AuthMeCompany>(`${environment.apiBaseUrl}/api/company/profile`, formData)
       );
-
-      // Drop blob preview first, then show server URLs (versioned R2 keys).
-      this.photoFile = null;
-      this.revokePreview();
       this.applyCompany(updated);
+      // The app bar shows the name and logo too.
       await this.auth.refreshMe();
       this.snackBar.open('Profil zapisany', 'OK', { duration: 4000 });
     } catch (err: unknown) {
-      this.snackBar.open(this.extractError(err), 'OK', { duration: 6000 });
+      this.snackBar.open(this.extractError(err), 'OK', { duration: 7000 });
     } finally {
       this.submitting.set(false);
     }
   }
 
+  private async load(): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(null);
+    await this.auth.whenReady();
+    await this.auth.refreshMe();
+    const error = this.auth.meLoadError();
+    const company = this.auth.company();
+    if (error) {
+      this.loadError.set(error);
+    } else if (company) {
+      this.applyCompany(company);
+      // No pin yet: the coordinates field is the only way to set one, so show it.
+      this.showCoordinates.set(company.baseLat == null || company.baseLng == null);
+    }
+    this.loading.set(false);
+  }
+
   private applyCompany(company: AuthMeCompany): void {
-    this.companyId.set(company.id);
-    this.form.setValue({
+    this.company.set(company);
+    const hasPin = company.baseLat != null && company.baseLng != null;
+    this.form.reset({
       name: company.name,
       nip: company.nip,
-      baseLocation: company.baseLocation,
-      baseLat: company.baseLat ?? null,
-      baseLng: company.baseLng ?? null,
       description: company.description,
+      baseLocation: company.baseLocation,
+      coordinates: hasPin ? `${company.baseLat}, ${company.baseLng}` : '',
     });
+    this.photoFile = null;
+    this.photoName.set(null);
+    this.photoError.set(null);
+    this.revokePreview();
     const urls = company.photoUrls;
-    if (urls && !this.photoFile) {
-      const url =
-        urls['s192'] ?? urls['s96'] ?? urls['original'] ?? null;
-      this.photoPreview.set(url);
-    }
+    this.photoPreview.set(urls ? (urls['s192'] ?? urls['s96'] ?? urls['original'] ?? null) : null);
+  }
+
+  /** Focus the first field showing an error, once the error states are drawn. */
+  private focusFirstInvalid(): void {
+    afterNextRender(
+      () =>
+        this.host.nativeElement
+          .querySelector('mat-error')
+          ?.closest('mat-form-field')
+          ?.querySelector<HTMLElement>('input, textarea')
+          ?.focus(),
+      { injector: this.injector }
+    );
   }
 
   private revokePreview(): void {
@@ -237,21 +249,15 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
   }
 
   private extractError(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const body = err.error as { message?: string | string[] } | string | null;
-      if (typeof body === 'string' && body.trim()) {
-        return body;
+    if (err instanceof HttpErrorResponse && err.status >= 400 && err.status < 500) {
+      const msg = (err.error as { message?: unknown } | null)?.message;
+      if (typeof msg === 'string') {
+        return msg;
       }
-      if (body && typeof body === 'object' && body.message) {
-        return Array.isArray(body.message)
-          ? body.message.join(', ')
-          : body.message;
+      if (Array.isArray(msg)) {
+        return msg.join(', ');
       }
-      return err.message || 'Nie udało się zapisać profilu';
     }
-    if (err instanceof Error) {
-      return err.message;
-    }
-    return 'Nie udało się zapisać profilu';
+    return 'Nie udało się zapisać profilu. Spróbuj ponownie.';
   }
 }

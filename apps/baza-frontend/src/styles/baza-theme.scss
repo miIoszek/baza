@@ -20,8 +20,13 @@
 // kluczy — użyj jej, nie obchodź tego ::ng-deep.
 // =============================================================================
 
+@use '@angular/cdk' as cdk;
 @use '@angular/material' as mat;
 @use './baza-palette' as palette;
+
+// .cdk-visually-hidden for text meant only for screen readers. The CDK adds it only
+// when a component that needs it is on the page, so the app loads it once, here.
+@include cdk.a11y-visually-hidden();
 
 // -----------------------------------------------------------------------------
 // 1. Paleta marki
