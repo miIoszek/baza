@@ -4,6 +4,7 @@ import {
   EMPLOYMENT_FORMS,
   TRANSPORT_TYPES,
 } from '@baza/shared-types';
+import { pluralPl } from '../../core/polish-plural';
 
 export interface OfferFiltersVm {
   routeCountries: string[];
@@ -32,16 +33,7 @@ export function hasOfferFilters(value: OfferFiltersVm): boolean {
 }
 
 export function offerCountLabel(count: number): string {
-  const n = Math.abs(count);
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (n === 1) {
-    return '1 oferta';
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return `${count} oferty`;
-  }
-  return `${count} ofert`;
+  return pluralPl(count, 'oferta', 'oferty', 'ofert');
 }
 
 export function countriesChipLabel(codes: string[]): string {

@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnInit,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -14,6 +16,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import type { JobOffer } from '@baza/shared-types';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { pluralPl } from '../../../core/polish-plural';
 import {
   BazaConfirmDialog,
   BazaSkeleton,
@@ -28,19 +31,6 @@ const DATE = new Intl.DateTimeFormat('pl-PL', {
   year: 'numeric',
 });
 
-/** "1 oferta", "3 oferty", "5 ofert", "12 ofert", "22 oferty". */
-export function offersLabel(n: number): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (n === 1) {
-    return '1 oferta';
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return `${n} oferty`;
-  }
-  return `${n} ofert`;
-}
-
 /** Company's own offers (canvas "MojeOferty"): status, edit, withdraw, delete. */
 @Component({
   selector: 'baza-company-offers-list-page',
@@ -54,6 +44,7 @@ export class CompanyOffersListPage implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly heading = viewChild.required<ElementRef<HTMLElement>>('heading');
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -65,7 +56,7 @@ export class CompanyOffersListPage implements OnInit {
     const all = this.offers();
     const published = all.filter((o) => o.published).length;
     return all.length
-      ? `${offersLabel(all.length)} · ${published} ${published === 1 ? 'opublikowana' : 'opublikowane'}`
+      ? `${pluralPl(all.length, 'oferta', 'oferty', 'ofert')} · ${pluralPl(published, 'opublikowana', 'opublikowane', 'opublikowanych')}`
       : '0 ofert';
   });
 
@@ -81,6 +72,8 @@ export class CompanyOffersListPage implements OnInit {
   protected async retryLoad(): Promise<void> {
     if (!this.loading()) {
       await this.reload();
+      // The retry button is gone by now; keep keyboard focus on the page, not <body>.
+      this.heading().nativeElement.focus();
     }
   }
 

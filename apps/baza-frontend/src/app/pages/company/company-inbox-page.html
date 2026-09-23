@@ -1,64 +1,97 @@
-<section class="auth-page">
-  <mat-card class="auth-card baza-glass-card" appearance="outlined">
-    <div class="auth-brand">
-      <img
-        class="auth-brand__logo"
-        src="/baza-logo.png"
-        alt=""
-        width="48"
-        height="59"
-      />
-      <span class="auth-brand__name">Baza</span>
+<section class="inbox">
+  <header class="inbox__header">
+    <div>
+      <h1 #heading class="inbox__title" tabindex="-1">Skrzynka aplikacji</h1>
+      <p class="inbox__subtitle">Aplikacje kierowców do ofert Twojej firmy</p>
     </div>
-    <mat-card-header>
-      <mat-card-title>Skrzynka aplikacji</mat-card-title>
-      <mat-card-subtitle>Aplikacje kierowców do ofert Twojej firmy</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      @if (loading()) {
-      <p class="auth-form inbox-list__status">Ładowanie…</p>
-      } @else {
-      <div class="auth-form">
-        @if (applications().length === 0) {
-        <p class="inbox-list__empty">Brak aplikacji.</p>
-        } @else {
-        <ul class="inbox-list">
-          @for (app of applications(); track app.id) {
-          <li class="inbox-list__item">
-            <div class="inbox-list__body">
-              <strong>{{ app.email }}</strong>
-              <span class="inbox-list__meta">
-                {{ app.phone }}
-                @if (app.jobOfferTitle) {
-                · {{ app.jobOfferTitle }}
-                } @else if (app.jobOfferId) {
-                · {{ app.jobOfferId }}
-                }
-                · {{ app.createdAt | date: 'short' }}
-              </span>
-              @if (app.message) {
-              <p class="inbox-list__message">{{ app.message }}</p>
-              }
-            </div>
-            <div class="inbox-list__actions">
-              <button
-                mat-stroked-button
-                type="button"
-                [disabled]="downloadingId() === app.id"
-                (click)="downloadCv(app)"
-              >
-                {{ downloadingId() === app.id ? 'Pobieranie…' : 'Pobierz CV' }}
-              </button>
-            </div>
-          </li>
-          }
-        </ul>
-        }
-      </div>
+    @if (!loading() && !failed()) {
+      <span class="inbox__counter">{{ counter() }}</span>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="inbox__loading" role="status">Ładowanie…</p>
+    <ul class="inbox__list" aria-hidden="true">
+      @for (s of skeletons; track s) {
+        <li class="inbox__card">
+          <baza-skeleton width="280px" height="11px" />
+          <div class="inbox__skel-contact">
+            <baza-skeleton width="240px" height="16px" />
+            <baza-skeleton width="160px" height="16px" />
+          </div>
+          <baza-skeleton width="148px" height="40px" radius="14px" />
+        </li>
       }
-    </mat-card-content>
-    <mat-card-footer class="auth-footer">
-      <a routerLink="/company/offers">← Moje oferty</a>
-    </mat-card-footer>
-  </mat-card>
+    </ul>
+  } @else if (failed()) {
+    <baza-state-block
+      variant="error"
+      icon="alert"
+      title="Nie udało się wczytać aplikacji"
+      message="Aplikacje są bezpieczne — to problem z połączeniem."
+      actionLabel="Spróbuj ponownie"
+      (action)="retryLoad()"
+    />
+  } @else if (applications().length === 0) {
+    <baza-state-block icon="inbox" title="Brak aplikacji." />
+  } @else {
+    <ul class="inbox__list">
+      @for (app of applications(); track app.id) {
+        <!-- The top-right corner stays empty: the application status goes there after the MVP. -->
+        <li class="inbox__card">
+          <p class="inbox__offer">
+            <span>Do oferty:</span>
+            <strong class="inbox__offer-title">{{ app.jobOfferTitle || 'Oferta niedostępna' }}</strong>
+            <span class="inbox__dot" aria-hidden="true">·</span>
+            <time [attr.datetime]="app.createdAt">{{ sentAt(app.createdAt) }}</time>
+          </p>
+
+          <div class="inbox__contact">
+            <a class="inbox__email" [href]="'mailto:' + app.email">
+              <svg class="inbox__icon inbox__icon--mail" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <polyline points="2 7 12 13 22 7" />
+              </svg>
+              {{ app.email }}
+            </a>
+            <a class="inbox__phone" [href]="telHref(app.phone)">
+              <svg class="inbox__icon inbox__icon--phone" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2.1z" />
+              </svg>
+              {{ app.phone }}
+            </a>
+          </div>
+
+          @if (app.message) {
+            <p class="inbox__message">{{ app.message }}</p>
+          }
+
+          <div class="inbox__cv">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="downloadingId() === app.id"
+              disabledInteractive
+              [attr.aria-label]="'Pobierz CV od ' + app.email"
+              (click)="downloadCv(app)"
+            >
+              <span class="inbox__cv-label">
+                @if (downloadingId() === app.id) {
+                  <mat-progress-spinner class="baza-button-spinner" mode="indeterminate" diameter="17" aria-hidden="true" />
+                } @else {
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                }
+                Pobierz CV
+              </span>
+            </button>
+            <span class="inbox__file">{{ cvDownloadName(app) }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
 </section>

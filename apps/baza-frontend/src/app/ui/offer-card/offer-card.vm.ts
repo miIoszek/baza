@@ -4,6 +4,7 @@ import {
   TRANSPORT_TYPES,
   type JobOffer,
 } from '@baza/shared-types';
+import { pluralPl } from '../../core/polish-plural';
 
 export interface OfferCardVm {
   id: string;
@@ -71,16 +72,7 @@ export function transportLabel(code: string): string {
 
 /** "1 rok", "2 lata", "5 lat", "12 lat", "22 lata". */
 export function yearsLabel(years: number): string {
-  const n = Math.abs(years);
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (n === 1) {
-    return '1 rok';
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return `${years} lata`;
-  }
-  return `${years} lat`;
+  return pluralPl(years, 'rok', 'lata', 'lat');
 }
 
 /** "8 000–10 000 PLN", "od 6 000 PLN"; null when no amount is given. */

@@ -11,7 +11,7 @@ import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
 import type { JobOffer } from '@baza/shared-types';
-import { CompanyOffersListPage, offersLabel } from './company-offers-list-page';
+import { CompanyOffersListPage } from './company-offers-list-page';
 
 describe('CompanyOffersListPage', () => {
   beforeEach(async () => {
@@ -170,13 +170,4 @@ describe('CompanyOffersListPage', () => {
     http.verify();
   });
 
-  it('pluralises the offer count in Polish', () => {
-    expect([1, 2, 5, 12, 22].map(offersLabel)).toEqual([
-      '1 oferta',
-      '2 oferty',
-      '5 ofert',
-      '12 ofert',
-      '22 oferty',
-    ]);
-  });
 });
