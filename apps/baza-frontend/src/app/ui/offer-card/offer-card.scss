@@ -18,8 +18,7 @@
 }
 
 .baza-offer-card:hover,
-.baza-offer-card:focus-visible,
-.baza-offer-card--highlighted {
+.baza-offer-card:focus-visible {
   border-color: var(--baza-border-strong);
   box-shadow: var(--baza-card-shadow-hover);
   outline: none;

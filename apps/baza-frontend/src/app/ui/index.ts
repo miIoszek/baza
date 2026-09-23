@@ -12,4 +12,3 @@ export { toOfferCardVm } from './offer-card/offer-card.vm';
 export type { OfferCardVm } from './offer-card/offer-card.vm';
 export { BazaFilterBar } from './filter-bar/filter-bar';
 export type { OfferFiltersVm } from './filter-bar/filter-bar.vm';
-export { BazaSplitListMap } from './split-list-map/split-list-map';

@@ -54,7 +54,6 @@ export type JobOffersQueryModel = {
   employmentForms: string[];
   nearLat: number | null;
   nearLng: number | null;
-  view: 'list' | 'map';
 };
 
 function parseCsvQueryParam(
@@ -96,7 +95,6 @@ export function parseJobOffersQueryParams(
     employmentForms: parseCsvQueryParam(get, 'employment'),
     nearLat: nearLat != null && !Number.isNaN(nearLat) ? nearLat : null,
     nearLng: nearLng != null && !Number.isNaN(nearLng) ? nearLng : null,
-    view: get('view') === 'map' ? 'map' : 'list',
   };
 }
 
@@ -139,7 +137,6 @@ export function jobOffersQueryToRouterParams(
       : null,
     nearLat: model.nearLat != null ? String(model.nearLat) : null,
     nearLng: model.nearLng != null ? String(model.nearLng) : null,
-    view: model.view === 'map' ? 'map' : null,
   };
 }
 
@@ -298,7 +295,6 @@ export class JobOffersPage implements OnInit {
     employmentForms: [],
     nearLat: null,
     nearLng: null,
-    view: 'list',
   });
 
   /** Bumped by retryLoad() so refetch shares the queryParamMap → switchMap pipe. */

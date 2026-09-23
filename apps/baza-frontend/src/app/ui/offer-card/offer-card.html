@@ -1,12 +1,9 @@
 <a
   class="baza-offer-card"
-  [class.baza-offer-card--highlighted]="highlighted()"
   [class.baza-offer-card--compact]="variant() === 'compact'"
   [routerLink]="['/job-offers', offer().id]"
   queryParamsHandling="preserve"
   [attr.aria-label]="'Oferta: ' + offer().title"
-  (mouseenter)="hovered.emit(offer().id)"
-  (mouseleave)="hovered.emit(null)"
 >
   @if (variant() === 'full') {
     <div class="baza-offer-card__company">

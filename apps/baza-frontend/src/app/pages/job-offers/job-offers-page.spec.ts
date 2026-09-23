@@ -50,15 +50,7 @@ describe('job-offers query helpers', () => {
       employmentForms: ['uop', 'b2b'],
       nearLat: 52.1,
       nearLng: 21.0,
-      view: 'list',
     });
-  });
-
-  it('parses map view from query params', () => {
-    const model = parseJobOffersQueryParams((k) =>
-      k === 'view' ? 'map' : null
-    );
-    expect(model.view).toBe('map');
   });
 
   it('builds HttpParams with comma-separated multiselect values', () => {
@@ -70,7 +62,6 @@ describe('job-offers query helpers', () => {
       employmentForms: ['uop'],
       nearLat: null,
       nearLng: null,
-      view: 'list',
     };
     const params = jobOffersQueryToHttpParams(model);
     expect(params.get('countries')).toBe('IT');
@@ -90,7 +81,6 @@ describe('job-offers query helpers', () => {
       employmentForms: [],
       nearLat: null,
       nearLng: null,
-      view: 'list',
     });
     expect(params).toEqual({
       countries: null,
@@ -100,7 +90,6 @@ describe('job-offers query helpers', () => {
       employment: null,
       nearLat: null,
       nearLng: null,
-      view: null,
     });
   });
 
@@ -114,7 +103,6 @@ describe('job-offers query helpers', () => {
         employmentForms: [],
         nearLat: null,
         nearLng: null,
-        view: 'list',
       })
     ).toBe(false);
     expect(
@@ -126,7 +114,6 @@ describe('job-offers query helpers', () => {
         employmentForms: [],
         nearLat: null,
         nearLng: null,
-        view: 'list',
       })
     ).toBe(true);
     expect(
@@ -138,7 +125,6 @@ describe('job-offers query helpers', () => {
         employmentForms: [],
         nearLat: null,
         nearLng: null,
-        view: 'list',
       })
     ).toBe(true);
     expect(
@@ -150,7 +136,6 @@ describe('job-offers query helpers', () => {
         employmentForms: ['uop'],
         nearLat: null,
         nearLng: null,
-        view: 'list',
       })
     ).toBe(true);
   });
@@ -165,7 +150,6 @@ describe('job-offers query helpers', () => {
         employmentForms: [],
         nearLat: 52,
         nearLng: 21,
-        view: 'list',
       })
     ).toBe(true);
   });
@@ -179,7 +163,6 @@ describe('job-offers query helpers', () => {
       employmentForms: ['uop'],
       nearLat: 52.2,
       nearLng: 21.0,
-      view: 'list',
     });
     const keys = params.keys().sort();
     expect(keys).toEqual(
@@ -213,7 +196,6 @@ describe('job-offers query helpers', () => {
       employmentForms: ['uop'],
       nearLat: 52,
       nearLng: 21,
-      view: 'list',
     };
     const tags = buildActiveFilterTags(query, { weekly: 'Co tydzień' }, [
       { code: 'PL', namePl: 'Polska' },
