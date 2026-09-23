@@ -1,33 +1,99 @@
-@use '../../auth-shared';
-
-.offers-list {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0 1.5rem;
-}
-
-.offers-list__item {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--baza-glass-border, rgba(148, 163, 184, 0.2));
-}
-
-.offers-list__meta {
+.offers {
   display: block;
-  font-size: 0.85rem;
-  opacity: 0.75;
-  margin-top: 0.25rem;
+  max-width: 1080px;
+  margin-inline: auto;
 }
 
-.offers-list__actions {
+.offers__header {
   display: flex;
-  flex-shrink: 0;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 24px;
 }
 
-.auth-form baza-async-status {
-  margin-top: 0.5rem;
-  width: 100%;
+.offers__title {
+  margin-bottom: 5px;
+  font-size: 26px;
+}
+
+.offers__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--baza-text-secondary);
+}
+
+.offers__counter {
+  font-size: 13.5px;
+  color: var(--baza-text-secondary);
+}
+
+.offers__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.offers__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 20px 24px;
+  background: var(--baza-glass-bg);
+  border: 1px solid var(--baza-border);
+  border-radius: var(--baza-card-radius);
+}
+
+.offers__main {
+  min-width: 0;
+}
+
+.offers__name {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--baza-text);
+  overflow-wrap: anywhere;
+}
+
+.offers__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--baza-text-secondary);
+}
+
+.offers__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.offers__skel-gap {
+  margin-top: 10px;
+}
+
+@media (max-width: 599px) {
+  .offers__row {
+    padding: 18px 16px;
+  }
+
+  // Full-width row of actions under the offer on phones
+  .offers__actions {
+    width: 100%;
+
+    > * {
+      flex: 1 1 auto;
+    }
+  }
 }

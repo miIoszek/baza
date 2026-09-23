@@ -216,6 +216,7 @@ $baza-red-400: #f87171;
       outline: #{$baza-slate-500},
       outline-variant: rgba(100, 116, 139, 0.35),
       error: #{$baza-red-400},
+      on-error: #450a0a,
       corner-small: 14px,
       corner-medium: 14px,
       corner-large: 24px,
@@ -326,6 +327,17 @@ $baza-red-400: #f87171;
       title-text-size: 1.75rem,
       title-text-line-height: 2.25rem,
       title-text-weight: 700,
+    )
+  );
+}
+
+// Irreversible actions: red filled button (dialog confirm) and red text button ("Usuń")
+.baza-danger {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-error),
+      filled-label-text-color: var(--mat-sys-on-error),
+      text-label-text-color: var(--mat-sys-error),
     )
   );
 }

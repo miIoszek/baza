@@ -28,3 +28,5 @@ export type {
 export { BazaBanner } from './banner/banner';
 export type { BazaBannerVariant } from './banner/banner';
 export { BazaAuthLayout } from './auth-layout/auth-layout';
+export { BazaConfirmDialog } from './confirm-dialog/confirm-dialog';
+export type { BazaConfirmData } from './confirm-dialog/confirm-dialog';
