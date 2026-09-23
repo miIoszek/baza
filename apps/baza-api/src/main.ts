@@ -3,8 +3,15 @@
  * This is only a minimal backend to get started.
  */
 
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { config as loadEnv } from 'dotenv';
-loadEnv();
+
+// Webpack runs the compiled app from dist/apps/baza-api, so cwd `.env` misses the repo root file.
+const envPath = [resolve(process.cwd(), '.env'), resolve(__dirname, '../../../.env')].find(
+  (candidate) => existsSync(candidate)
+);
+loadEnv(envPath ? { path: envPath } : undefined);
 
 // After dotenv so SENTRY_DSN is visible; before Nest so instrumentation can wrap modules.
 import './instrument';
