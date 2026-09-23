@@ -9,7 +9,6 @@ import { ForgotPasswordPage } from './pages/forgot-password/forgot-password';
 import { ResetPasswordPage } from './pages/reset-password/reset-password';
 import { VerifyEmailPage } from './pages/verify-email/verify-email';
 import { CompanyProfilePage } from './pages/company/company-profile-page';
-import { CompanyPublicProfilePage } from './pages/companies/company-public-profile';
 import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
 import { CompanyOfferFormPage } from './pages/company/offers/company-offer-form-page';
 
@@ -42,7 +41,10 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'companies/:id',
-    component: CompanyPublicProfilePage,
+    loadComponent: () =>
+      import('./pages/companies/company-public-profile').then(
+        (m) => m.CompanyPublicProfilePage
+      ),
   },
   {
     path: 'login',

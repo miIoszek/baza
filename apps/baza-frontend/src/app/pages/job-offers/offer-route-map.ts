@@ -88,9 +88,9 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
     this.layer = L.layerGroup().addTo(this.map);
     this.map.on('zoomend', this.onZoomEnd);
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => {
-        this.map?.invalidateSize();
-      });
+      // Refit, not just resize: the first size Leaflet sees can be stale, and the
+      // mobile strip grows when expanded — both should show the whole route.
+      this.resizeObserver = new ResizeObserver(() => this.paint(true));
       this.resizeObserver.observe(el);
     }
     setTimeout(() => this.map?.invalidateSize(), 0);
@@ -139,13 +139,14 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       this.paintLegs(routeLegs, highlightedLabel, colors, bounds) || hasPoint;
 
     if (fit) {
+      // Fit against the container's current size, not a cached one.
+      this.map.invalidateSize();
       if (!hasPoint) {
         this.map.setView([52.1, 19.4], 6);
       } else {
         this.map.fitBounds(bounds.pad(0.25), { maxZoom: 6 });
       }
     }
-    setTimeout(() => this.map?.invalidateSize(), 0);
   }
 
   private paintLegs(

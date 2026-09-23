@@ -95,6 +95,7 @@ $baza-red-400: #f87171;
   --baza-surface-sunken: #f1f5f9;
   --baza-border: #e2e8f0;
   --baza-border-strong: #cbd5e1;
+  --baza-link: #1e40af;
 
   --baza-card-radius: 24px;
   --baza-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
@@ -228,6 +229,7 @@ $baza-red-400: #f87171;
   --baza-surface-sunken: rgba(2, 6, 23, 0.4);
   --baza-border: rgba(100, 116, 139, 0.3);
   --baza-border-strong: #{$baza-slate-500};
+  --baza-link: #{$baza-sky-300};
 
   --baza-card-radius: 24px;
   --baza-card-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
@@ -259,6 +261,9 @@ $baza-red-400: #f87171;
   --baza-warn-fg: #fde68a;
   --baza-warn-bg: rgba(251, 191, 36, 0.07);
   --baza-warn-border: rgba(251, 191, 36, 0.4);
+  --baza-success-fg: #{$baza-green-300};
+  --baza-success-bg: rgba(110, 231, 183, 0.12);
+  --baza-success-border: rgba(110, 231, 183, 0.45);
 
   --baza-glass-bg: rgba(30, 41, 59, 0.42);
   --baza-glass-border: var(--baza-border);
@@ -301,6 +306,8 @@ $baza-red-400: #f87171;
     (
       filled-container-shape: 14px,
       filled-container-color: #f1f5f9,
+      // Hint text must not read like an entered value (#475569 is too close to #0f172a)
+      filled-input-text-placeholder-color: #{$baza-slate-450},
     )
   );
 
@@ -320,11 +327,21 @@ $baza-red-400: #f87171;
   );
 }
 
+// Spinner inside a button takes the button's label colour (also when disabled)
+.baza-button-spinner {
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: currentColor,
+    )
+  );
+}
+
 .baza-panel {
   // Wypełnienie pola w panelu (Załącznik B: rgba(51,65,85,0.5))
   @include mat.form-field-overrides(
     (
       filled-container-color: rgba(51, 65, 85, 0.5),
+      filled-input-text-placeholder-color: #94a3b8,
     )
   );
 }

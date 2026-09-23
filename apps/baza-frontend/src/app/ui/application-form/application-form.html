@@ -1,0 +1,154 @@
+@if (state() === 'sent') {
+  <div class="baza-application-form__sent" role="status">
+    <span class="baza-application-form__sent-icon" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    </span>
+    <h2 class="baza-application-form__sent-title">Aplikacja wysłana</h2>
+    <p class="baza-application-form__sent-text">
+      Dziękujemy. Twoja aplikacja została przekazana firmie.
+    </p>
+  </div>
+} @else {
+  <div class="baza-application-form">
+    <div class="baza-application-form__head">
+      <h2 class="baza-application-form__title">Aplikuj</h2>
+      <p class="baza-application-form__lead">Bez konta — e-mail, telefon i CV (PDF)</p>
+    </div>
+
+    <form class="baza-application-form__body" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (state() === 'error-network') {
+        <div class="baza-application-form__banner baza-application-form__banner--error" role="alert">
+          <svg class="baza-application-form__banner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="8" x2="12" y2="13" />
+            <line x1="12" y1="16.5" x2="12" y2="16.5" />
+          </svg>
+          <span>
+            <span class="baza-application-form__banner-title">Nie udało się wysłać aplikacji</span>
+            <span class="baza-application-form__banner-text">{{
+              errorMessage() ??
+                'Sprawdź połączenie i spróbuj ponownie — Twoje dane i plik zostają w formularzu.'
+            }}</span>
+          </span>
+        </div>
+      } @else if (state() === 'error-duplicate') {
+        <div class="baza-application-form__banner baza-application-form__banner--warn" role="alert">
+          <svg class="baza-application-form__banner-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="8" x2="12" y2="13" />
+            <line x1="12" y1="16.5" x2="12" y2="16.5" />
+          </svg>
+          <span>
+            <span class="baza-application-form__banner-title">Już aplikowałeś na tę ofertę</span>
+            <span class="baza-application-form__banner-text">
+              Z tego adresu e-mail wysłałeś już aplikację. Firma widzi tę pierwszą
+              aplikację — nie musisz wysyłać jej ponownie.
+            </span>
+          </span>
+        </div>
+      }
+
+      <mat-form-field class="baza-application-form__field">
+        <mat-label>E-mail</mat-label>
+        <svg matIconPrefix class="baza-application-form__prefix" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <polyline points="2 7 12 13 22 7" />
+        </svg>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="jan.kowalski@example.com"
+          [attr.maxlength]="limits.email"
+        />
+        <mat-error>Podaj poprawny adres e-mail — na ten adres firma odpisze.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="baza-application-form__field">
+        <mat-label>Telefon</mat-label>
+        <svg matIconPrefix class="baza-application-form__prefix" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2.1z" />
+        </svg>
+        <input
+          matInput
+          type="tel"
+          formControlName="phone"
+          autocomplete="tel"
+          placeholder="+48 123 456 789"
+          [attr.maxlength]="limits.phone"
+        />
+        @if (form.controls.phone.hasError('required')) {
+          <mat-error>Telefon jest wymagany</mat-error>
+        } @else {
+          <mat-error>Podaj prawidłowy numer telefonu</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="baza-application-form__field">
+        <mat-label>Wiadomość (opcjonalnie)</mat-label>
+        <textarea
+          matInput
+          rows="3"
+          formControlName="message"
+          placeholder="Np. ile lat jeździsz, jakie masz uprawnienia, od kiedy możesz zacząć."
+          [attr.maxlength]="limits.message"
+        ></textarea>
+        <mat-hint align="end">{{ form.controls.message.value.length }} / {{ limits.message }}</mat-hint>
+      </mat-form-field>
+
+      <div class="baza-application-form__group">
+        <baza-file-drop
+          label="CV (PDF, max. 5 MB)"
+          [fileName]="cv()?.name ?? null"
+          [invalid]="cvInvalid()"
+          [errorId]="cvInvalid() ? 'baza-apply-cv-error' : null"
+          (selected)="onCvSelected($event)"
+          (rejected)="onCvRejected()"
+        />
+        @if (cvInvalid()) {
+          <p id="baza-apply-cv-error" class="baza-application-form__error">
+            Dodaj CV w formacie PDF, nie większe niż 5 MB.
+          </p>
+        }
+      </div>
+
+      <div class="baza-application-form__group">
+        <mat-checkbox
+          formControlName="consentAccepted"
+          [aria-describedby]="consentError() ? 'baza-apply-consent-error' : ''"
+        >
+          Wyrażam zgodę na przetwarzanie danych osobowych w celu rekrutacji
+        </mat-checkbox>
+        @if (consentError()) {
+          <p id="baza-apply-consent-error" class="baza-application-form__error baza-application-form__error--consent">
+            Bez tej zgody nie możemy przekazać aplikacji firmie.
+          </p>
+        }
+      </div>
+
+      <button
+        mat-flat-button
+        type="submit"
+        class="baza-application-form__submit"
+        [disabled]="state() === 'sending'"
+      >
+        <span class="baza-application-form__submit-content">
+          @if (state() === 'sending') {
+            <mat-progress-spinner
+              class="baza-button-spinner"
+              mode="indeterminate"
+              diameter="20"
+              aria-hidden="true"
+            />
+            Wysyłanie…
+          } @else {
+            Wyślij aplikację
+          }
+        </span>
+      </button>
+    </form>
+  </div>
+}

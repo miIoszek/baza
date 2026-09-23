@@ -1,291 +1,160 @@
 <section class="offer-detail">
   @if (loading()) {
-  <p class="offer-detail__status">Ładowanie oferty…</p>
-  } @else if (notFound()) {
-  <mat-card appearance="outlined" class="offer-detail__card">
-    <mat-card-header>
-      <mat-card-title>Nie znaleziono oferty</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>Oferta nie istnieje albo została wycofana.</p>
-      <a mat-button routerLink="/" queryParamsHandling="preserve">← Wszystkie oferty</a>
-    </mat-card-content>
-  </mat-card>
-  } @else if (offer(); as o) {
-  <div
-    class="offer-detail__layout"
-    [class.offer-detail__layout--map]="showMapPane() && hasMapGeometry()"
-  >
-    <div class="offer-detail__main">
-      <mat-card appearance="outlined" class="offer-detail__card">
-        <div class="offer-detail__actions">
-          <a mat-button routerLink="/" queryParamsHandling="preserve">← Oferty</a>
-          @if (!applySuccess()) {
-          <button
-            mat-flat-button
-            class="baza-btn-premium"
-            type="button"
-            (click)="scrollToApply()"
-          >
-            Aplikuj teraz
-          </button>
+    <p class="offer-detail__loading" role="status">Ładowanie oferty…</p>
+    <div class="offer-detail__grid offer-detail__grid--split" aria-hidden="true">
+      <div class="offer-detail__main">
+        <div>
+          <baza-skeleton width="70%" height="34px" radius="8px" />
+          <baza-skeleton class="offer-detail__skel-gap" width="40%" height="16px" />
+          <baza-skeleton class="offer-detail__skel-gap" width="200px" height="40px" radius="11px" />
+        </div>
+        <div class="offer-detail__card offer-detail__skel-rows">
+          @for (row of skeletonRows; track row) {
+            <baza-skeleton height="12px" [width]="row % 2 ? '60%' : '45%'" />
           }
         </div>
-        <mat-card-header>
-          <mat-card-title>{{ o.title }}</mat-card-title>
-          <mat-card-subtitle>
-            {{ transportLabel(o.requiredTransportType) }} ·
-            {{ cadenceLabel(o.homeReturnCadence) }}
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <a
-            class="offer-detail__company"
-            [routerLink]="['/companies', o.companyId]"
-          >
-            @if (logoUrl(o); as logo) {
-            <img
-              class="offer-detail__logo"
-              [src]="logo"
-              alt=""
-              width="48"
-              height="48"
-            />
-            } @else {
-            <span
-              class="offer-detail__logo offer-detail__logo--placeholder"
-              aria-hidden="true"
-              >{{ (o.companyName || '?').charAt(0).toUpperCase() }}</span
-            >
-            }
-            <span>{{ o.companyName || 'Firma' }}</span>
-          </a>
+      </div>
+      @if (isDesktop()) {
+        <div class="offer-detail__map offer-detail__map--loading baza-map-surface">
+          <span class="offer-detail__map-note">Ładowanie mapy…</span>
+        </div>
+      }
+    </div>
+  } @else if (notFound()) {
+    <baza-state-block
+      variant="empty"
+      icon="alert"
+      title="Nie znaleziono oferty"
+      message="Oferta nie istnieje albo została wycofana."
+    >
+      <a mat-flat-button routerLink="/">← Wszystkie oferty</a>
+    </baza-state-block>
+  } @else if (offer(); as o) {
+    <div class="offer-detail__actions">
+      <a class="offer-detail__back" routerLink="/" queryParamsHandling="preserve">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+        Oferty
+      </a>
+      @if (isDesktop() && applyState() !== 'sent') {
+        <button mat-flat-button type="button" (click)="scrollToApply()">Aplikuj teraz</button>
+      }
+    </div>
 
-          <dl class="offer-detail__fields">
-            <div class="offer-detail__field-row">
-              <dt>Trasy</dt>
-              <dd>
-                <ul class="offer-detail__routes">
-                  @for (r of o.routes; track $index) {
+    <div class="offer-detail__grid" [class.offer-detail__grid--split]="isDesktop() && hasMapGeometry()">
+      <div class="offer-detail__main">
+        <header>
+          <h1 class="offer-detail__title">{{ o.title }}</h1>
+          <p class="offer-detail__subtitle">
+            {{ transportLabel(o.requiredTransportType) }} · {{ cadenceLabel(o.homeReturnCadence) }}
+          </p>
+          <a class="offer-detail__company" [routerLink]="['/companies', o.companyId]">
+            <baza-logo-avatar [name]="o.companyName || 'Firma'" [logoUrl]="logoUrl(o)" [size]="48" />
+            <span class="offer-detail__company-text">
+              <span class="offer-detail__company-name">{{ o.companyName || 'Firma' }}</span>
+              @if (o.companyBaseLocationText) {
+                <span class="offer-detail__muted">{{ o.companyBaseLocationText }}</span>
+              }
+            </span>
+          </a>
+        </header>
+
+        @if (!isDesktop()) {
+          @if (hasMapGeometry()) {
+            <div class="offer-detail__strip baza-map-surface" [class.offer-detail__strip--open]="mapExpanded()">
+              <baza-offer-route-map
+                [baseLocation]="o.baseLocation"
+                [legs]="routeLegs()"
+                [highlightedLabel]="hoveredRouteLabel()"
+              />
+              <button
+                type="button"
+                class="offer-detail__strip-toggle"
+                [attr.aria-expanded]="mapExpanded()"
+                (click)="mapExpanded.set(!mapExpanded())"
+              >
+                {{ mapExpanded() ? 'Zmniejsz mapę' : 'Powiększ mapę' }}
+              </button>
+            </div>
+          }
+          @if (applyState() !== 'sent') {
+            <button mat-flat-button type="button" class="offer-detail__cta" (click)="scrollToApply()">
+              Aplikuj teraz
+            </button>
+          }
+        }
+
+        <div class="offer-detail__card">
+          <dl class="offer-detail__facts">
+            <dt>Trasy</dt>
+            <dd>
+              <ul class="offer-detail__routes">
+                @for (r of o.routes; track $index) {
                   <li
+                    [class.offer-detail__route--active]="hoveredRouteLabel() === routeKey(r.from.code, r.to.code)"
                     (pointerenter)="hoverRoute(r.from.code, r.to.code)"
                     (pointerleave)="clearHoveredRoute()"
-                    [class.offer-detail__routes-item--active]="
-                      hoveredRouteLabel() ===
-                      routeKey(r.from.code, r.to.code)
-                    "
                   >
-                    <span class="offer-detail__route-from"
-                      >{{ r.from.name }}
-                      <span class="offer-detail__route-code">({{ r.from.code }})</span></span
-                    >
-                    <span class="offer-detail__route-arrow" aria-hidden="true"
-                      >→</span
-                    >
-                    <span class="offer-detail__route-to"
-                      >{{ r.to.name }}
-                      <span class="offer-detail__route-code">({{ r.to.code }})</span></span
-                    >
+                    <baza-tag variant="route">
+                      {{ r.from.name }} ({{ r.from.code }}) → {{ r.to.name }} ({{ r.to.code }})
+                    </baza-tag>
                   </li>
-                  }
-                </ul>
-              </dd>
-            </div>
-            <div class="offer-detail__field-row">
-              <dt>Wymagane doświadczenie</dt>
-              <dd>{{ o.requiredYearsExperience }} lat</dd>
-            </div>
-            <div class="offer-detail__field-row">
-              <dt>Prawo jazdy</dt>
-              <dd>
-                {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }}
-              </dd>
-            </div>
-            <div class="offer-detail__field-row">
-              <dt>Forma zatrudnienia</dt>
-              <dd>{{ employmentLabel(o) }}</dd>
-            </div>
+                }
+              </ul>
+            </dd>
+            <dt>Wymagane doświadczenie</dt>
+            <dd>{{ yearsLabel(o.requiredYearsExperience) }}</dd>
+            <dt>Prawo jazdy</dt>
+            <dd>{{ licenseLabel(o.licenseCategory) }}</dd>
+            <dt>Powrót do domu</dt>
+            <dd><baza-tag variant="cadence" icon="home">{{ cadenceLabel(o.homeReturnCadence) }}</baza-tag></dd>
+            <dt>Forma zatrudnienia</dt>
+            <dd>{{ employmentLabel(o) }}</dd>
             @if (salaryText(o); as salary) {
-            <div class="offer-detail__field-row">
               <dt>Wynagrodzenie</dt>
-              <dd>{{ salary }}</dd>
-            </div>
-            } @if (o.companyBaseLocationText) {
-            <div class="offer-detail__field-row">
+              <dd class="offer-detail__salary">{{ salary }}</dd>
+            }
+            @if (o.companyBaseLocationText) {
               <dt>Lokalizacja bazy</dt>
               <dd>{{ o.companyBaseLocationText }}</dd>
-            </div>
             }
-            <div class="offer-detail__field-row offer-detail__field-row--description">
-              <dt>Opis</dt>
-              <dd class="offer-detail__description">{{ o.description }}</dd>
-            </div>
           </dl>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card
-        id="offer-apply"
-        appearance="outlined"
-        class="offer-detail__card offer-detail__apply"
-        [class.offer-detail__apply--success]="applySuccess()"
-      >
-        @if (applySuccess()) {
-        <div class="offer-detail__apply-head">
-          <h2 class="offer-detail__apply-title">Aplikacja wysłana</h2>
-          <p class="offer-detail__success" role="status">
-            Dziękujemy. Twoja aplikacja została przekazana firmie.
-          </p>
         </div>
-        } @else {
-        <div class="offer-detail__apply-head">
-          <h2 class="offer-detail__apply-title">Aplikuj</h2>
-          <p class="offer-detail__apply-lead">
-            Bez konta — e-mail, telefon i CV (PDF)
-          </p>
+
+        <div class="offer-detail__card">
+          <h2 class="offer-detail__card-title">Opis</h2>
+          <p class="offer-detail__description">{{ o.description }}</p>
         </div>
-        <form
-          class="offer-detail__apply-form"
-          [formGroup]="applyForm"
-          (ngSubmit)="onApply()"
-        >
-          <mat-form-field class="offer-detail__field"
-          >
-            <mat-label>E-mail</mat-label>
-            <mat-icon matPrefix>mail</mat-icon>
-            <input
-              matInput
-              type="email"
-              formControlName="email"
-              [attr.maxlength]="fieldLimits.email"
-              autocomplete="email"
-            />
-            @if (
-              applyForm.controls.email.touched &&
-              applyForm.controls.email.hasError('required')
-            ) {
-            <mat-error>E-mail jest wymagany</mat-error>
-            } @else if (
-              applyForm.controls.email.touched &&
-              applyForm.controls.email.hasError('email')
-            ) {
-            <mat-error>Podaj poprawny adres e-mail</mat-error>
-            } @else if (
-              applyForm.controls.email.touched &&
-              applyForm.controls.email.hasError('maxlength')
-            ) {
-            <mat-error>Max. {{ fieldLimits.email }} znaków</mat-error>
-            }
-          </mat-form-field>
 
-          <mat-form-field class="offer-detail__field"
-          >
-            <mat-label>Telefon</mat-label>
-            <mat-icon matPrefix>call</mat-icon>
-            <input
-              matInput
-              type="tel"
-              formControlName="phone"
-              [attr.maxlength]="fieldLimits.phone"
-              autocomplete="tel"
-              placeholder="+48 123 456 789"
-            />
-            @if (
-              applyForm.controls.phone.touched &&
-              applyForm.controls.phone.hasError('required')
-            ) {
-            <mat-error>Telefon jest wymagany</mat-error>
-            } @else if (
-              applyForm.controls.phone.touched &&
-              (applyForm.controls.phone.hasError('phoneFormat') ||
-                applyForm.controls.phone.hasError('maxlength'))
-            ) {
-            <mat-error>Podaj prawidłowy numer telefonu</mat-error>
-            }
-          </mat-form-field>
+        <div id="aplikuj" class="offer-detail__apply" tabindex="-1">
+          <baza-application-form
+            [state]="applyState()"
+            [errorMessage]="applyErrorMessage()"
+            (submitted)="onApply($event)"
+          />
+        </div>
+      </div>
 
-          <mat-form-field class="offer-detail__field"
-          >
-            <mat-label>Wiadomość (opcjonalnie)</mat-label>
-            <textarea
-              matInput
-              rows="3"
-              formControlName="message"
-              [attr.maxlength]="fieldLimits.message"
-            ></textarea>
-            @if (
-              applyForm.controls.message.touched &&
-              applyForm.controls.message.hasError('maxlength')
-            ) {
-            <mat-error>Max. {{ fieldLimits.message }} znaków</mat-error>
-            }
-          </mat-form-field>
-
-          <label
-            class="offer-detail__file"
-            [class.offer-detail__file--filled]="cvFileName()"
-            [class.offer-detail__file--error]="cvError()"
-          >
-            <input
-              type="file"
-              accept="application/pdf,.pdf"
-              aria-label="CV PDF, maksymalnie 5 MB"
-              (change)="onCvSelected($event)"
-            />
-            <span class="offer-detail__file-title">{{
-              cvFileName() || 'CV (PDF, max. 5 MB)'
-            }}</span>
-            <span class="offer-detail__file-hint">{{
-              cvFileName() ? 'Kliknij, aby zmienić' : 'Wybierz plik'
-            }}</span>
-          </label>
-          @if (cvError()) {
-          <p class="offer-detail__field-error">{{ cvError() }}</p>
-          }
-
-          <mat-checkbox
-            class="offer-detail__consent"
-            formControlName="consentAccepted"
-          >
-            Wyrażam zgodę na przetwarzanie danych osobowych w celu rekrutacji
-          </mat-checkbox>
-          @if (
-            applyForm.controls.consentAccepted.touched &&
-            applyForm.controls.consentAccepted.hasError('required')
-          ) {
-          <p class="offer-detail__field-error">
-            Wymagana jest zgoda na przetwarzanie danych
-          </p>
-          }
-
-          @if (applyError()) {
-          <p class="offer-detail__field-error" role="alert">
-            {{ applyError() }}
-          </p>
-          }
-
-          <button
-            mat-flat-button
-            class="baza-btn-premium full-width"
-            type="submit"
-            [disabled]="applying()"
-          >
-            {{ applying() ? 'Wysyłanie…' : 'Wyślij aplikację' }}
-          </button>
-        </form>
-        }
-      </mat-card>
+      @if (isDesktop() && hasMapGeometry()) {
+        <aside class="offer-detail__map baza-map-surface" aria-label="Mapa tras oferty">
+          <baza-offer-route-map
+            [baseLocation]="o.baseLocation"
+            [legs]="routeLegs()"
+            [highlightedLabel]="hoveredRouteLabel()"
+          />
+          <div class="offer-detail__legend">
+            <span class="offer-detail__legend-title">Trasy tej oferty</span>
+            <span class="offer-detail__legend-item">
+              <span class="offer-detail__dot offer-detail__dot--from"></span>Baza firmy
+            </span>
+            <span class="offer-detail__legend-item">
+              <span class="offer-detail__dot offer-detail__dot--to"></span>Kraj docelowy
+            </span>
+          </div>
+        </aside>
+      }
     </div>
-
-    @if (hasMapGeometry()) {
-    <div class="offer-detail__map-pane">
-      <baza-offer-route-map
-        [baseLocation]="o.baseLocation"
-        [legs]="routeLegs()"
-        [highlightedLabel]="hoveredRouteLabel()"
-      />
-    </div>
-    }
-  </div>
   }
 </section>
