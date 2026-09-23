@@ -1,0 +1,105 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.baza-route-editor__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Badge, arrow and button sit on the fields' centre line even when an error grows a field.
+.baza-route-editor__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  grid-template-areas: 'num from arrow to remove';
+  align-items: start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--baza-surface-sunken);
+  border: 1px solid var(--baza-border);
+  border-radius: 16px;
+}
+
+.baza-route-editor__num {
+  grid-area: num;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-top: 15px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--baza-link) 16%, transparent);
+  color: var(--baza-link);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.baza-route-editor__from {
+  grid-area: from;
+}
+
+.baza-route-editor__to {
+  grid-area: to;
+}
+
+.baza-route-editor__arrow {
+  grid-area: arrow;
+  margin-top: 18px;
+  color: var(--baza-map-route);
+}
+
+.baza-route-editor__remove {
+  grid-area: remove;
+  margin-top: 4px;
+}
+
+.baza-route-editor__empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  margin: 0;
+  padding: 14px;
+  background: var(--baza-warn-bg);
+  border: 1px dashed var(--baza-warn-border);
+  border-radius: 16px;
+  color: var(--baza-warn-fg);
+  font-size: 13.5px;
+  line-height: 1.45;
+
+  svg {
+    flex: none;
+  }
+}
+
+.baza-route-editor__add-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// Phones: "from" and "to" stacked, the arrow pointing down between them.
+@media (max-width: 599px) {
+  .baza-route-editor__row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'num from remove'
+      'arrow to .';
+    gap: 8px 10px;
+    padding: 10px;
+  }
+
+  .baza-route-editor__arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}

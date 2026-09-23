@@ -1,0 +1,69 @@
+@if (formArray().length) {
+  <ol class="baza-route-editor__list">
+    @for (row of formArray().controls; track row; let i = $index) {
+      <li class="baza-route-editor__row" [formGroup]="row">
+        <span class="baza-route-editor__num" aria-hidden="true">{{ i + 1 }}</span>
+
+        <mat-form-field class="baza-route-editor__from" subscriptSizing="dynamic">
+          <mat-label>Z kraju</mat-label>
+          <mat-select formControlName="fromCountry" placeholder="Wybierz kraj" [attr.data-route-from]="i">
+            @for (c of countries(); track c.code) {
+              <mat-option [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+            }
+          </mat-select>
+          <mat-error>Wybierz kraj</mat-error>
+        </mat-form-field>
+
+        <svg class="baza-route-editor__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12" />
+          <polyline points="13 6 19 12 13 18" />
+        </svg>
+
+        <mat-form-field class="baza-route-editor__to" subscriptSizing="dynamic">
+          <mat-label>Do kraju</mat-label>
+          <mat-select formControlName="toCountry" placeholder="Wybierz kraj">
+            @for (c of countries(); track c.code) {
+              <mat-option [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+            }
+          </mat-select>
+          <mat-error>Wybierz kraj</mat-error>
+        </mat-form-field>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="baza-route-editor__remove baza-danger"
+          [attr.aria-label]="'Usuń trasę ' + (i + 1)"
+          [attr.data-route-remove]="i"
+          (click)="remove(i)"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+        </button>
+      </li>
+    }
+  </ol>
+} @else {
+  <p class="baza-route-editor__empty" role="status">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="8" x2="12" y2="13" />
+      <line x1="12" y1="16.5" x2="12" y2="16.5" />
+    </svg>
+    Dodaj przynajmniej jedną trasę — bez niej oferta nie trafi do żadnego filtra.
+  </p>
+}
+
+<button mat-stroked-button type="button" class="baza-route-editor__add" (click)="add()">
+  <span class="baza-route-editor__add-label">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+    Dodaj trasę
+  </span>
+</button>

@@ -1,208 +1,267 @@
-<section class="auth-page">
-  <mat-card class="auth-card baza-glass-card" appearance="outlined">
-    <div class="auth-brand">
-      <img
-        class="auth-brand__logo"
-        src="/baza-logo.png"
-        alt=""
-        width="48"
-        height="59"
-      />
-      <span class="auth-brand__name">Baza</span>
+<section class="offer-form">
+  <header class="offer-form__header">
+    <h1 class="offer-form__title">{{ editId() ? 'Edytuj ofertę' : 'Nowa oferta' }}</h1>
+    <p class="offer-form__subtitle">Darmowa oferta pracy dla kierowców</p>
+  </header>
+
+  @if (loading()) {
+    <p class="offer-form__loading" role="status">Ładowanie…</p>
+    <div class="offer-form__skeletons" aria-hidden="true">
+      @for (s of skeletons; track s) {
+        <div class="offer-form__card">
+          <baza-skeleton width="120px" height="14px" />
+          <baza-skeleton class="offer-form__skel-field" height="48px" radius="14px" />
+          <baza-skeleton class="offer-form__skel-field" height="48px" radius="14px" />
+        </div>
+      }
     </div>
-    <mat-card-header>
-      <mat-card-title>{{ editId() ? 'Edytuj ofertę' : 'Nowa oferta' }}</mat-card-title>
-      <mat-card-subtitle>Darmowa oferta pracy dla kierowców</mat-card-subtitle>
-    </mat-card-header>
+  } @else if (loadFailed()) {
+    <baza-state-block
+      variant="error"
+      icon="alert"
+      title="Nie udało się wczytać oferty"
+      message="Sprawdź połączenie i spróbuj ponownie."
+      actionLabel="Spróbuj ponownie"
+      (action)="retryLoad()"
+    />
+  } @else {
+    <form class="offer-form__grid" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <section class="offer-form__card" aria-labelledby="offer-form-basics">
+        <h2 id="offer-form-basics" class="offer-form__card-title">Podstawy</h2>
+        <div class="offer-form__fields">
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Tytuł oferty</mat-label>
+            <input matInput formControlName="title" maxlength="120" autocomplete="off" />
+            <mat-hint>Kierowcy skanują tytuł w pierwszej sekundzie — wpisz kategorię i kierunek</mat-hint>
+            @if (form.controls.title.hasError('minlength')) {
+              <mat-error>Tytuł musi mieć co najmniej 2 znaki</mat-error>
+            } @else {
+              <mat-error>Wpisz tytuł oferty</mat-error>
+            }
+          </mat-form-field>
 
-    <mat-card-content>
-      @if (loading()) {
-      <p class="auth-form offer-form__status">Ładowanie…</p>
-      } @else {
-      <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-        <mat-form-field class="auth-field">
-          <mat-label>Tytuł</mat-label>
-          <input matInput formControlName="title" maxlength="120" />
-          @if (form.controls.title.touched && form.controls.title.hasError('required')) {
-          <mat-error>Pole wymagane</mat-error>
-          } @else if (form.controls.title.touched && form.controls.title.hasError('minlength')) {
-          <mat-error>Min. 2 znaki</mat-error>
-          }
-        </mat-form-field>
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Opis</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              maxlength="2000"
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="4"
+              cdkAutosizeMaxRows="16"
+              placeholder="Czym jeździcie, jakie ładunki, jak wygląda rozliczenie i powrót do domu."
+            ></textarea>
+            <mat-error>Wpisz opis oferty</mat-error>
+          </mat-form-field>
+        </div>
+      </section>
 
-        <mat-form-field class="auth-field">
-          <mat-label>Opis</mat-label>
-          <textarea matInput rows="4" formControlName="description" maxlength="2000"></textarea>
-          @if (form.controls.description.touched && form.controls.description.hasError('required')) {
-          <mat-error>Opis jest wymagany</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="auth-row">
-          <mat-form-field class="auth-field">
+      <section class="offer-form__card" aria-labelledby="offer-form-terms">
+        <h2 id="offer-form-terms" class="offer-form__card-title">Warunki</h2>
+        <div class="offer-form__terms">
+          <mat-form-field subscriptSizing="dynamic">
             <mat-label>Powrót do domu</mat-label>
             <mat-select formControlName="homeReturnCadence">
-              @for (c of cadences; track c) {
-              <mat-option [value]="c">{{ cadenceLabels[c] }}</mat-option>
+              @for (c of cadences; track c.code) {
+                <mat-option [value]="c.code">{{ c.label }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field class="auth-field">
+
+          <mat-form-field subscriptSizing="dynamic">
             <mat-label>Lata doświadczenia</mat-label>
             <input
               matInput
               type="number"
-              formControlName="requiredYearsExperience"
+              inputmode="numeric"
               min="0"
+              max="40"
+              step="1"
+              formControlName="requiredYearsExperience"
             />
+            <mat-error>Podaj pełną liczbę lat od 0 do 40</mat-error>
           </mat-form-field>
-        </div>
 
-        <mat-form-field class="auth-field">
-          <mat-label>Typ transportu</mat-label>
-          <mat-select formControlName="requiredTransportType">
-            @for (t of transportTypes; track t.code) {
-            <mat-option [value]="t.code">{{ t.namePl }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field class="auth-field">
-          <mat-label>Wymagane prawo jazdy</mat-label>
-          <mat-select formControlName="licenseCategory">
-            @for (l of licenses; track l.code) {
-            <mat-option [value]="l.code">{{ l.label }}</mat-option>
-            }
-          </mat-select>
-          @if (form.controls.licenseCategory.touched && form.controls.licenseCategory.hasError('required')) {
-          <mat-error>Wybierz kategorię prawa jazdy</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field class="auth-field">
-          <mat-label>Forma zatrudnienia</mat-label>
-          <mat-select formControlName="employmentForms" multiple>
-            @for (f of employmentFormOptions; track f.code) {
-            <mat-option [value]="f.code">{{ f.namePl }}</mat-option>
-            }
-          </mat-select>
-          @if (form.controls.employmentForms.touched && form.controls.employmentForms.hasError('required')) {
-          <mat-error>Wybierz co najmniej jedną formę zatrudnienia</mat-error>
-          }
-        </mat-form-field>
-
-        <p class="offer-form__section-hint">Trasy</p>
-        <div formArrayName="routes" class="offer-routes">
-          @for (r of routes.controls; track $index; let i = $index) {
-          <div class="offer-route" [formGroupName]="i">
-            <div class="auth-row">
-              <mat-form-field class="auth-field">
-                <mat-label>Z kraju</mat-label>
-                <mat-select
-                  formControlName="fromCode"
-                  (selectionChange)="onFromCode(i, $event.value)"
-                >
-                  @for (c of countries; track c.code) {
-                  <mat-option [value]="c.code">{{ c.code }} — {{ c.namePl }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field class="auth-field">
-                <mat-label>Do kraju</mat-label>
-                <mat-select
-                  formControlName="toCode"
-                  (selectionChange)="onToCode(i, $event.value)"
-                >
-                  @for (c of countries; track c.code) {
-                  <mat-option [value]="c.code">{{ c.code }} — {{ c.namePl }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <button
-              mat-button
-              type="button"
-              class="offer-route__remove"
-              (click)="removeRoute(i)"
-              [disabled]="routes.length < 2"
-            >
-              Usuń trasę
-            </button>
-          </div>
-          }
-          <button mat-button type="button" color="primary" (click)="addRoute()">
-            Dodaj trasę
-          </button>
-        </div>
-
-        <p class="offer-form__section-hint">Wynagrodzenie (opcjonalnie)</p>
-        <div class="auth-row">
-          <mat-form-field class="auth-field">
-            <mat-label>Od</mat-label>
-            <input matInput type="number" formControlName="salaryMin" />
-            @if (form.controls.salaryMin.touched && form.controls.salaryMin.hasError('min')) {
-            <mat-error>Min. 0</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field class="auth-field">
-            <mat-label>Do</mat-label>
-            <input matInput type="number" formControlName="salaryMax" />
-            @if (form.controls.salaryMax.touched && form.controls.salaryMax.hasError('min')) {
-            <mat-error>Min. 0</mat-error>
-            }
-          </mat-form-field>
-        </div>
-        <div class="auth-row">
-          <mat-form-field class="auth-field">
-            <mat-label>Waluta</mat-label>
-            <input matInput formControlName="salaryCurrency" maxlength="3" />
-            @if (
-              form.controls.salaryCurrency.touched &&
-              (form.controls.salaryCurrency.hasError('minlength') ||
-                form.controls.salaryCurrency.hasError('maxlength'))
-            ) {
-            <mat-error>Waluta: 3 znaki (np. PLN)</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field class="auth-field">
-            <mat-label>Status</mat-label>
-            <mat-select formControlName="published">
-              <mat-option [value]="true" [disabled]="!canPublish()"
-                >Opublikowana</mat-option
-              >
-              <mat-option [value]="false">Szkic / wycofana</mat-option>
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Typ transportu</mat-label>
+            <mat-select formControlName="requiredTransportType">
+              @for (t of transportTypes; track t.code) {
+                <mat-option [value]="t.code">{{ t.namePl }}</mat-option>
+              }
             </mat-select>
           </mat-form-field>
-        </div>
-        @if (!canPublish()) {
-        <p class="offer-form__publish-hint">
-          Aby opublikować ofertę, ustaw współrzędne bazy (szer./dł.) w
-          <a routerLink="/company/profile">profilu firmy</a>. Szkic możesz
-          zapisać bez współrzędnych.
-        </p>
-        } @if (form.touched && form.hasError('salaryRange')) {
-        <p class="auth-field-error">
-          Minimalne wynagrodzenie nie może być większe od maksymalnego
-        </p>
-        } @else if (form.touched && form.hasError('salaryCurrencyRequired')) {
-        <p class="auth-field-error">Przy wynagrodzeniu podaj walutę (3 znaki)</p>
-        }
 
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Wymagane prawo jazdy</mat-label>
+            <mat-select formControlName="licenseCategory">
+              @for (l of licenses; track l.code) {
+                <mat-option [value]="l.code">{{ l.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <fieldset
+            class="offer-form__fieldset offer-form__employment"
+            [attr.data-invalid]="form.controls.employmentForms.touched && form.controls.employmentForms.invalid"
+            [attr.aria-describedby]="
+              form.controls.employmentForms.touched && form.controls.employmentForms.invalid
+                ? 'offer-form-employment-error'
+                : null
+            "
+          >
+            <legend class="offer-form__label">Forma zatrudnienia</legend>
+            <div class="offer-form__checks">
+              @for (f of employmentFormOptions; track f.code) {
+                <mat-checkbox
+                  [checked]="hasEmploymentForm(f.code)"
+                  (change)="toggleEmploymentForm(f.code, $event.checked)"
+                >
+                  {{ f.namePl }}
+                </mat-checkbox>
+              }
+            </div>
+            @if (form.controls.employmentForms.touched && form.controls.employmentForms.invalid) {
+              <p id="offer-form-employment-error" class="offer-form__error">
+                Wybierz co najmniej jedną formę zatrudnienia
+              </p>
+            }
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="offer-form__card offer-form__card--routes" aria-labelledby="offer-form-routes">
+        <div class="offer-form__card-head">
+          <h2 id="offer-form-routes" class="offer-form__card-title">Trasy</h2>
+          <span class="offer-form__route-count">{{ routeCountLabel() }}</span>
+        </div>
+        <p class="offer-form__card-lead">
+          Kierunki, którymi jeździ kierowca. To najważniejszy filtr w całej Bazie — dodaj każdy
+          kierunek osobno.
+        </p>
+        <baza-route-editor [formArray]="routes" [countries]="countries" />
+      </section>
+
+      <section class="offer-form__card offer-form__preview" aria-labelledby="offer-form-preview">
+        <h2 id="offer-form-preview" class="offer-form__card-title offer-form__card-title--lead">Podgląd tras</h2>
+        <p class="offer-form__card-lead">Tak kierowca zobaczy tę ofertę na mapie</p>
+        <baza-map-preview [routes]="routeRows()" [centroids]="centroids()" />
+      </section>
+
+      <section class="offer-form__card" aria-labelledby="offer-form-salary">
+        <h2 id="offer-form-salary" class="offer-form__card-title offer-form__card-title--lead">Wynagrodzenie</h2>
+        <p class="offer-form__card-lead">
+          Opcjonalnie — ale oferty ze stawką dostają wyraźnie więcej aplikacji
+        </p>
+        <div class="offer-form__salary">
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Od</mat-label>
+            <input matInput type="number" inputmode="numeric" min="0" formControlName="salaryMin" />
+            <mat-error>Kwota nie może być ujemna</mat-error>
+          </mat-form-field>
+
+          <mat-form-field subscriptSizing="dynamic">
+            <mat-label>Do</mat-label>
+            <input
+              matInput
+              type="number"
+              inputmode="numeric"
+              min="0"
+              formControlName="salaryMax"
+              [errorStateMatcher]="salaryMaxMatcher"
+            />
+            @if (form.hasError('salaryRange')) {
+              <mat-error>Kwota „do” nie może być mniejsza niż „od”</mat-error>
+            } @else {
+              <mat-error>Kwota nie może być ujemna</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="offer-form__currency" subscriptSizing="dynamic">
+            <mat-label>Waluta</mat-label>
+            <input
+              matInput
+              formControlName="salaryCurrency"
+              maxlength="3"
+              autocapitalize="characters"
+              autocomplete="off"
+              [errorStateMatcher]="currencyMatcher"
+            />
+            <mat-error>Podaj walutę, np. PLN</mat-error>
+          </mat-form-field>
+        </div>
+      </section>
+
+      <section class="offer-form__card">
+        <fieldset
+          class="offer-form__fieldset"
+          [attr.aria-describedby]="canPublish() ? null : 'offer-form-publish-note'"
+        >
+          <legend><h2 class="offer-form__card-title">Status</h2></legend>
+          <div class="offer-form__segment">
+            <label
+              class="offer-form__segment-option"
+              [class.offer-form__segment-option--active]="form.controls.published.value"
+              [class.offer-form__segment-option--disabled]="!canPublish()"
+            >
+              <input
+                type="radio"
+                name="offer-status"
+                class="offer-form__radio"
+                [checked]="form.controls.published.value"
+                [disabled]="!canPublish()"
+                (change)="setPublished(true)"
+              />
+              Opublikowana
+            </label>
+            <label
+              class="offer-form__segment-option"
+              [class.offer-form__segment-option--active]="!form.controls.published.value"
+            >
+              <input
+                type="radio"
+                name="offer-status"
+                class="offer-form__radio"
+                [checked]="!form.controls.published.value"
+                (change)="setPublished(false)"
+              />
+              Szkic
+            </label>
+          </div>
+          @if (!canPublish()) {
+            <p id="offer-form-publish-note" class="offer-form__publish-note">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="8" x2="12" y2="13" />
+                <line x1="12" y1="16.5" x2="12" y2="16.5" />
+              </svg>
+              <span>
+                Publikacja wymaga adresu bazy w profilu firmy — bez niego oferta nie pojawi się na
+                mapie. <a routerLink="/company/profile">Uzupełnij profil</a>
+              </span>
+            </p>
+          }
+        </fieldset>
+      </section>
+
+      <div class="offer-form__actions">
         <button
           mat-flat-button
-          color="primary"
-          class="baza-btn-premium full-width"
           type="submit"
+          class="baza-glow"
           [disabled]="submitting()"
+          disabledInteractive
         >
-          Zapisz
+          <span class="offer-form__submit-content">
+            @if (submitting()) {
+              <mat-progress-spinner class="baza-button-spinner" mode="indeterminate" diameter="20" aria-hidden="true" />
+              Zapisywanie…
+            } @else {
+              Zapisz ofertę
+            }
+          </span>
         </button>
-      </form>
-      }
-    </mat-card-content>
-
-    <mat-card-footer class="auth-footer">
-      <a routerLink="/company/offers">← Moje oferty</a>
-    </mat-card-footer>
-  </mat-card>
+        <a mat-stroked-button routerLink="/company/offers">Anuluj</a>
+      </div>
+    </form>
+  }
 </section>

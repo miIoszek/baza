@@ -27,8 +27,12 @@ import {
   BazaSkeleton,
   BazaStateBlock,
   BazaTag,
+  OfferRouteMapComponent,
+  buildRouteMapLegs,
   cadenceLabel,
   formatSalary,
+  hasRouteMapGeometry,
+  routeLegLabel,
   transportLabel,
   yearsLabel,
   type BazaApplicationState,
@@ -36,12 +40,6 @@ import {
 } from '../../ui';
 import { buildApplicationFormData } from './application-form.helpers';
 import { pickCompanyLogoUrl } from './company-logo-url';
-import { OfferRouteMapComponent } from './offer-route-map';
-import {
-  buildRouteMapLegs,
-  hasRouteMapGeometry,
-  routeLegLabel,
-} from './route-map-geometry';
 
 @Component({
   selector: 'baza-job-offer-detail-page',

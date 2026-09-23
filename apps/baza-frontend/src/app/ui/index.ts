@@ -30,3 +30,15 @@ export type { BazaBannerVariant } from './banner/banner';
 export { BazaAuthLayout } from './auth-layout/auth-layout';
 export { BazaConfirmDialog } from './confirm-dialog/confirm-dialog';
 export type { BazaConfirmData } from './confirm-dialog/confirm-dialog';
+export { BazaRouteEditor, routeGroup } from './route-editor/route-editor';
+export type { BazaRouteCountry, BazaRouteRow } from './route-editor/route-editor';
+export { OfferRouteMapComponent } from './route-map/offer-route-map';
+export {
+  buildRouteMapLegs,
+  hasRouteMapGeometry,
+  routeLegLabel,
+  routeMapLegEmphasis,
+} from './route-map/route-map-geometry';
+export type { RouteMapLeg } from './route-map/route-map-geometry';
+export { BazaMapPreview, PREVIEW_ROUTE_LIMIT } from './map-preview/map-preview';
+export type { BazaPreviewRoute } from './map-preview/map-preview';

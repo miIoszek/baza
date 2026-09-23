@@ -2,6 +2,8 @@
   display: block;
   width: 100%;
   height: 100%;
+  // Keep Leaflet's z-indexed panes (400+) inside the map, under the sticky app bar.
+  isolation: isolate;
 }
 
 .offer-route-map {

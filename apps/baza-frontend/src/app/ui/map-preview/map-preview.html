@@ -1,0 +1,18 @@
+<div class="baza-map-preview__map">
+  <baza-offer-route-map [legs]="legs()" [preview]="true" />
+</div>
+<div class="baza-map-preview__legend">
+  @if (truncated()) {
+    <p class="baza-map-preview__note">
+      Podgląd pokazuje pierwsze 4 trasy — w ofercie zapiszą się wszystkie.
+    </p>
+  }
+  <span class="baza-map-preview__item">
+    <span class="baza-map-preview__dot baza-map-preview__dot--from" aria-hidden="true"></span>
+    Kraj początkowy
+  </span>
+  <span class="baza-map-preview__item">
+    <span class="baza-map-preview__dot baza-map-preview__dot--to" aria-hidden="true"></span>
+    Kraj docelowy
+  </span>
+</div>

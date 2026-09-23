@@ -340,6 +340,11 @@ $baza-red-400: #f87171;
       text-label-text-color: var(--mat-sys-error),
     )
   );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-error),
+    )
+  );
 }
 
 // Spinner inside a button takes the button's label colour (also when disabled)
@@ -422,6 +427,11 @@ body {
   margin: 0;
   min-height: 100%;
   min-height: 100dvh;
+}
+
+// Focused fields and anchors scroll clear of the sticky app bar.
+html {
+  scroll-padding-top: calc(var(--baza-shell-toolbar-height) + 16px);
 }
 
 body {

@@ -36,6 +36,11 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
   readonly baseLocation = input<GeoPoint | null>(null);
   readonly legs = input<RouteMapLeg[]>([]);
   readonly highlightedLabel = input<string | null>(null);
+  /**
+   * Static preview (offer form): no zoom controls and no panning, so a finger on
+   * the map still scrolls the page. Read once, when the map is created.
+   */
+  readonly preview = input(false);
 
   private readonly mapHost =
     viewChild.required<ElementRef<HTMLDivElement>>('mapHost');
@@ -83,7 +88,16 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const el = this.mapHost().nativeElement;
-    this.map = L.map(el, { scrollWheelZoom: false }).setView([52.1, 19.4], 5);
+    const interactive = !this.preview();
+    this.map = L.map(el, {
+      scrollWheelZoom: false,
+      zoomControl: interactive,
+      dragging: interactive,
+      touchZoom: interactive,
+      doubleClickZoom: interactive,
+      boxZoom: interactive,
+      keyboard: interactive,
+    }).setView([52.1, 19.4], 5);
     addCountryBasemap(this.map);
     this.layer = L.layerGroup().addTo(this.map);
     this.map.on('zoomend', this.onZoomEnd);
