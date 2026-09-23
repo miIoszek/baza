@@ -19,13 +19,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { AuthMeCompany } from '@baza/shared-types';
+import type { AuthMeCompany, LocalitySuggestion } from '@baza/shared-types';
 import { firstValueFrom, map, startWith } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
 import { coordinatesValidator, formatCoordinates, parseCoordinates } from '../../core/coordinates';
 import { nipValidator } from '../../core/form-validators';
 import {
+  BazaAddressAutocomplete,
   BazaLogoAvatar,
   BazaSkeleton,
   BazaStateBlock,
@@ -36,8 +37,9 @@ const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /**
- * Company profile (canvas "ProfilFirmy"). Until the address search lands, the base
- * is an address line plus coordinates pasted by hand; the map shows where they point.
+ * Company profile (canvas "ProfilFirmy"). The base is an address line (what drivers
+ * see) plus a pin: picked from Polish localities, or coordinates pasted by hand for a
+ * yard outside any locality. The map shows where the pin lands.
  */
 @Component({
   selector: 'baza-company-profile-page',
@@ -50,6 +52,7 @@ const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    BazaAddressAutocomplete,
     BazaLogoAvatar,
     BazaSkeleton,
     BazaStateBlock,
@@ -74,6 +77,9 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
   protected readonly photoName = signal<string | null>(null);
   protected readonly photoError = signal<string | null>(null);
   protected readonly showCoordinates = signal(false);
+  /** Locality the pin was taken from in this visit; not stored, only the coordinates are. */
+  protected readonly pickedLocality = signal<LocalitySuggestion | null>(null);
+  protected readonly manualPin = signal(false);
   private photoFile: File | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
@@ -93,9 +99,18 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
     { requireSync: true }
   );
 
+  /** "Kórnik · 52.2503, 17.0878", "52.2503, 17.0878 · wpisane ręcznie" or just the numbers. */
   protected readonly pinLabel = computed(() => {
     const pin = this.pin();
-    return pin ? formatCoordinates(pin) : null;
+    if (!pin) {
+      return null;
+    }
+    const coords = formatCoordinates(pin);
+    const locality = this.pickedLocality();
+    if (locality) {
+      return `${locality.name} · ${coords}`;
+    }
+    return this.manualPin() ? `${coords} · wpisane ręcznie` : coords;
   });
 
   async ngOnInit(): Promise<void> {
@@ -118,6 +133,21 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
       () => this.host.nativeElement.querySelector<HTMLElement>('#profile-coordinates')?.focus(),
       { injector: this.injector }
     );
+  }
+
+  protected onLocality(locality: LocalitySuggestion | null): void {
+    this.pickedLocality.set(locality);
+    if (locality) {
+      const coordinates = this.form.controls.coordinates;
+      coordinates.setValue(`${locality.lat}, ${locality.lng}`);
+      coordinates.markAsDirty();
+      this.manualPin.set(false);
+    }
+  }
+
+  protected onCoordinatesTyped(): void {
+    this.pickedLocality.set(null);
+    this.manualPin.set(true);
   }
 
   protected onPhotoSelected(event: Event): void {
@@ -147,6 +177,8 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
     const company = this.company();
     if (company) {
       this.applyCompany(company);
+      this.pickedLocality.set(null);
+      this.manualPin.set(false);
     }
   }
 
@@ -203,8 +235,8 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
       this.loadError.set(error);
     } else if (company) {
       this.applyCompany(company);
-      // No pin yet: the coordinates field is the only way to set one, so show it.
-      this.showCoordinates.set(company.baseLat == null || company.baseLng == null);
+      this.pickedLocality.set(null);
+      this.manualPin.set(false);
     }
     this.loading.set(false);
   }

@@ -42,3 +42,5 @@ export {
 export type { RouteMapLeg } from './route-map/route-map-geometry';
 export { BazaMapPreview, PREVIEW_ROUTE_LIMIT } from './map-preview/map-preview';
 export type { BazaPreviewRoute } from './map-preview/map-preview';
+export { BazaAddressAutocomplete } from './address-autocomplete/address-autocomplete';
+export type { BazaAddressStatus } from './address-autocomplete/address-autocomplete';

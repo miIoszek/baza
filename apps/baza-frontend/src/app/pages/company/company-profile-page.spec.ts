@@ -83,13 +83,43 @@ describe('CompanyProfilePage', () => {
     expect(el.textContent).toContain('Wpisz współrzędne ręcznie');
   });
 
-  it('shows the coordinates field right away when there is no pin yet', async () => {
+  it('without a pin offers the locality picker; coordinates wait behind the button', async () => {
     auth.company.mockReturnValue({ ...COMPANY, baseLat: null, baseLng: null });
     const { page, el } = await start();
 
-    expect(page['showCoordinates']()).toBe(true);
-    expect(el.querySelector('#profile-coordinates')).not.toBeNull();
+    expect(el.querySelector('baza-address-autocomplete')).not.toBeNull();
+    expect(page['showCoordinates']()).toBe(false);
     expect(el.textContent).toContain('Brak punktu na mapie');
+  });
+
+  it('takes the pin from a picked locality, or marks it as typed by hand', async () => {
+    const { page } = await start();
+    const kornik = {
+      id: '0970922',
+      name: 'Kórnik',
+      kind: 'miasto',
+      area: 'pow. poznański, woj. wielkopolskie',
+      lat: 52.2503,
+      lng: 17.0878,
+    };
+
+    page['onLocality'](kornik);
+    expect(page['form'].controls.coordinates.value).toBe('52.2503, 17.0878');
+    expect(page['form'].dirty).toBe(true);
+    expect(page['pinLabel']()).toBe('Kórnik · 52.2503, 17.0878');
+
+    // Leaving the picker without a pick keeps the pin, drops the name
+    page['onLocality'](null);
+    expect(page['pinLabel']()).toBe('52.2503, 17.0878');
+
+    page['form'].controls.coordinates.setValue('52.3, 17.1');
+    page['onCoordinatesTyped']();
+    expect(page['pinLabel']()).toBe('52.3000, 17.1000 · wpisane ręcznie');
+
+    page['onLocality'](kornik);
+    page['discardChanges']();
+    expect(page['pickedLocality']()).toBeNull();
+    expect(page['pinLabel']()).toBe('52.4300, 16.9500');
   });
 
   it('checks the NIP checksum and accepts spaces and dashes', async () => {

@@ -118,8 +118,8 @@
         <section class="profile__card" aria-labelledby="profile-base">
           <h2 id="profile-base" class="profile__card-title profile__card-title--lead">Adres bazy</h2>
           <p class="profile__lead">
-            Adres widzą kierowcy w ofertach. Pin na mapie ustawiają współrzędne — bez nich Twoje
-            oferty nie pojawią się na mapie.
+            Adres widzą kierowcy w ofertach. Pin na mapie ustawisz, wybierając miejscowość — bez
+            niego Twoje oferty nie pojawią się na mapie.
           </p>
 
           <mat-form-field class="profile__full" subscriptSizing="dynamic">
@@ -133,6 +133,12 @@
             />
             <mat-error>Podaj adres bazy</mat-error>
           </mat-form-field>
+
+          <baza-address-autocomplete
+            class="profile__locality"
+            [value]="pickedLocality()"
+            (valueChange)="onLocality($event)"
+          />
 
           <div class="profile__map">
             <baza-offer-route-map [baseLocation]="pin()" [preview]="true" />
@@ -148,6 +154,7 @@
                 formControlName="coordinates"
                 placeholder="52.4300, 16.9500"
                 autocomplete="off"
+                (input)="onCoordinatesTyped()"
               />
               <mat-hint>
                 Skąd je wziąć? W Mapach Google kliknij prawym przyciskiem na bazę (na telefonie
