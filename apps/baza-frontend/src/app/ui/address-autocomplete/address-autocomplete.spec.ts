@@ -42,7 +42,7 @@ describe('BazaAddressAutocomplete', () => {
   });
 
   const input = () =>
-    (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input')!;
+    (fixture.nativeElement as HTMLElement).querySelector('input') as HTMLInputElement;
   const options = () => Array.from(document.querySelectorAll<HTMLElement>('mat-option'));
   const optionTexts = () => options().map((o) => o.textContent?.replace(/\s+/g, ' ').trim());
 
