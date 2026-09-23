@@ -1,24 +1,19 @@
 import { Route } from '@angular/router';
 import { companyAuthGuard } from './core/guards/company-auth.guard';
 import { guestAuthGuard } from './core/guards/guest-auth.guard';
-import { HomePage } from './pages/home/home';
-import { LoginPage } from './pages/login/login';
-import { RegisterPage } from './pages/register/register';
-import { CheckEmailPage } from './pages/check-email/check-email';
-import { ForgotPasswordPage } from './pages/forgot-password/forgot-password';
-import { ResetPasswordPage } from './pages/reset-password/reset-password';
-import { VerifyEmailPage } from './pages/verify-email/verify-email';
-import { CompanyProfilePage } from './pages/company/company-profile-page';
-import { CompanyOffersListPage } from './pages/company/offers/company-offers-list-page';
-import { CompanyOfferFormPage } from './pages/company/offers/company-offer-form-page';
 
+// Every page is lazy: drivers (most traffic, phones) never download the auth
+// or company panel code, and each screen ships only the Material it uses.
 export const appRoutes: Route[] = [
   {
     path: '',
     loadComponent: () =>
       import('./pages/job-offers/job-offers-page').then((m) => m.JobOffersPage),
   },
-  { path: 'health', component: HomePage },
+  {
+    path: 'health',
+    loadComponent: () => import('./pages/home/home').then((m) => m.HomePage),
+  },
   {
     path: 'job-offers',
     pathMatch: 'full',
@@ -48,50 +43,83 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'login',
-    component: LoginPage,
+    loadComponent: () => import('./pages/login/login').then((m) => m.LoginPage),
     canActivate: [guestAuthGuard],
   },
   {
     path: 'register',
-    component: RegisterPage,
+    loadComponent: () =>
+      import('./pages/register/register').then((m) => m.RegisterPage),
     canActivate: [guestAuthGuard],
   },
-  { path: 'check-email', component: CheckEmailPage, canActivate: [guestAuthGuard] },
-  { path: 'verify-email', component: VerifyEmailPage },
-  { path: 'forgot-password', component: ForgotPasswordPage, canActivate: [guestAuthGuard] },
-  { path: 'reset-password', component: ResetPasswordPage },
+  {
+    path: 'check-email',
+    loadComponent: () =>
+      import('./pages/check-email/check-email').then((m) => m.CheckEmailPage),
+    canActivate: [guestAuthGuard],
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () =>
+      import('./pages/verify-email/verify-email').then((m) => m.VerifyEmailPage),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password').then(
+        (m) => m.ForgotPasswordPage
+      ),
+    canActivate: [guestAuthGuard],
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password').then(
+        (m) => m.ResetPasswordPage
+      ),
+  },
   {
     path: 'company',
-    pathMatch: 'full',
-    redirectTo: 'company/profile',
-  },
-  {
-    path: 'company/profile',
-    component: CompanyProfilePage,
-    canActivate: [companyAuthGuard],
-  },
-  {
-    path: 'company/offers',
-    component: CompanyOffersListPage,
-    canActivate: [companyAuthGuard],
-  },
-  {
-    path: 'company/offers/new',
-    component: CompanyOfferFormPage,
-    canActivate: [companyAuthGuard],
-  },
-  {
-    path: 'company/offers/:id/edit',
-    component: CompanyOfferFormPage,
-    canActivate: [companyAuthGuard],
-  },
-  {
-    path: 'company/inbox',
-    loadComponent: () =>
-      import('./pages/company/company-inbox-page').then(
-        (m) => m.CompanyInboxPage
-      ),
-    canActivate: [companyAuthGuard],
+    // Checked on every child navigation, like the per-route guards before.
+    canActivateChild: [companyAuthGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'profile' },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./pages/company/company-profile-page').then(
+            (m) => m.CompanyProfilePage
+          ),
+      },
+      {
+        path: 'offers',
+        loadComponent: () =>
+          import('./pages/company/offers/company-offers-list-page').then(
+            (m) => m.CompanyOffersListPage
+          ),
+      },
+      {
+        path: 'offers/new',
+        loadComponent: () =>
+          import('./pages/company/offers/company-offer-form-page').then(
+            (m) => m.CompanyOfferFormPage
+          ),
+      },
+      {
+        path: 'offers/:id/edit',
+        loadComponent: () =>
+          import('./pages/company/offers/company-offer-form-page').then(
+            (m) => m.CompanyOfferFormPage
+          ),
+      },
+      {
+        path: 'inbox',
+        loadComponent: () =>
+          import('./pages/company/company-inbox-page').then(
+            (m) => m.CompanyInboxPage
+          ),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];
