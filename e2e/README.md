@@ -20,6 +20,9 @@ export E2E_PASSWORD='…'
 npx playwright test --project=firefox-authenticated
 ```
 
+Locally, put both in `.env` and run `npm run dev:seed` once (creates and verifies that company, with
+offers and applications), then `npm run test:e2e:auth` — it loads `.env` for Playwright.
+
 Without `E2E_EMAIL` / `E2E_PASSWORD` these specs **skip**.
 
 ### Why there is no shared `storageState`
