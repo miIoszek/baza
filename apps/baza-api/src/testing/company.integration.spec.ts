@@ -2,6 +2,7 @@ import request from 'supertest';
 import {
   COUNTRY_CODES,
   DRIVER_LICENSE_CODES,
+  DUPLICATE_APPLICATION_MESSAGE,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPE_CODES,
 } from '@baza/shared-types';
@@ -207,6 +208,38 @@ describeDb('companies, offers and applications (HTTP, real Postgres)', () => {
     expect(
       (await http().get('/api/company/applications').set(bearer(a.token))).body
     ).toEqual([]);
+  });
+
+  it('rejects a second application from the same e-mail and lists CV file names', async () => {
+    const { token, companyId } = await company('Duplicate Co');
+    await setCoords(token);
+    const offer = (
+      await http().post('/api/company/offers').set(bearer(token)).send(offerPayload())
+    ).body;
+    await q(
+      `INSERT INTO job_applications
+         (job_offer_id, company_id, email, phone, cv_file_key, cv_file_name, consent_accepted_at)
+       VALUES ($1, $2, 'Kierowca@Example.com', '+48 600 100 200', $3, 'CV Łukasz.pdf', now())`,
+      [offer.id, companyId, `applications/${companyId}/${offer.id}/cv.pdf`]
+    );
+
+    // Same address in another letter case: rejected before any CV upload, so it
+    // answers 409 even though private R2 is not configured in tests.
+    const again = await http()
+      .post(`/api/offers/${offer.id}/applications`)
+      .field('email', 'kierowca@example.com')
+      .field('phone', '+48 600 100 200')
+      .field('consentAccepted', 'true')
+      .attach('cv', Buffer.from('%PDF-1.4\n'), {
+        filename: 'cv.pdf',
+        contentType: 'application/pdf',
+      });
+    expect(again.status).toBe(409);
+    expect(again.body.message).toBe(DUPLICATE_APPLICATION_MESSAGE);
+
+    const inbox = await http().get('/api/company/applications').set(bearer(token));
+    expect(inbox.body).toHaveLength(1);
+    expect(inbox.body[0].cvFileName).toBe('CV Łukasz.pdf');
   });
 
   it('filters public offers by license, transport and country', async () => {

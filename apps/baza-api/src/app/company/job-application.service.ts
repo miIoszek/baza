@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { DataSource } from 'typeorm';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -12,11 +13,13 @@ import {
   JobApplication,
   JobOffer as JobOfferEntity,
 } from '@baza/api-data-access';
-import type {
-  CompanyJobApplicationListItem,
-  CreateJobApplicationResponse,
+import {
+  DUPLICATE_APPLICATION_MESSAGE,
+  type CompanyJobApplicationListItem,
+  type CreateJobApplicationResponse,
 } from '@baza/shared-types';
 import { R2StorageService } from '../storage/r2-storage.service';
+import { sanitizeCvFileName } from './cv-file-name';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 
 @Injectable()
@@ -37,13 +40,17 @@ export class JobApplicationService {
       throw new BadRequestException('Dołącz plik CV (PDF)');
     }
 
+    const offer = await this.requirePublishedOffer(offerId);
+    const email = dto.email.trim();
+    // Before storage: a repeat must not upload a CV nobody will ever read.
+    await this.rejectDuplicate(offer.id, email);
+
     if (!this.r2.isPrivateConfigured()) {
       throw new ServiceUnavailableException(
         'Przesyłanie CV wymaga konfiguracji prywatnego R2'
       );
     }
 
-    const offer = await this.requirePublishedOffer(offerId);
     const message =
       dto.message != null && dto.message.trim() !== ''
         ? dto.message.trim()
@@ -65,10 +72,11 @@ export class JobApplicationService {
           applications.create({
             jobOfferId: offer.id,
             companyId: offer.companyId,
-            email: dto.email.trim(),
+            email,
             phone: dto.phone.trim(),
             message,
             cvFileKey: uploaded.key,
+            cvFileName: sanitizeCvFileName(cv.originalname),
             consentAcceptedAt: new Date(),
           })
         );
@@ -110,6 +118,7 @@ export class JobApplicationService {
         email: row.email,
         phone: row.phone,
         ...(row.message ? { message: row.message } : {}),
+        cvFileName: row.cvFileName ?? null,
         createdAt: row.createdAt.toISOString(),
       }));
     } catch (error) {
@@ -164,6 +173,30 @@ export class JobApplicationService {
     }
 
     return this.r2.getPrivateObject(cvKey);
+  }
+
+  /**
+   * One application per e-mail per offer: the company keeps the first one.
+   * Case-insensitive, so `Jan@x.pl` and `jan@x.pl` count as the same address.
+   */
+  private async rejectDuplicate(offerId: string, email: string): Promise<void> {
+    let exists: boolean;
+    try {
+      exists = await this.dataSource
+        .getRepository(JobApplication)
+        .createQueryBuilder('application')
+        .where('application.job_offer_id = :offerId', { offerId })
+        .andWhere('lower(application.email) = lower(:email)', { email })
+        .getExists();
+    } catch (error) {
+      this.logger.error(
+        `job_applications duplicate lookup failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+      throw new BadRequestException('Nie udało się zapisać aplikacji');
+    }
+    if (exists) {
+      throw new ConflictException(DUPLICATE_APPLICATION_MESSAGE);
+    }
   }
 
   private async requireCompanyForUser(

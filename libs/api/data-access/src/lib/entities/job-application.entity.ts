@@ -35,6 +35,10 @@ export class JobApplication {
   @Column({ name: 'cv_file_key', type: 'text' })
   cvFileKey!: string;
 
+  /** Original upload name for the inbox; NULL on rows from before it was kept. */
+  @Column({ name: 'cv_file_name', type: 'varchar', length: 255, nullable: true })
+  cvFileName!: string | null;
+
   @Column({ name: 'consent_accepted_at', type: 'timestamptz' })
   consentAcceptedAt!: Date;
 

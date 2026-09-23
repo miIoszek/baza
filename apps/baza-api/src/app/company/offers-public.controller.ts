@@ -58,6 +58,8 @@ export class OffersPublicController {
   @UseInterceptors(
     FileInterceptor('cv', {
       storage: memoryStorage(),
+      // Browsers send raw UTF-8 file names; busboy's latin1 default garbles "Łukasz.pdf".
+      defParamCharset: 'utf8',
       limits: { fileSize: APPLICATION_CV_MAX_BYTES },
       fileFilter: (_req, file, cb) => {
         if (file.mimetype !== 'application/pdf') {

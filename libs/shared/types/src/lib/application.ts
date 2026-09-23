@@ -83,8 +83,14 @@ export interface CompanyJobApplicationListItem {
   email: string;
   phone: string;
   message?: string;
+  /** Original CV file name; null for applications sent before it was stored. */
+  cvFileName: string | null;
   createdAt: string;
 }
+
+/** HTTP 409 message when the same e-mail already applied to the offer. */
+export const DUPLICATE_APPLICATION_MESSAGE =
+  'Z tego adresu e-mail wysłano już aplikację na tę ofertę';
 
 export interface HealthResponse {
   status: 'ok';
