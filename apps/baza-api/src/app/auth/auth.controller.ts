@@ -6,18 +6,23 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
-import type { AuthMeResponse } from '@baza/shared-types';
+import type {
+  AuthMeResponse,
+  RegisterCompanyResponse,
+} from '@baza/shared-types';
+import {
+  CurrentUser,
+  Public,
+  type AuthenticatedUser,
+} from '../identity/decorators';
 import { AuthService } from './auth.service';
 import { RegisterCompanyDto } from './dto/register-company.dto';
-import { JwtAuthGuard, type AuthedRequest } from './jwt-auth.guard';
 
 const ALLOWED_UPLOAD_MIME = new Set([
   'image/jpeg',
@@ -25,14 +30,15 @@ const ALLOWED_UPLOAD_MIME = new Set([
   'image/webp',
 ]);
 
+/** Company-specific auth endpoints. Login/refresh/logout/verify/reset live in IdentityController. */
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // TODO(error-system): see context/changes/auth-company-logo-r2/follow-ups/backend-error-handling.md
+  @Public()
   @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: memoryStorage(),
@@ -54,26 +60,15 @@ export class AuthController {
   register(
     @Body() dto: RegisterCompanyDto,
     @UploadedFile() photo?: Express.Multer.File
-  ) {
+  ): Promise<RegisterCompanyResponse> {
     return this.authService.register(dto, photo);
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
-  async me(@Req() req: AuthedRequest): Promise<AuthMeResponse> {
-    const user = req.user;
-    if (!user) {
-      return { user: { id: '', email: null }, company: null };
-    }
-
-    const company = await this.authService.getCompanyForUser(user.id);
-
+  async me(@CurrentUser() user: AuthenticatedUser): Promise<AuthMeResponse> {
     return {
-      user: {
-        id: user.id,
-        email: user.email ?? null,
-      },
-      company,
+      user: { id: user.id, email: user.email },
+      company: await this.authService.getCompanyForUser(user.id),
     };
   }
 }

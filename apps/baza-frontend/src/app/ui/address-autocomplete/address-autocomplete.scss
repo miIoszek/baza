@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.baza-address {
+  width: 100%;
+}
+
+.baza-address__spinner {
+  margin-right: 12px;
+}
+
+// Options live in the overlay, outside this host: these reach them through the
+// content they project (plain spans), not through Material's classes.
+.baza-address__main {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.baza-address__secondary {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--baza-text-secondary);
+  white-space: normal;
+}

@@ -19,6 +19,6 @@ if (!existsSync(local)) {
   }
   copyFileSync(example, local);
   console.warn(
-    '[env] Created apps/baza-frontend/src/environments/environment.local.ts — fill supabaseUrl / supabaseAnonKey'
+    '[env] Created apps/baza-frontend/src/environments/environment.local.ts — optionally set apiBaseUrl / sentryDsn'
   );
 }

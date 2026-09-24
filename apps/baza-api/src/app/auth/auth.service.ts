@@ -1,229 +1,180 @@
+import { DataSource } from 'typeorm';
 import {
   BadRequestException,
-  ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { AuthMeCompany } from '@baza/shared-types';
-import {
-  R2StorageService,
-  type CompanyPhotoUrls,
-} from '../storage/r2-storage.service';
+import { Company, UserAccount } from '@baza/api-data-access';
+import type {
+  AuthMeCompany,
+  RegisterCompanyResponse,
+} from '@baza/shared-types';
+import { COMPANY_ROLE, IDENTITY_CONFIG } from '../identity/identity.constants';
+import type { IdentityConfig } from '../identity/identity.config';
+import { LocalAuthService } from '../identity/services/local-auth.service';
+import { UserAccountService } from '../identity/services/user-account.service';
 import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
+import { R2StorageService } from '../storage/r2-storage.service';
 import { RegisterCompanyDto } from './dto/register-company.dto';
-import { SupabaseAuthService } from './supabase-auth.service';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    private readonly supabaseAuth: SupabaseAuthService,
-    private readonly r2: R2StorageService
+    private readonly dataSource: DataSource,
+    private readonly accounts: UserAccountService,
+    private readonly localAuth: LocalAuthService,
+    private readonly r2: R2StorageService,
+    @Inject(IDENTITY_CONFIG) private readonly config: IdentityConfig
   ) {}
 
+  /**
+   * Creates the account and its company in ONE transaction. The answer is identical whether or not
+   * the address was already registered (the difference goes by email), so this endpoint is not an
+   * account-enumeration oracle. The logo is uploaded after commit because its key uses the
+   * company id; on failure the account is deleted (FK cascade removes the company) and R2 cleaned.
+   */
   async register(
     dto: RegisterCompanyDto,
     photo?: Express.Multer.File
-  ): Promise<{
-    userId: string;
-    companyId: string;
-  }> {
+  ): Promise<RegisterCompanyResponse> {
     if (!dto.termsAccepted) {
       throw new BadRequestException('Terms must be accepted');
     }
-
     if (photo && !this.r2.isConfigured()) {
       throw new ServiceUnavailableException(
         'Photo upload requires R2 configuration'
       );
     }
+    this.localAuth.assertPasswordPolicy(dto.password, dto.email);
 
-    const url = process.env['SUPABASE_URL']?.trim();
-    const anonKey = process.env['SUPABASE_ANON_KEY']?.trim();
-    const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']?.trim();
-    if (!url || !anonKey || !serviceKey) {
-      throw new ServiceUnavailableException(
-        'Supabase config missing (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY required)'
-      );
+    const response: RegisterCompanyResponse = {
+      emailVerificationRequired: this.config.requireEmailVerification,
+    };
+
+    const created = await this.createAccountWithCompany(dto);
+    if (!created) {
+      await this.localAuth.sendAlreadyRegisteredNotice(dto.email);
+      return response;
     }
 
-    let userId: string | null = null;
     let photoKey: string | null = null;
-    let photoUrls: CompanyPhotoUrls | null = null;
-    let adminClient: SupabaseClient | null = null;
-
     try {
-      adminClient = createClient(url, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
-      const db = adminClient;
-      const { data, error } = await adminClient.auth.admin.createUser({
-        email: dto.email,
-        password: dto.password,
-        email_confirm: true,
-      });
-      if (error) {
-        throw this.mapSignUpError(error.message);
-      }
-      if (!data.user) {
-        throw new BadRequestException('Admin createUser returned no user');
-      }
-      userId = data.user.id;
-
-      // Insert company first so logo keys can use public companyId (not auth userId).
-      const { data: company, error: companyError } = await db
-        .from('companies')
-        .insert({
-          user_id: userId,
-          name: dto.name,
-          nip: dto.nip,
-          description: dto.description,
-          base_location: dto.baseLocation,
-          photo_key: null,
-          photo_urls: null,
-        })
-        .select('id')
-        .single();
-
-      if (companyError || !company) {
-        if (companyError?.message) {
-          this.logger.warn(
-            `Company insert failed during register: ${companyError.message}`
-          );
-        }
-        throw new BadRequestException('Failed to create company profile');
-      }
-
-      const companyId = company.id as string;
-
       if (photo?.buffer?.length) {
         const uploaded = await this.r2.uploadCompanyLogo(
-          companyId,
+          created.companyId,
           photo.buffer,
           photo.mimetype || 'image/jpeg'
         );
         photoKey = uploaded.photoKey;
-        photoUrls = uploaded.photoUrls;
-
-        const { error: photoUpdateError } = await db
-          .from('companies')
-          .update({
-            photo_key: photoKey,
-            photo_urls: photoUrls,
-          })
-          .eq('id', companyId);
-
-        if (photoUpdateError) {
-          this.logger.warn(
-            `Company photo update failed during register: ${photoUpdateError.message}`
-          );
-          throw new BadRequestException('Failed to create company profile');
-        }
+        await this.dataSource.getRepository(Company).update(
+          { id: created.companyId },
+          { photoKey: uploaded.photoKey, photoUrls: uploaded.photoUrls }
+        );
       }
-
-      return { userId, companyId };
     } catch (err) {
-      await this.compensateFailedRegister({
-        userId,
-        photoKey,
-        adminClient,
-        serviceKey,
-        url,
-      });
-      throw err;
+      await this.compensateFailedRegister(created.account.id, photoKey);
+      this.logger.warn(
+        `Company photo step failed during register: ${err instanceof Error ? err.message : String(err)}`
+      );
+      throw err instanceof BadRequestException
+        ? err
+        : new BadRequestException('Failed to create company profile');
     }
+
+    if (this.config.requireEmailVerification) {
+      await this.localAuth.sendVerificationEmail(created.account);
+    }
+    return response;
   }
 
   async getCompanyForUser(userId: string): Promise<AuthMeCompany | null> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('companies')
-      .select('id, name, nip, description, base_location, base_lat, base_lng, photo_urls')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) {
+    let company: Company | null;
+    try {
+      company = await this.dataSource
+        .getRepository(Company)
+        .findOne({ where: { userId } });
+    } catch (error) {
       this.logger.warn(
-        `getCompanyForUser failed for ${userId}: ${error.message}`
+        `getCompanyForUser failed for ${userId}: ${error instanceof Error ? error.message : String(error)}`
       );
-      // Do not treat query failure as "no company" — that swallows the error
-      // and makes /auth/me and /company/session look like a guest without a profile.
+      // Do not treat a failed query as "no company": that would make /auth/me look like a guest.
       throw new InternalServerErrorException('Failed to load company profile');
     }
-    if (!data) {
+    if (!company) {
       return null;
     }
-
     return {
-      id: data.id as string,
-      name: data.name as string,
-      nip: data.nip as string,
-      description: data.description as string,
-      baseLocation: data.base_location as string,
-      baseLat: (data.base_lat as number | null) ?? null,
-      baseLng: (data.base_lng as number | null) ?? null,
-      photoUrls: rewriteR2PhotoUrls(
-        (data.photo_urls as Record<string, string> | null) ?? null
-      ),
+      id: company.id,
+      name: company.name,
+      nip: company.nip,
+      description: company.description,
+      baseLocation: company.baseLocation,
+      baseLat: company.baseLat ?? null,
+      baseLng: company.baseLng ?? null,
+      photoUrls: rewriteR2PhotoUrls(company.photoUrls ?? null),
     };
   }
 
-  private async compensateFailedRegister(args: {
-    userId: string | null;
-    photoKey: string | null;
-    adminClient: SupabaseClient | null;
-    serviceKey: string | undefined;
-    url: string;
-  }): Promise<void> {
-    const { userId, photoKey, serviceKey, url } = args;
-    let admin = args.adminClient;
-
-    if (photoKey) {
-      await this.r2.deletePrefix(photoKey);
-    }
-
-    if (!userId) {
-      return;
-    }
-
-    if (!admin && serviceKey) {
-      admin = createClient(url, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
-    }
-
-    if (!admin) {
-      const msg = `Compensation orphan cleanup failed for auth user ${userId}: no admin client (SUPABASE_SERVICE_ROLE_KEY required)`;
-      this.logger.warn(msg);
-      Sentry.captureMessage(msg, 'error');
-      return;
-    }
-
+  private async createAccountWithCompany(
+    dto: RegisterCompanyDto
+  ): Promise<{ account: UserAccount; companyId: string } | null> {
     try {
-      const { error } = await admin.auth.admin.deleteUser(userId);
-      if (error) {
-        const msg = `Compensation orphan cleanup failed for auth user ${userId}: ${error.message}`;
-        this.logger.warn(msg);
-        Sentry.captureMessage(msg, 'error');
-      }
-    } catch (e) {
-      const msg = `Compensation orphan cleanup failed for auth user ${userId}: ${String(e)}`;
-      this.logger.warn(msg);
-      Sentry.captureException(e instanceof Error ? e : new Error(msg));
+      return await this.dataSource.transaction(async (manager) => {
+        const outcome = await this.accounts.registerLocal(
+          {
+            email: dto.email,
+            password: dto.password,
+            roles: [COMPANY_ROLE],
+            emailVerified: !this.config.requireEmailVerification,
+          },
+          manager
+        );
+        if (outcome.kind === 'already-registered') {
+          return null;
+        }
+        const company = await manager.getRepository(Company).save(
+          manager.getRepository(Company).create({
+            userId: outcome.account.id,
+            name: dto.name,
+            nip: dto.nip,
+            description: dto.description,
+            baseLocation: dto.baseLocation,
+            photoKey: null,
+            photoUrls: null,
+          })
+        );
+        return { account: outcome.account, companyId: company.id };
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Register transaction failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+      throw new BadRequestException('Failed to create company profile');
     }
   }
 
-  private mapSignUpError(message: string): Error {
-    const msg = message.toLowerCase();
-    if (msg.includes('already') || msg.includes('registered')) {
-      return new ConflictException('Email already registered');
+  private async compensateFailedRegister(
+    userId: string,
+    photoKey: string | null
+  ): Promise<void> {
+    if (photoKey) {
+      await this.r2.deletePrefix(photoKey);
     }
-    this.logger.warn(`Auth createUser failed during register: ${message}`);
-    return new BadRequestException('Registration failed');
+    try {
+      // FK cascade removes the company, tokens and sessions along with the account.
+      await this.dataSource
+        .getRepository(UserAccount)
+        .delete({ id: userId });
+    } catch (e) {
+      const msg = `Compensation cleanup failed for user ${userId}: ${String(e)}`;
+      this.logger.warn(msg);
+      Sentry.captureException(e instanceof Error ? e : new Error(msg));
+    }
   }
 }

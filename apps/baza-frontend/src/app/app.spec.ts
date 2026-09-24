@@ -28,6 +28,9 @@ describe('App', () => {
       'Baza'
     );
     expect(compiled.querySelector('a[routerlink="/login"], a[href="/login"]')).toBeTruthy();
+    expect(
+      compiled.querySelector('button.baza-app-shell__theme')
+    ).toBeTruthy();
   });
 });
 

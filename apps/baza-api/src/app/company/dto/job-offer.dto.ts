@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  ArrayUnique,
   IsArray,
   IsBoolean,
   IsIn,
@@ -16,6 +17,7 @@ import {
 import {
   COUNTRY_CODES,
   DRIVER_LICENSE_CODES,
+  EMPLOYMENT_FORM_CODES,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPE_CODES,
 } from '@baza/shared-types';
@@ -96,6 +98,12 @@ export class CreateJobOfferDto {
   @IsString()
   @IsIn([...DRIVER_LICENSE_CODES])
   licenseCategory!: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayUnique()
+  @IsIn([...EMPLOYMENT_FORM_CODES], { each: true })
+  employmentForms!: string[];
 }
 
 export class UpdateJobOfferDto extends CreateJobOfferDto {

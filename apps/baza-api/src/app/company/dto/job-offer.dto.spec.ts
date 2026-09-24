@@ -11,6 +11,7 @@ describe('CreateJobOfferDto', () => {
     requiredYearsExperience: 1,
     requiredTransportType: 'car_transporter',
     licenseCategory: 'C',
+    employmentForms: ['uop'],
     routes: [
       {
         from: { code: 'PL', name: 'Polska' },
@@ -64,5 +65,30 @@ describe('CreateJobOfferDto', () => {
     expect(errors.some((e) => e.property === 'requiredTransportType')).toBe(
       true
     );
+  });
+
+  it('rejects missing employmentForms', async () => {
+    const { employmentForms: _omit, ...withoutEmployment } = valid;
+    const dto = plainToInstance(CreateJobOfferDto, withoutEmployment);
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'employmentForms')).toBe(true);
+  });
+
+  it('rejects empty or unknown employment forms', async () => {
+    const empty = plainToInstance(CreateJobOfferDto, {
+      ...valid,
+      employmentForms: [],
+    });
+    expect(
+      (await validate(empty)).some((e) => e.property === 'employmentForms')
+    ).toBe(true);
+
+    const unknown = plainToInstance(CreateJobOfferDto, {
+      ...valid,
+      employmentForms: ['uop', 'cash'],
+    });
+    expect(
+      (await validate(unknown)).some((e) => e.property === 'employmentForms')
+    ).toBe(true);
   });
 });

@@ -6,8 +6,12 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { Company, JobOffer as JobOfferEntity } from '@baza/api-data-access';
 import type {
+  CountryOption,
   DriverLicenseCategory,
+  EmploymentForm,
   GeoPoint,
   HomeReturnCadence,
   JobOffer,
@@ -15,8 +19,13 @@ import type {
   RouteDirection,
   TransportType,
 } from '@baza/shared-types';
-import { isDriverLicenseCategory, isTransportType } from '@baza/shared-types';
-import { SupabaseAuthService } from '../auth/supabase-auth.service';
+import {
+  employmentFormsOverlap,
+  isDriverLicenseCategory,
+  isEmploymentForm,
+  isTransportType,
+  normalizeEmploymentForms,
+} from '@baza/shared-types';
 import { rewriteR2PhotoUrls } from '../storage/photo-url.util';
 import { R2StorageService } from '../storage/r2-storage.service';
 import {
@@ -24,42 +33,24 @@ import {
   UpdateJobOfferDto,
 } from './dto/job-offer.dto';
 import { ListOffersQueryDto } from './dto/list-offers-query.dto';
+import { uniqueRouteCountries } from './unique-route-countries';
 
-/** Shared join used by every query that feeds `mapOffer`. */
-const OFFER_WITH_COMPANY_SELECT =
-  '*, companies(base_lat, base_lng, base_location, name, photo_urls)';
-
-type OfferRow = {
-  id: string;
-  company_id: string;
-  title: string;
-  description: string;
-  home_return_cadence: string;
-  required_years_experience: number;
-  required_transport_type: string;
-  license_category?: string | null;
-  routes: RouteDirection[];
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string | null;
-  published: boolean;
-  created_at: string;
-  updated_at: string;
-  companies?: {
-    base_lat: number | null;
-    base_lng: number | null;
-    base_location: string | null;
-    name?: string | null;
-    photo_urls?: Record<string, string> | null;
-  } | null;
-};
+function splitCsv(raw: string | undefined): string[] {
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
 
 @Injectable()
 export class JobOfferService {
   private readonly logger = new Logger(JobOfferService.name);
 
   constructor(
-    private readonly supabaseAuth: SupabaseAuthService,
+    private readonly dataSource: DataSource,
     private readonly r2: R2StorageService
   ) {}
 
@@ -72,36 +63,51 @@ export class JobOfferService {
       );
     }
 
-    const countries = query.countries
-      ? query.countries
-          .split(',')
-          .map((c) => c.trim().toUpperCase())
-          .filter(Boolean)
-      : undefined;
+    const countries = splitCsv(query.countries);
+    const cadences = splitCsv(query.cadence);
+    const licenses = splitCsv(query.license);
+    const transports = splitCsv(query.transport);
+    const employments = splitCsv(query.employment);
 
     const filters: JobOfferFilters = {};
-    if (countries?.length) {
-      filters.countries = countries;
+    if (countries.length) {
+      filters.countries = countries.map((c) => c.toUpperCase());
     }
-    if (query.cadence) {
-      filters.homeReturnCadence = query.cadence as HomeReturnCadence;
+    if (cadences.length) {
+      filters.homeReturnCadences = cadences as HomeReturnCadence[];
     }
-    if (query.license) {
-      if (!isDriverLicenseCategory(query.license)) {
-        throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
+    if (licenses.length) {
+      for (const code of licenses) {
+        if (!isDriverLicenseCategory(code)) {
+          throw new BadRequestException('Nieprawidłowa kategoria prawa jazdy');
+        }
       }
-      filters.licenseCategory = query.license;
+      filters.licenseCategories = licenses as DriverLicenseCategory[];
     }
-    if (query.transport) {
-      if (!isTransportType(query.transport)) {
-        throw new BadRequestException('Nieprawidłowy typ transportu');
+    if (transports.length) {
+      for (const code of transports) {
+        if (!isTransportType(code)) {
+          throw new BadRequestException('Nieprawidłowy typ transportu');
+        }
       }
-      filters.requiredTransportType = query.transport;
+      filters.requiredTransportTypes = transports as TransportType[];
+    }
+    if (employments.length) {
+      for (const code of employments) {
+        if (!isEmploymentForm(code)) {
+          throw new BadRequestException('Nieprawidłowa forma zatrudnienia');
+        }
+      }
+      filters.employmentForms = normalizeEmploymentForms(employments);
     }
     if (hasLat && hasLng) {
       filters.near = { lat: query.nearLat as number, lng: query.nearLng as number };
     }
     return filters;
+  }
+
+  private get offers() {
+    return this.dataSource.getRepository(JobOfferEntity);
   }
 
   async createForUser(
@@ -111,21 +117,20 @@ export class JobOfferService {
     this.assertSalary(dto);
     const company = await this.requireCompanyForUser(userId);
     const published = dto.published ?? true;
-    this.assertCanPublish(published, company.base_lat, company.base_lng);
+    this.assertCanPublish(published, company.baseLat, company.baseLng);
 
-    const row = this.dtoToInsert(company.id, dto, published);
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .insert(row)
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .single();
-
-    if (error || !data) {
-      this.logger.warn(`Offer create failed: ${error?.message}`);
+    try {
+      const saved = await this.offers.save(
+        this.offers.create({
+          companyId: company.id,
+          ...this.dtoToColumns(dto, published),
+        })
+      );
+      return this.mapOffer(await this.loadWithCompany(saved.id));
+    } catch (error) {
+      this.logger.warn(`Offer create failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się utworzyć oferty');
     }
-    return this.mapOffer(data as OfferRow);
   }
 
   async updateForUser(
@@ -142,26 +147,18 @@ export class JobOfferService {
     }
 
     const nextPublished = dto.published ?? existing.published;
-    this.assertCanPublish(nextPublished, company.base_lat, company.base_lng);
+    this.assertCanPublish(nextPublished, company.baseLat, company.baseLng);
 
-    const patch = this.dtoToInsert(company.id, dto, nextPublished);
-    delete (patch as { company_id?: string }).company_id;
-    patch['updated_at'] = new Date().toISOString();
-
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .update(patch)
-      .eq('id', offerId)
-      .eq('company_id', company.id)
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .single();
-
-    if (error || !data) {
-      this.logger.warn(`Offer update failed: ${error?.message}`);
+    try {
+      await this.offers.update(
+        { id: offerId, companyId: company.id },
+        this.dtoToColumns(dto, nextPublished)
+      );
+      return this.mapOffer(await this.loadWithCompany(offerId));
+    } catch (error) {
+      this.logger.warn(`Offer update failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się zaktualizować oferty');
     }
-    return this.mapOffer(data as OfferRow);
   }
 
   async unpublishForUser(userId: string, offerId: string): Promise<JobOffer> {
@@ -171,19 +168,16 @@ export class JobOfferService {
       throw new NotFoundException('Oferta nie znaleziona');
     }
 
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .update({ published: false, updated_at: new Date().toISOString() })
-      .eq('id', offerId)
-      .eq('company_id', company.id)
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .single();
-
-    if (error || !data) {
+    try {
+      await this.offers.update(
+        { id: offerId, companyId: company.id },
+        { published: false }
+      );
+      return this.mapOffer(await this.loadWithCompany(offerId));
+    } catch (error) {
+      this.logger.warn(`Offer unpublish failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się wycofać oferty');
     }
-    return this.mapOffer(data as OfferRow);
   }
 
   /**
@@ -216,34 +210,48 @@ export class JobOfferService {
 
   async listForOwner(userId: string): Promise<JobOffer[]> {
     const company = await this.requireCompanyForUser(userId);
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .eq('company_id', company.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      this.logger.warn(`Owner offers list failed: ${error.message}`);
+    try {
+      const rows = await this.offers.find({
+        where: { companyId: company.id },
+        relations: { company: true },
+        order: { createdAt: 'DESC' },
+      });
+      return rows.map((r) => this.mapOffer(r));
+    } catch (error) {
+      this.logger.warn(`Owner offers list failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się pobrać ofert');
     }
-    return ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
+  }
+
+  async listPublishedRouteCountries(): Promise<CountryOption[]> {
+    try {
+      const rows = await this.offers.find({
+        where: { published: true },
+        select: { routes: true },
+      });
+      return uniqueRouteCountries(rows.map((r) => r.routes ?? []));
+    } catch (error) {
+      this.logger.warn(
+        `Published route countries failed: ${errorMessage(error)}`
+      );
+      throw new BadRequestException('Nie udało się pobrać krajów tras');
+    }
   }
 
   async listPublished(filters: JobOfferFilters = {}): Promise<JobOffer[]> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .eq('published', true)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      this.logger.warn(`Public offers list failed: ${error.message}`);
+    let rows: JobOfferEntity[];
+    try {
+      rows = await this.offers.find({
+        where: { published: true },
+        relations: { company: true },
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      this.logger.warn(`Public offers list failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się pobrać ofert');
     }
 
-    let offers = ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
+    let offers = rows.map((r) => this.mapOffer(r));
     offers = offers.filter((o) => this.matchesFilters(o, filters));
     if (filters.near) {
       offers = this.sortByNear(offers, filters.near);
@@ -252,33 +260,27 @@ export class JobOfferService {
   }
 
   async listPublishedByCompany(companyId: string): Promise<JobOffer[]> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .eq('company_id', companyId)
-      .eq('published', true)
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const rows = await this.offers.find({
+        where: { companyId, published: true },
+        relations: { company: true },
+        order: { createdAt: 'DESC' },
+      });
+      return rows.map((r) => this.mapOffer(r));
+    } catch {
       throw new BadRequestException('Nie udało się pobrać ofert');
     }
-    return ((data ?? []) as OfferRow[]).map((r) => this.mapOffer(r));
   }
 
   async getPublishedById(id: string): Promise<JobOffer> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .select(OFFER_WITH_COMPANY_SELECT)
-      .eq('id', id)
-      .eq('published', true)
-      .maybeSingle();
-
-    if (error || !data) {
+    const row = await this.offers.findOne({
+      where: { id, published: true },
+      relations: { company: true },
+    });
+    if (!row) {
       throw new NotFoundException('Oferta nie znaleziona');
     }
-    return this.mapOffer(data as OfferRow);
+    return this.mapOffer(row);
   }
 
   /** Exposed for unit tests of matching rules. */
@@ -293,23 +295,32 @@ export class JobOfferService {
       }
     }
 
-    if (filters.homeReturnCadence) {
-      const f = filters.homeReturnCadence;
+    if (filters.homeReturnCadences?.length) {
       const o = offer.homeReturnCadence;
-      const ok = f === 'flexible' || o === 'flexible' || f === o;
+      const ok = filters.homeReturnCadences.some(
+        (f) => f === 'flexible' || o === 'flexible' || f === o
+      );
       if (!ok) {
         return false;
       }
     }
 
-    if (filters.licenseCategory) {
-      if (offer.licenseCategory !== filters.licenseCategory) {
+    if (filters.licenseCategories?.length) {
+      if (!filters.licenseCategories.includes(offer.licenseCategory)) {
         return false;
       }
     }
 
-    if (filters.requiredTransportType) {
-      if (offer.requiredTransportType !== filters.requiredTransportType) {
+    if (filters.requiredTransportTypes?.length) {
+      if (!filters.requiredTransportTypes.includes(offer.requiredTransportType)) {
+        return false;
+      }
+    }
+
+    if (filters.employmentForms?.length) {
+      if (
+        !employmentFormsOverlap(offer.employmentForms, filters.employmentForms)
+      ) {
         return false;
       }
     }
@@ -346,78 +357,64 @@ export class JobOfferService {
     return 2 * R * Math.asin(Math.sqrt(h));
   }
 
-  private async requireCompanyForUser(userId: string): Promise<{
-    id: string;
-    base_lat: number | null;
-    base_lng: number | null;
-  }> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('companies')
-      .select('id, base_lat, base_lng')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error || !data) {
-      throw new NotFoundException('Profil firmy nie znaleziony');
-    }
-    return {
-      id: data.id as string,
-      base_lat: (data.base_lat as number | null) ?? null,
-      base_lng: (data.base_lng as number | null) ?? null,
-    };
+  private async loadWithCompany(id: string): Promise<JobOfferEntity> {
+    return this.offers.findOneOrFail({
+      where: { id },
+      relations: { company: true },
+    });
   }
 
-  private async getOwnedOffer(
+  private async requireCompanyForUser(
+    userId: string
+  ): Promise<Pick<Company, 'id' | 'baseLat' | 'baseLng'>> {
+    const company = await this.dataSource.getRepository(Company).findOne({
+      where: { userId },
+      select: { id: true, baseLat: true, baseLng: true },
+    });
+    if (!company) {
+      throw new NotFoundException('Profil firmy nie znaleziony');
+    }
+    return company;
+  }
+
+  private getOwnedOffer(
     companyId: string,
     offerId: string
-  ): Promise<Pick<OfferRow, 'id' | 'published'> | null> {
-    const { data } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .select('id, published')
-      .eq('id', offerId)
-      .eq('company_id', companyId)
-      .maybeSingle();
-    return (data as Pick<OfferRow, 'id' | 'published'> | null) ?? null;
+  ): Promise<Pick<JobOfferEntity, 'id' | 'published'> | null> {
+    return this.offers.findOne({
+      where: { id: offerId, companyId },
+      select: { id: true, published: true },
+    });
   }
 
   private async offerHasApplications(
     companyId: string,
     offerId: string
   ): Promise<boolean> {
-    const { data, error } = await this.supabaseAuth
-      .getClient()
-      .from('job_applications')
-      .select('id')
-      .eq('job_offer_id', offerId)
-      .eq('company_id', companyId)
-      .limit(1);
-
-    if (error) {
+    try {
+      const rows: unknown[] = await this.dataSource.query(
+        'SELECT 1 FROM job_applications WHERE job_offer_id = $1 AND company_id = $2 LIMIT 1',
+        [offerId, companyId]
+      );
+      return rows.length > 0;
+    } catch (error) {
       this.logger.warn(
-        `Offer applications probe failed (offer=${offerId}): ${error.message}`
+        `Offer applications probe failed (offer=${offerId}): ${errorMessage(error)}`
       );
       throw new InternalServerErrorException(
         'Nie udało się sprawdzić aplikacji powiązanych z ofertą'
       );
     }
-    return (data?.length ?? 0) > 0;
   }
 
   private async deleteOwnedOfferRow(
     companyId: string,
     offerId: string
   ): Promise<void> {
-    const { error } = await this.supabaseAuth
-      .getClient()
-      .from('job_offers')
-      .delete()
-      .eq('id', offerId)
-      .eq('company_id', companyId);
-
-    if (error) {
-      this.logger.warn(`Offer delete failed: ${error.message}`);
+    try {
+      await this.offers.delete({ id: offerId, companyId });
+    } catch (error) {
+      this.logger.warn(`Offer delete failed: ${errorMessage(error)}`);
       throw new BadRequestException('Nie udało się usunąć oferty');
     }
   }
@@ -459,75 +456,71 @@ export class JobOfferService {
     }
   }
 
-  private dtoToInsert(
-    companyId: string,
+  private dtoToColumns(
     dto: CreateJobOfferDto | UpdateJobOfferDto,
     published: boolean
-  ): Record<string, unknown> {
+  ): Partial<JobOfferEntity> {
     const hasSalary =
-      dto.salaryMin != null ||
-      dto.salaryMax != null ||
-      !!dto.salaryCurrency;
+      dto.salaryMin != null || dto.salaryMax != null || !!dto.salaryCurrency;
 
-    const row: Record<string, unknown> = {
-      company_id: companyId,
+    return {
       title: dto.title,
       description: dto.description,
-      home_return_cadence: dto.homeReturnCadence,
-      required_years_experience: dto.requiredYearsExperience,
-      required_transport_type: dto.requiredTransportType,
-      license_category: dto.licenseCategory,
+      homeReturnCadence: dto.homeReturnCadence,
+      requiredYearsExperience: dto.requiredYearsExperience,
+      requiredTransportType: dto.requiredTransportType,
+      licenseCategory: dto.licenseCategory,
+      employmentForms: this.requireEmploymentForms(dto.employmentForms),
       routes: dto.routes,
-      salary_min: hasSalary ? (dto.salaryMin ?? null) : null,
-      salary_max: hasSalary ? (dto.salaryMax ?? null) : null,
-      salary_currency: hasSalary ? (dto.salaryCurrency ?? null) : null,
+      salaryMin:
+        hasSalary && dto.salaryMin != null ? String(dto.salaryMin) : null,
+      salaryMax:
+        hasSalary && dto.salaryMax != null ? String(dto.salaryMax) : null,
+      salaryCurrency: hasSalary ? (dto.salaryCurrency ?? null) : null,
       published,
     };
-
-    return row;
   }
 
-  private mapOffer(row: OfferRow): JobOffer {
-    const co = row.companies;
+  private mapOffer(row: JobOfferEntity): JobOffer {
+    const co = row.company;
     let baseLocation: GeoPoint | null = null;
-    if (co?.base_lat != null && co?.base_lng != null) {
-      baseLocation = { lat: co.base_lat, lng: co.base_lng };
+    if (co?.baseLat != null && co?.baseLng != null) {
+      baseLocation = { lat: co.baseLat, lng: co.baseLng };
     }
 
     const salary =
-      row.salary_currency != null
+      row.salaryCurrency != null
         ? {
-            currency: row.salary_currency,
-            ...(row.salary_min != null ? { min: Number(row.salary_min) } : {}),
-            ...(row.salary_max != null ? { max: Number(row.salary_max) } : {}),
+            currency: row.salaryCurrency,
+            ...(row.salaryMin != null ? { min: Number(row.salaryMin) } : {}),
+            ...(row.salaryMax != null ? { max: Number(row.salaryMax) } : {}),
           }
         : undefined;
 
-    const licenseCategory = this.resolveLicenseCategory(row);
-
     return {
       id: row.id,
-      companyId: row.company_id,
+      companyId: row.companyId,
       title: row.title,
       description: row.description,
-      homeReturnCadence: row.home_return_cadence as HomeReturnCadence,
-      requiredYearsExperience: row.required_years_experience,
-      requiredTransportType: row.required_transport_type as TransportType,
-      licenseCategory,
+      homeReturnCadence: row.homeReturnCadence as HomeReturnCadence,
+      requiredYearsExperience: row.requiredYearsExperience,
+      requiredTransportType: row.requiredTransportType as TransportType,
+      licenseCategory: this.resolveLicenseCategory(row),
+      employmentForms: this.resolveEmploymentForms(row),
       routes: row.routes,
       salary,
       baseLocation,
-      companyBaseLocationText: co?.base_location ?? null,
+      companyBaseLocationText: co?.baseLocation ?? null,
       companyName: (co?.name ?? '').trim(),
-      companyPhotoUrls: rewriteR2PhotoUrls(co?.photo_urls ?? null),
+      companyPhotoUrls: rewriteR2PhotoUrls(co?.photoUrls ?? null),
       published: row.published,
-      publishedAt: row.created_at,
+      publishedAt: row.createdAt.toISOString(),
     };
   }
 
   /** Legacy rows without a category default to C; unknown non-empty values fail loud. */
-  private resolveLicenseCategory(row: OfferRow): DriverLicenseCategory {
-    const raw = row.license_category;
+  private resolveLicenseCategory(row: JobOfferEntity): DriverLicenseCategory {
+    const raw = row.licenseCategory;
     if (raw == null || raw === '') {
       return 'C';
     }
@@ -539,4 +532,29 @@ export class JobOfferService {
     );
     throw new InternalServerErrorException('Nieprawidłowe dane oferty');
   }
+
+  private requireEmploymentForms(values: string[] | undefined): EmploymentForm[] {
+    const normalized = normalizeEmploymentForms(values ?? []);
+    if (!normalized.length) {
+      throw new BadRequestException(
+        'Wybierz co najmniej jedną formę zatrudnienia'
+      );
+    }
+    return normalized;
+  }
+
+  private resolveEmploymentForms(row: JobOfferEntity): EmploymentForm[] {
+    const normalized = normalizeEmploymentForms(row.employmentForms ?? []);
+    if (!normalized.length) {
+      this.logger.error(
+        `Missing employment_forms on job_offers.id=${row.id}: ${JSON.stringify(row.employmentForms)}`
+      );
+      throw new InternalServerErrorException('Nieprawidłowe dane oferty');
+    }
+    return normalized;
+  }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

@@ -19,3 +19,17 @@ export interface AuthMeResponse {
   user: AuthMeUser;
   company: AuthMeCompany | null;
 }
+
+/** Response of POST /api/auth/login, /refresh and /change-password. The refresh token is cookie-only. */
+export interface AuthSessionResponse {
+  accessToken: string;
+  expiresInSeconds: number;
+}
+
+/**
+ * Response of POST /api/auth/register (202). Deliberately identical whether or not the address was
+ * already registered (no account-enumeration oracle).
+ */
+export interface RegisterCompanyResponse {
+  emailVerificationRequired: boolean;
+}

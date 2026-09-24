@@ -1,0 +1,51 @@
+:host {
+  display: block;
+}
+
+.baza-map-preview__map {
+  height: 360px;
+  overflow: hidden;
+  border: 1px solid var(--baza-border);
+  border-radius: 18px;
+}
+
+.baza-map-preview__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.baza-map-preview__note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--baza-warn-fg);
+}
+
+.baza-map-preview__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--baza-text-secondary);
+}
+
+.baza-map-preview__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.baza-map-preview__dot--from {
+  background: var(--baza-map-point-from);
+}
+
+.baza-map-preview__dot--to {
+  background: var(--baza-map-point-to);
+}
+
+@media (max-width: 599px) {
+  .baza-map-preview__map {
+    height: 240px;
+  }
+}

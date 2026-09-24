@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import type {
+  CountryOption,
   CreateJobApplicationResponse,
   JobOffer,
 } from '@baza/shared-types';
@@ -24,7 +25,9 @@ import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 import { JobApplicationService } from './job-application.service';
 import { JobOfferService } from './job-offer.service';
 import { ListOffersQueryDto } from './dto/list-offers-query.dto';
+import { Public } from '../identity/decorators';
 
+@Public()
 @Controller('offers')
 export class OffersPublicController {
   constructor(
@@ -39,6 +42,11 @@ export class OffersPublicController {
     );
   }
 
+  @Get('countries')
+  listCountries(): Promise<CountryOption[]> {
+    return this.jobOfferService.listPublishedRouteCountries();
+  }
+
   @Get(':id')
   getOne(@Param('id', ParseUUIDPipe) id: string): Promise<JobOffer> {
     return this.jobOfferService.getPublishedById(id);
@@ -50,6 +58,8 @@ export class OffersPublicController {
   @UseInterceptors(
     FileInterceptor('cv', {
       storage: memoryStorage(),
+      // Browsers send raw UTF-8 file names; busboy's latin1 default garbles "Łukasz.pdf".
+      defParamCharset: 'utf8',
       limits: { fileSize: APPLICATION_CV_MAX_BYTES },
       fileFilter: (_req, file, cb) => {
         if (file.mimetype !== 'application/pdf') {

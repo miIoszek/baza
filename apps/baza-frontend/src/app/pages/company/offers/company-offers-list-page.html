@@ -1,81 +1,75 @@
-<section class="auth-page">
-  <mat-card class="auth-card baza-glass-card" appearance="outlined">
-    <div class="auth-brand">
-      <img
-        class="auth-brand__logo"
-        src="/baza-logo.png"
-        alt=""
-        width="48"
-        height="59"
-      />
-      <span class="auth-brand__name">Baza</span>
+<section class="offers">
+  <header class="offers__header">
+    <div>
+      <h1 #heading class="offers__title" tabindex="-1">Moje oferty</h1>
+      <p class="offers__subtitle">Zarządzaj ogłoszeniami firmy</p>
     </div>
-    <mat-card-header>
-      <mat-card-title>Moje oferty</mat-card-title>
-      <mat-card-subtitle>Zarządzaj ogłoszeniami firmy</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      @if (loading()) {
-      <div class="auth-form">
-        <baza-async-status kind="loading" message="Ładowanie ofert…" />
-      </div>
-      } @else if (error(); as err) {
-      <div class="auth-form">
-        <baza-async-status kind="error" [message]="err">
-          <button mat-button type="button" (click)="retryLoad()">
-            Spróbuj ponownie
-          </button>
-        </baza-async-status>
-      </div>
-      } @else {
-      <div class="auth-form">
-        <a
-          mat-flat-button
-          color="primary"
-          class="baza-btn-premium full-width"
-          routerLink="/company/offers/new"
-          >Dodaj ofertę</a
-        >
+    @if (!loading() && !error() && offers().length) {
+      <span class="offers__counter">{{ counter() }}</span>
+    }
+  </header>
 
-        @if (offers().length === 0) {
-        <baza-async-status
-          kind="empty"
-          message="Brak ofert. Utwórz pierwszą."
-        />
-        } @else {
-        <ul class="offers-list">
-          @for (o of offers(); track o.id) {
-          <li class="offers-list__item">
-            <div>
-              <strong>{{ o.title }}</strong>
-              <span class="offers-list__meta">
-                {{ o.published ? 'Opublikowana' : 'Wycofana' }} ·
-                Prawo jazdy {{ o.licenseCategory === 'C_E' ? 'C+E' : o.licenseCategory }} ·
-                {{ o.routes.length }} tras
-              </span>
-            </div>
-            <div class="offers-list__actions">
-              <a mat-button [routerLink]="['/company/offers', o.id, 'edit']"
-                >Edytuj</a
-              >
-              @if (o.published) {
-              <button mat-button type="button" (click)="unpublish(o.id)">
+  @if (loading()) {
+    <ul class="offers__list" aria-busy="true" aria-label="Ładowanie ofert">
+      @for (s of skeletons; track s) {
+        <li class="offers__row" aria-hidden="true">
+          <div class="offers__main">
+            <baza-skeleton width="55%" height="16px" />
+            <baza-skeleton class="offers__skel-gap" width="35%" height="12px" />
+          </div>
+        </li>
+      }
+    </ul>
+  } @else if (error(); as err) {
+    <baza-state-block
+      variant="error"
+      icon="alert"
+      title="Nie udało się wczytać ofert"
+      [message]="err"
+      actionLabel="Spróbuj ponownie"
+      (action)="retryLoad()"
+    />
+  } @else if (offers().length === 0) {
+    <baza-state-block
+      icon="offers"
+      title="Nie masz jeszcze żadnych ofert"
+      message="Dodanie oferty jest darmowe i zajmuje kilka minut."
+    >
+      <a mat-flat-button class="baza-glow" routerLink="/company/offers/new">Dodaj pierwszą ofertę</a>
+    </baza-state-block>
+  } @else {
+    <ul class="offers__list">
+      @for (o of offers(); track o.id) {
+        <li class="offers__row">
+          <div class="offers__main">
+            <h2 class="offers__name">{{ o.title }}</h2>
+            <p class="offers__meta">
+              <baza-tag [variant]="o.published ? 'published' : 'draft'">
+                {{ o.published ? 'Opublikowana' : 'Szkic' }}
+              </baza-tag>
+              <span>{{ addedOn(o) }}</span>
+            </p>
+          </div>
+          <div class="offers__actions">
+            <a mat-stroked-button [routerLink]="['/company/offers', o.id, 'edit']">Edytuj</a>
+            @if (o.published) {
+              <button mat-button type="button" [disabled]="busyId() === o.id" (click)="unpublish(o)">
                 Wycofaj
               </button>
-              }
-              <button mat-button type="button" (click)="deleteOffer(o.id)">
-                Usuń
-              </button>
-            </div>
-          </li>
-          }
-        </ul>
-        }
-      </div>
+            }
+            <button
+              mat-button
+              type="button"
+              class="baza-danger"
+              [disabled]="busyId() === o.id"
+              [attr.aria-label]="'Usuń ofertę ' + o.title"
+              (click)="confirmDelete(o)"
+            >
+              Usuń
+            </button>
+          </div>
+        </li>
       }
-    </mat-card-content>
-    <mat-card-footer class="auth-footer">
-      <a routerLink="/company/profile">← Profil firmy</a>
-    </mat-card-footer>
-  </mat-card>
+    </ul>
+  }
 </section>

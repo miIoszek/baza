@@ -1,0 +1,119 @@
+<div class="baza-filter-bar">
+  <div class="baza-filter-bar__meta">
+    <span class="baza-filter-bar__count">{{ countLabel() }}</span>
+    @if (hasFilters()) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="baza-filter-bar__clear"
+        (click)="clear.emit()"
+      >
+        Wyczyść
+      </button>
+    }
+  </div>
+
+  <!-- Filters are listboxes of options: selectable with keyboard and screen readers, not just by tap -->
+  @if (countries().length) {
+    <section class="baza-filter-bar__group">
+      <h2 class="baza-filter-bar__label">Kraje trasy</h2>
+      <mat-chip-listbox multiple aria-label="Kraje trasy">
+        @for (c of visibleCountries(); track c.code) {
+          <mat-chip-option
+            [selected]="isCountrySelected(c.code)"
+            (selectionChange)="$event.isUserInput && toggleCountry(c.code)"
+          >
+            {{ c.namePl }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+      @if (hiddenCountryCount() > 0) {
+        <button
+          mat-button
+          type="button"
+          class="baza-filter-bar__more"
+          [attr.aria-expanded]="false"
+          (click)="expandCountries($event)"
+        >
+          +{{ hiddenCountryCount() }} więcej krajów
+        </button>
+      }
+      @if (canCollapseCountries()) {
+        <button
+          mat-button
+          type="button"
+          class="baza-filter-bar__more"
+          [attr.aria-expanded]="true"
+          (click)="collapseCountries($event)"
+        >
+          Zwiń listę krajów
+        </button>
+      }
+    </section>
+  }
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Powrót do domu</h2>
+    <mat-chip-listbox multiple aria-label="Powrót do domu">
+      @for (c of cadences; track c) {
+        <mat-chip-option
+          [selected]="isCadenceSelected(c)"
+          (selectionChange)="$event.isUserInput && toggleCadence(c)"
+        >
+          {{ cadenceLabels()[c] }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Prawo jazdy</h2>
+    <mat-chip-listbox multiple aria-label="Prawo jazdy">
+      @for (l of licenses; track l.code) {
+        <mat-chip-option
+          [selected]="isLicenceSelected(l.code)"
+          (selectionChange)="$event.isUserInput && toggleLicence(l.code)"
+        >
+          {{ l.label }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Typ transportu</h2>
+    <mat-chip-listbox multiple aria-label="Typ transportu">
+      @for (t of transportTypes; track t.code) {
+        <mat-chip-option
+          [selected]="isTransportSelected(t.code)"
+          (selectionChange)="$event.isUserInput && toggleTransport(t.code)"
+        >
+          {{ t.namePl }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </section>
+
+  <section class="baza-filter-bar__group">
+    <h2 class="baza-filter-bar__label">Forma zatrudnienia</h2>
+    <mat-chip-listbox multiple aria-label="Forma zatrudnienia">
+      @for (f of employmentFormOptions; track f.code) {
+        <mat-chip-option
+          [selected]="isEmploymentSelected(f.code)"
+          (selectionChange)="$event.isUserInput && toggleEmployment(f.code)"
+        >
+          {{ f.namePl }}
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+  </section>
+
+  <button
+    mat-stroked-button
+    type="button"
+    class="baza-filter-bar__location"
+    (click)="useLocation.emit()"
+  >
+    Użyj mojej lokalizacji
+  </button>
+</div>

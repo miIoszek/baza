@@ -12,23 +12,14 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'setup',
-      testMatch: /auth\.setup\.ts/,
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
       // Firefox — ManageEngine Browser Security Plus blocks automated Chrome.
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testIgnore: [/auth\.setup\.ts/, /\.authenticated\.spec\.ts/],
+      testIgnore: [/\.authenticated\.spec\.ts/],
     },
     {
       name: 'firefox-authenticated',
-      use: {
-        ...devices['Desktop Firefox'],
-        storageState: 'playwright/.auth/user.json',
-      },
-      dependencies: ['setup'],
+      use: { ...devices['Desktop Firefox'] },
       testMatch: /\.authenticated\.spec\.ts/,
     },
   ],

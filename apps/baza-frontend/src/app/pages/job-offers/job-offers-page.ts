@@ -7,23 +7,36 @@ import {
   signal,
 } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
-  COUNTRIES,
   DRIVER_LICENSES,
+  EMPLOYMENT_FORMS,
   HOME_RETURN_CADENCES,
   TRANSPORT_TYPES,
+  type CountryOption,
   type JobOffer,
 } from '@baza/shared-types';
-import { AsyncStatus } from '@baza/ui';
-import { catchError, combineLatest, debounceTime, of, switchMap, tap } from 'rxjs';
+import {
+  BazaFilterBar,
+  BazaOfferCard,
+  BazaOfferCardSkeleton,
+  BazaStateBlock,
+  toOfferCardVm,
+  type OfferFiltersVm,
+} from '../../ui';
+import { catchError, combineLatest, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { pickCompanyLogoUrl } from './company-logo-url';
+import {
+  BazaFiltersSheet,
+  type FiltersSheetData,
+  type FiltersSheetDismiss,
+} from '../../ui/filter-bar/filters-sheet';
 
 const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
   daily: 'Codziennie',
@@ -35,12 +48,27 @@ const CADENCE_LABELS: Record<(typeof HOME_RETURN_CADENCES)[number], string> = {
 
 export type JobOffersQueryModel = {
   countries: string[];
-  cadence: string;
-  license: string;
-  transport: string;
+  cadences: string[];
+  licenses: string[];
+  transports: string[];
+  employmentForms: string[];
   nearLat: number | null;
   nearLng: number | null;
 };
+
+function parseCsvQueryParam(
+  get: (key: string) => string | null,
+  key: string
+): string[] {
+  const raw = get(key) ?? '';
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
 
 /** Pure helpers — unit-tested without TestBed. */
 export function parseJobOffersQueryParams(
@@ -61,9 +89,10 @@ export function parseJobOffersQueryParams(
     nearLngRaw != null && nearLngRaw !== '' ? Number(nearLngRaw) : null;
   return {
     countries,
-    cadence: get('cadence') ?? '',
-    license: get('license') ?? '',
-    transport: get('transport') ?? '',
+    cadences: parseCsvQueryParam(get, 'cadence'),
+    licenses: parseCsvQueryParam(get, 'license'),
+    transports: parseCsvQueryParam(get, 'transport'),
+    employmentForms: parseCsvQueryParam(get, 'employment'),
     nearLat: nearLat != null && !Number.isNaN(nearLat) ? nearLat : null,
     nearLng: nearLng != null && !Number.isNaN(nearLng) ? nearLng : null,
   };
@@ -76,14 +105,17 @@ export function jobOffersQueryToHttpParams(
   if (model.countries.length) {
     params = params.set('countries', model.countries.join(','));
   }
-  if (model.cadence) {
-    params = params.set('cadence', model.cadence);
+  if (model.cadences.length) {
+    params = params.set('cadence', model.cadences.join(','));
   }
-  if (model.license) {
-    params = params.set('license', model.license);
+  if (model.licenses.length) {
+    params = params.set('license', model.licenses.join(','));
   }
-  if (model.transport) {
-    params = params.set('transport', model.transport);
+  if (model.transports.length) {
+    params = params.set('transport', model.transports.join(','));
+  }
+  if (model.employmentForms.length) {
+    params = params.set('employment', model.employmentForms.join(','));
   }
   if (model.nearLat != null && model.nearLng != null) {
     params = params.set('nearLat', String(model.nearLat));
@@ -97,9 +129,12 @@ export function jobOffersQueryToRouterParams(
 ): Record<string, string | null> {
   return {
     countries: model.countries.length ? model.countries.join(',') : null,
-    cadence: model.cadence || null,
-    license: model.license || null,
-    transport: model.transport || null,
+    cadence: model.cadences.length ? model.cadences.join(',') : null,
+    license: model.licenses.length ? model.licenses.join(',') : null,
+    transport: model.transports.length ? model.transports.join(',') : null,
+    employment: model.employmentForms.length
+      ? model.employmentForms.join(',')
+      : null,
     nearLat: model.nearLat != null ? String(model.nearLat) : null,
     nearLng: model.nearLng != null ? String(model.nearLng) : null,
   };
@@ -108,23 +143,124 @@ export function jobOffersQueryToRouterParams(
 export function hasActiveJobOfferFilters(model: JobOffersQueryModel): boolean {
   return (
     model.countries.length > 0 ||
-    !!model.cadence ||
-    !!model.license ||
-    !!model.transport ||
+    model.cadences.length > 0 ||
+    model.licenses.length > 0 ||
+    model.transports.length > 0 ||
+    model.employmentForms.length > 0 ||
     (model.nearLat != null && model.nearLng != null)
   );
+}
+
+export function removeFilterTagFromQuery(
+  query: JobOffersQueryModel,
+  tagId: string
+): JobOffersQueryModel {
+  if (tagId.startsWith('country:')) {
+    const code = tagId.slice('country:'.length);
+    return {
+      ...query,
+      countries: query.countries.filter((c) => c !== code),
+    };
+  }
+  if (tagId.startsWith('cadence:')) {
+    const cadence = tagId.slice('cadence:'.length);
+    return {
+      ...query,
+      cadences: query.cadences.filter((c) => c !== cadence),
+    };
+  }
+  if (tagId.startsWith('license:')) {
+    const license = tagId.slice('license:'.length);
+    return {
+      ...query,
+      licenses: query.licenses.filter((l) => l !== license),
+    };
+  }
+  if (tagId.startsWith('transport:')) {
+    const transport = tagId.slice('transport:'.length);
+    return {
+      ...query,
+      transports: query.transports.filter((t) => t !== transport),
+    };
+  }
+  if (tagId.startsWith('employment:')) {
+    const form = tagId.slice('employment:'.length);
+    return {
+      ...query,
+      employmentForms: query.employmentForms.filter((f) => f !== form),
+    };
+  }
+  if (tagId === 'near') {
+    return { ...query, nearLat: null, nearLng: null };
+  }
+  return query;
+}
+
+export type ActiveFilterTag = {
+  id: string;
+  label: string;
+};
+
+export function buildActiveFilterTags(
+  query: JobOffersQueryModel,
+  cadenceLabels: Record<string, string>,
+  countries: readonly CountryOption[]
+): ActiveFilterTag[] {
+  const nameByCode = new Map(countries.map((c) => [c.code, c.namePl]));
+  const tags: ActiveFilterTag[] = [];
+  for (const code of query.countries) {
+    tags.push({
+      id: `country:${code}`,
+      label: nameByCode.get(code) ?? code,
+    });
+  }
+  for (const cadence of query.cadences) {
+    tags.push({
+      id: `cadence:${cadence}`,
+      label: cadenceLabels[cadence] ?? cadence,
+    });
+  }
+  for (const license of query.licenses) {
+    const licenceLabel =
+      DRIVER_LICENSES.find((l) => l.code === license)?.label ?? license;
+    tags.push({ id: `license:${license}`, label: licenceLabel });
+  }
+  for (const transport of query.transports) {
+    const transportLabel =
+      TRANSPORT_TYPES.find((t) => t.code === transport)?.namePl ?? transport;
+    tags.push({ id: `transport:${transport}`, label: transportLabel });
+  }
+  for (const form of query.employmentForms) {
+    const formLabel =
+      EMPLOYMENT_FORMS.find((f) => f.code === form)?.namePl ?? form;
+    tags.push({ id: `employment:${form}`, label: formLabel });
+  }
+  if (query.nearLat != null && query.nearLng != null) {
+    tags.push({ id: 'near', label: 'Blisko mnie' });
+  }
+  return tags;
+}
+
+export function filtersVmFromQuery(model: JobOffersQueryModel): OfferFiltersVm {
+  return {
+    routeCountries: model.countries,
+    cadences: model.cadences,
+    licences: model.licenses,
+    transports: model.transports,
+    employmentForms: model.employmentForms,
+  };
 }
 
 @Component({
   selector: 'baza-job-offers-page',
   standalone: true,
   imports: [
-    RouterLink,
-    FormsModule,
     MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    AsyncStatus,
+    MatIconModule,
+    BazaFilterBar,
+    BazaOfferCard,
+    BazaOfferCardSkeleton,
+    BazaStateBlock,
   ],
   templateUrl: './job-offers-page.html',
   styleUrl: './job-offers-page.scss',
@@ -134,22 +270,29 @@ export class JobOffersPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly bottomSheet = inject(MatBottomSheet);
+  private readonly breakpoint = inject(BreakpointObserver);
 
-  protected readonly countries = COUNTRIES;
-  protected readonly cadences = HOME_RETURN_CADENCES;
-  protected readonly licenses = DRIVER_LICENSES;
-  protected readonly transportTypes = TRANSPORT_TYPES;
+  protected readonly isMobile = toSignal(
+    this.breakpoint
+      .observe('(max-width: 899px)')
+      .pipe(map((state) => state.matches)),
+    { initialValue: false }
+  );
+
   protected readonly cadenceLabels = CADENCE_LABELS;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly geoError = signal<string | null>(null);
   protected readonly offers = signal<JobOffer[]>([]);
+  protected readonly routeCountries = signal<CountryOption[]>([]);
   protected readonly filters = signal<JobOffersQueryModel>({
     countries: [],
-    cadence: '',
-    license: '',
-    transport: '',
+    cadences: [],
+    licenses: [],
+    transports: [],
+    employmentForms: [],
     nearLat: null,
     nearLng: null,
   });
@@ -161,8 +304,34 @@ export class JobOffersPage implements OnInit {
   protected readonly hasFilters = computed(() =>
     hasActiveJobOfferFilters(this.filters())
   );
+  protected readonly filtersVm = computed(() =>
+    filtersVmFromQuery(this.filters())
+  );
+  protected readonly activeFilterTags = computed(() =>
+    buildActiveFilterTags(
+      this.filters(),
+      this.cadenceLabels,
+      this.routeCountries()
+    )
+  );
+  protected readonly offerCards = computed(() =>
+    this.offers().map((o) =>
+      toOfferCardVm(o, pickCompanyLogoUrl(o.companyPhotoUrls))
+    )
+  );
+  protected readonly skeletons = [0, 1, 2];
 
   ngOnInit(): void {
+    this.http
+      .get<CountryOption[]>(`${environment.apiBaseUrl}/api/offers/countries`)
+      .pipe(
+        catchError(() => of([] as CountryOption[])),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((countries) => {
+        this.routeCountries.set(countries);
+      });
+
     combineLatest([this.route.queryParamMap, this.reloadTick$])
       .pipe(
         tap(([params]) => {
@@ -196,20 +365,48 @@ export class JobOffersPage implements OnInit {
     this.reloadTick.update((n) => n + 1);
   }
 
-  protected onCountriesChange(codes: string[]): void {
-    this.writeQuery({ ...this.filters(), countries: codes });
+  protected onFiltersChange(value: OfferFiltersVm): void {
+    this.writeQuery({
+      ...this.filters(),
+      countries: value.routeCountries,
+      cadences: value.cadences,
+      licenses: value.licences,
+      transports: value.transports,
+      employmentForms: value.employmentForms,
+    });
   }
 
-  protected onCadenceChange(cadence: string): void {
-    this.writeQuery({ ...this.filters(), cadence: cadence ?? '' });
+  protected removeFilterTag(tagId: string): void {
+    const next = removeFilterTagFromQuery(this.filters(), tagId);
+    if (tagId === 'near') {
+      this.geoError.set(null);
+    }
+    this.writeQuery(next);
   }
 
-  protected onLicenseChange(license: string): void {
-    this.writeQuery({ ...this.filters(), license: license ?? '' });
-  }
-
-  protected onTransportChange(transport: string): void {
-    this.writeQuery({ ...this.filters(), transport: transport ?? '' });
+  protected openFiltersSheet(): void {
+    const data: FiltersSheetData = {
+      value: this.filtersVm(),
+      resultCount: this.offers().length,
+      cadenceLabels: this.cadenceLabels,
+      countries: this.routeCountries(),
+    };
+    const ref = this.bottomSheet.open(BazaFiltersSheet, {
+      data,
+      panelClass: 'baza-filters-sheet-panel',
+    });
+    ref
+      .afterDismissed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: FiltersSheetDismiss | undefined) => {
+        if (result === 'use-location') {
+          this.useMyLocation();
+          return;
+        }
+        if (result) {
+          this.onFiltersChange(result);
+        }
+      });
   }
 
   protected clearFilters(): void {
@@ -236,53 +433,11 @@ export class JobOffersPage implements OnInit {
       },
       () => {
         this.geoError.set(
-          'Nie udało się pobrać lokalizacji. Sprawdź uprawnienia w przeglądarce.'
+          'Nie udało się ustalić Twojej lokalizacji. Sprawdź uprawnienia w przeglądarce albo wybierz kraje tras ręcznie.'
         );
       },
       { enableHighAccuracy: false, timeout: 10000 }
     );
-  }
-
-  protected openOffer(id: string): void {
-    void this.router.navigate(['/job-offers', id]);
-  }
-
-  protected onCardKeydown(event: KeyboardEvent, id: string): void {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.openOffer(id);
-    }
-  }
-
-  protected logoUrl(offer: JobOffer): string | null {
-    return pickCompanyLogoUrl(offer.companyPhotoUrls);
-  }
-
-  protected salaryPill(offer: JobOffer): string | null {
-    const s = offer.salary;
-    if (!s) {
-      return null;
-    }
-    const parts: string[] = [];
-    if (s.min != null && s.max != null) {
-      parts.push(`${s.min}–${s.max}`);
-    } else if (s.min != null) {
-      parts.push(`od ${s.min}`);
-    } else if (s.max != null) {
-      parts.push(`do ${s.max}`);
-    }
-    if (parts.length === 0) {
-      return null;
-    }
-    return `${parts.join(' ')} ${s.currency}`;
-  }
-
-  protected cadenceLabel(code: string): string {
-    return CADENCE_LABELS[code as keyof typeof CADENCE_LABELS] ?? code;
-  }
-
-  protected transportLabel(code: string): string {
-    return TRANSPORT_TYPES.find((t) => t.code === code)?.namePl ?? code;
   }
 
   private writeQuery(model: JobOffersQueryModel): void {
@@ -295,10 +450,10 @@ export class JobOffersPage implements OnInit {
 
   private extractError(err: unknown): string {
     if (!(err instanceof HttpErrorResponse)) {
-      return 'Nie udało się pobrać ofert';
+      return 'Nie udało się wczytać ofert';
     }
     if (err.status === 0) {
-      return 'Nie udało się pobrać ofert';
+      return 'Nie udało się wczytać ofert';
     }
     const raw = err.error;
     const msg =
@@ -317,6 +472,6 @@ export class JobOffersPage implements OnInit {
     ) {
       return msg;
     }
-    return 'Nie udało się pobrać ofert';
+    return 'Nie udało się wczytać ofert';
   }
 }

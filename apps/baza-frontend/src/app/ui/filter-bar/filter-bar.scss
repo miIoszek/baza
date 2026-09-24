@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.baza-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+// Always as tall as the "Wyczyść" button, so it appears without pushing the
+// filters down (and it never wraps to a line of its own).
+.baza-filter-bar__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+
+.baza-filter-bar__count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--baza-text-secondary);
+}
+
+.baza-filter-bar__clear,
+.baza-filter-bar__location {
+  min-height: 36px;
+}
+
+.baza-filter-bar__group {
+  min-width: 0;
+}
+
+.baza-filter-bar__label {
+  margin: 0 0 8px;
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--baza-text-muted);
+}
+
+mat-chip-listbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.baza-filter-bar__more {
+  margin-top: 4px;
+  margin-left: -12px;
+  font-weight: 600;
+}
+
+.baza-filter-bar__location {
+  align-self: stretch;
+}

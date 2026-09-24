@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import type { AuthedRequest } from '../auth/jwt-auth.guard';
+import type { AuthedRequest } from '../identity/decorators';
 import { CompanyController } from './company.controller';
 import { CompanyService } from './company.service';
 import { JobApplicationService } from './job-application.service';
@@ -50,10 +49,7 @@ describe('CompanyController', () => {
           },
         },
       ],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: jest.fn(() => true) })
-      .compile();
+    }).compile();
 
     controller = module.get(CompanyController);
   });

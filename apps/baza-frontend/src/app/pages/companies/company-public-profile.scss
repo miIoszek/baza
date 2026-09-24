@@ -7,11 +7,11 @@
 
 .company-public__status {
   text-align: center;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--baza-text-muted);
 }
 
 .company-public__card {
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--baza-surface);
 }
 
 .company-public__actions {
@@ -25,7 +25,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.45rem;
-  padding: 0.5rem 1rem 1rem;
+  // No side padding: the logo and name line up with the sections below.
+  padding: 0.5rem 0 1rem;
 }
 
 .company-public__logo {
@@ -34,8 +35,8 @@
   height: 5.5rem;
   object-fit: cover;
   border-radius: 0.55rem;
-  background: var(--mat-sys-surface-container-highest, #334155);
-  border: 1px solid var(--mat-sys-outline-variant, #475569);
+  background: var(--baza-surface-sunken);
+  border: 1px solid var(--baza-border);
 }
 
 .company-public__logo--placeholder {
@@ -44,8 +45,8 @@
   justify-content: center;
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--mat-sys-on-primary-container, #cfe4ff);
-  background: var(--mat-sys-primary-container, #004b7a);
+  color: var(--baza-text-secondary);
+  background: var(--baza-surface-sunken);
 }
 
 .company-public__name {
@@ -53,28 +54,27 @@
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.25;
-  color: var(--mat-sys-on-surface, #f1f5f9);
+  color: var(--baza-text);
 }
 
 .company-public__nip {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--baza-text-muted);
 }
 
 .company-public__fields {
   display: grid;
   gap: 0;
   margin: 0;
-  border-top: 1px solid var(--mat-sys-outline-variant, #475569);
+  border-top: 1px solid var(--baza-border);
 }
 
 .company-public__field-row {
   display: grid;
   gap: 0.35rem;
   padding: 0.9rem 0;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--mat-sys-outline-variant, #475569) 55%, transparent);
+  border-bottom: 1px solid var(--baza-border);
 }
 
 .company-public__field-row--description {
@@ -88,14 +88,14 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--baza-text-muted);
 }
 
 .company-public__fields dd {
   margin: 0;
   font-size: 1rem;
   line-height: 1.45;
-  color: var(--mat-sys-on-surface, #f1f5f9);
+  color: var(--baza-text);
 }
 
 .company-public__description {
@@ -106,7 +106,7 @@
 .company-public__offers {
   margin-top: 1.25rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--mat-sys-outline-variant, #475569);
+  border-top: 1px solid var(--baza-border);
 }
 
 .company-public__offers-title {
@@ -117,7 +117,7 @@
 
 .company-public__offers-status {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant, #94a3b8);
+  color: var(--baza-text-muted);
 }
 
 .company-public__offers-list {
@@ -134,17 +134,18 @@
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.75rem 0.85rem;
-  border: 1px solid var(--mat-sys-outline-variant, #475569);
-  border-radius: 0.65rem;
+  border: 1px solid var(--baza-border);
+  border-radius: var(--baza-card-radius);
   color: inherit;
   text-decoration: none;
-  background: color-mix(in srgb, var(--mat-sys-surface-container, #1e293b) 65%, transparent);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: var(--baza-surface);
+  box-shadow: var(--baza-card-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .company-public__offer:hover {
-  border-color: var(--mat-sys-primary, #90caf9);
-  background: var(--mat-sys-surface-container-high, #273548);
+  border-color: var(--baza-border-strong);
+  box-shadow: var(--baza-card-shadow-hover);
 }
 
 .company-public__offer-title {
@@ -154,10 +155,31 @@
 
 .company-public__offer-routes {
   font-size: 0.85rem;
-  color: var(--baza-tag-route-fg, #93c5fd);
+  color: var(--baza-tag-route-fg);
 }
 
 .company-public__offers-error {
-  color: var(--mat-sys-error, #f87171);
+  color: var(--baza-error-fg);
   margin: 0 0 0.5rem;
+}
+
+.company-public__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .company-public__top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+  }
+}
+
+.company-public__map {
+  height: 220px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--baza-border);
+  border-radius: 18px;
 }

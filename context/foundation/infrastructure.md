@@ -12,7 +12,7 @@ tech_stack:
 
 ## Recommendation
 
-**Deploy on Railway (API) + Cloudflare Pages (Angular) + Supabase (Auth/Postgres) + Cloudflare R2 (files).**
+**Deploy on Railway (API + Postgres) + Cloudflare Pages (Angular) + Cloudflare R2 (files).**
 
 This matches platforms you already know and the lock in `@context/foundation/tech-stack.md`. Nest needs a real Node host — Railway is first-class for that; Cloudflare Pages hosts the SPA cheaply; Supabase/R2 stay external (interview: external providers OK). Cost soft-weight preferred Render Free, but anti-bias cold-starts + familiarity pushed the swap to Railway (Hobby ≈ $5/mo floor for always-on Nest).
 
@@ -62,16 +62,16 @@ The team put Nest on Railway Free after the $5 trial. Always-on API burned the $
 - Railway **restored a Free plan (Aug 2025)** with only $1/mo credit — easy to assume “free forever always-on.”
 - **VM pricing** is marked beta on Railway plans docs (checked 2026-09-04).
 - Nest currently listens via `app.listen(port)` without host — Railway expects **`0.0.0.0`** or deploys look “up” but refuse traffic.
-- Private `.railway.internal` networking does **not** help Supabase — DB stays on the public internet path.
+- Private `.railway.internal` networking connects the API to Postgres (both in `europe-west4`); the database has no public endpoint. For local access use a temporary TCP proxy and remove it afterwards.
 - Pages vs Workers: dashboard/CLI confusion (`wrangler deploy` vs `wrangler pages deploy`) wastes hours (common CF gotcha).
 
 ## Operational Story
 
 - **Preview deploys**: Railway PR/environment deploys for the API service; Cloudflare Pages preview deployments per branch/PR for Angular. Protect previews if the app shows personal data (Access or auth gate) before public driver traffic.
-- **Secrets**: Railway Variables for Nest (`SUPABASE_*`, R2 keys, `CORS_ORIGIN`, optional `SENTRY_DSN` + build-time Sentry upload vars); Cloudflare Pages / Actions bake for public FE keys only (`anon` / public API URL / public `SENTRY_DSN`); never put Supabase **service role** or **`SENTRY_AUTH_TOKEN`** in Pages or FE env files. Rotate in each vendor’s vault; agents may set non-prod vars, humans rotate production primaries. See `context/deployment/deploy-plan.md` for the Sentry checklist (`baza-api` / `baza-frontend`).
+- **Secrets**: Railway Variables for Nest (`DATABASE_URL`, `AUTH_JWT_SIGNING_KEYS`, `AUTH_*`, `PROXY_SHARED_SECRET`, `RESEND_*`, R2 keys, `CORS_ORIGIN`, optional `SENTRY_DSN` + build-time Sentry upload vars); the Pages project holds only `API_ORIGIN` + `PROXY_SHARED_SECRET` (Function proxy) and the public FE values baked at build (public `SENTRY_DSN`); never put `AUTH_JWT_SIGNING_KEYS`, database credentials or **`SENTRY_AUTH_TOKEN`** in Pages or FE env files. Rotate in each vendor’s vault; agents may set non-prod vars, humans rotate production primaries. See `context/deployment/deploy-plan.md` for the Sentry checklist (`baza-api` / `baza-frontend`) and `.claude/skills/baza-auth/references/operations.md` for key rotation.
 - **Rollback**: Railway — redeploy previous deployment from dashboard (or redeploy known good image/commit); Cloudflare Pages — instant rollback to prior deployment in dashboard / wrangler rollback where applicable. DB migrations on Supabase do **not** roll back with a code revert.
-- **Approval**: Human-only — production publish first time, custom domain DNS, billing plan upgrade, drop Supabase project, rotate service-role key. Agent may — draft env lists, trigger non-prod deploys, `railway logs` / `wrangler pages deployment tail` read-only.
-- **Logs**: `railway logs` (and Railway MCP) for API; `wrangler pages deployment tail` / dashboard for Pages; Supabase dashboard/logs for Auth/DB; Sentry issues UI (optional Sentry MCP) once DSNs are wired.
+- **Approval**: Human-only — production publish first time, custom domain DNS, billing plan upgrade, dropping the old Supabase project (irreversible), rotating `AUTH_JWT_SIGNING_KEYS` in production. Agent may — draft env lists, trigger non-prod deploys, `railway logs` / `wrangler pages deployment tail` read-only.
+- **Logs**: `railway logs` (and Railway MCP) for API and Postgres; `wrangler pages deployment tail` / dashboard for Pages; Sentry issues UI (optional Sentry MCP) once DSNs are wired. Security signals to alert on: `auth.security.refresh_reuse_detected`, `auth.security.lockout`.
 
 ## Risk Register
 
@@ -89,7 +89,7 @@ The team put Nest on Railway Free after the $5 trial. Always-on API burned the $
 ## Getting Started
 
 1. **Railway (API):** `npm i -g @railway/cli` → `railway login` → create project/service linked to this repo. Service root **`/`** (shared Nx monorepo). Build: `npx nx build baza-api`. Start: `node dist/apps/baza-api/main.js` (confirm path after one local production build). Set `PORT` from Railway; update Nest to `listen(port, '0.0.0.0')`.
-2. **Supabase:** Create project; add Auth + Postgres URL/keys as Railway variables (service role server-side only).
+2. **Postgres:** `railway add -d postgres`, move it to the API’s region, and give `baza-api` `DATABASE_URL=${{Postgres.DATABASE_URL}}` (private host). Migrations run at API boot under an advisory lock.
 3. **Cloudflare Pages (Angular):** Connect repo or `npx wrangler pages deploy dist/apps/baza-frontend/browser --project-name=baza` after `npx nx build baza-frontend`. Set `NODE_VERSION` (≥20) and public API base URL to the Railway domain.
 4. **R2:** Create bucket; put access keys only on Railway; wire upload path in the company photo / CV slice.
 5. **Smoke:** `GET https://<railway>/api` from the Pages origin; company signup happy path once Auth is wired.

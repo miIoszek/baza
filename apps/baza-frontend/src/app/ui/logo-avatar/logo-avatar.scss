@@ -1,0 +1,19 @@
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.baza-logo-avatar {
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--baza-surface-sunken);
+}
+
+.baza-logo-avatar--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--baza-text-secondary);
+}

@@ -1,0 +1,52 @@
+<mat-form-field class="baza-address" subscriptSizing="dynamic">
+  <mat-label>Miejscowość bazy</mat-label>
+  <input
+    matInput
+    [formControl]="picked"
+    [matAutocomplete]="auto"
+    autocomplete="off"
+    placeholder="np. Kórnik"
+    (input)="onInput($event)"
+  />
+  @if (status() === 'searching') {
+    <mat-progress-spinner matSuffix class="baza-address__spinner" mode="indeterminate" diameter="20" aria-hidden="true" />
+  }
+  <mat-hint>Wpisz nazwę i wybierz z listy — pin ustawi się sam. Dane: PRNG, GUGiK.</mat-hint>
+</mat-form-field>
+
+<mat-autocomplete #auto="matAutocomplete" [displayWith]="display" requireSelection>
+  @switch (status()) {
+    @case ('searching') {
+      <mat-option disabled>Szukam miejscowości…</mat-option>
+    }
+    @case ('empty') {
+      <mat-option disabled class="baza-address__note">
+        <span class="baza-address__main">Nie znaleziono takiej miejscowości</span>
+        <span class="cdk-visually-hidden">. </span>
+        <span class="baza-address__secondary">
+          Sprawdź pisownię. Bazę poza miejscowością ustawisz, wpisując współrzędne ręcznie.
+        </span>
+      </mat-option>
+    }
+    @case ('error') {
+      <mat-option disabled>Nie udało się pobrać podpowiedzi — spróbuj ponownie</mat-option>
+    }
+    @case ('results') {
+      @for (s of suggestions(); track s.id) {
+        <mat-option [value]="s" (onSelectionChange)="$event.isUserInput && pick(s)">
+          <span class="baza-address__main">{{ s.name }}</span>
+          <!-- The two lines are blocks; screen readers need the pause spelled out -->
+          <span class="cdk-visually-hidden">, </span>
+          <span class="baza-address__secondary">{{ s.kind }} · {{ s.area }}</span>
+        </mat-option>
+      }
+      @if (suggestions().length === limit) {
+        <mat-option disabled class="baza-address__note">
+          <span class="baza-address__secondary">
+            Nie ma na liście? Dopisz gminę lub powiat, np. „Nowa Wieś Wschowa”.
+          </span>
+        </mat-option>
+      }
+    }
+  }
+</mat-autocomplete>

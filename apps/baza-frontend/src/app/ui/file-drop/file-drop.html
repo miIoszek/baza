@@ -1,0 +1,47 @@
+<span class="baza-file-drop__label" [class.cdk-visually-hidden]="labelHidden()" [id]="inputId + '-label'">{{ label() }}</span>
+<label
+  class="baza-file-drop"
+  [class.baza-file-drop--filled]="fileName()"
+  [class.baza-file-drop--error]="invalid()"
+  [class.baza-file-drop--dragging]="dragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="dragging.set(false)"
+  (drop)="onDrop($event)"
+>
+  <input
+    class="baza-file-drop__input"
+    type="file"
+    [id]="inputId"
+    [attr.accept]="accept()"
+    [attr.aria-labelledby]="inputId + '-label ' + inputId + '-status'"
+    [attr.aria-invalid]="invalid()"
+    [attr.aria-describedby]="errorId()"
+    (change)="onChange($event)"
+  />
+  <span class="baza-file-drop__body">
+    <svg
+      class="baza-file-drop__icon"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+    <span class="baza-file-drop__text" [id]="inputId + '-status'">
+      @if (fileName(); as name) {
+        <span class="baza-file-drop__name">{{ name }}</span>
+        <span class="baza-file-drop__hint">Kliknij, aby zmienić</span>
+      } @else {
+        Przeciągnij plik albo wybierz z telefonu
+      }
+    </span>
+  </span>
+  <span class="baza-file-drop__button" aria-hidden="true">Wybierz plik</span>
+</label>

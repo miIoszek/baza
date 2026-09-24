@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { buildDataSourceOptions } from './database.config';
+import { MigrationRunnerService } from './migration-runner.service';
 
 /**
- * Database / repository layer for Nest.
- * Hook Supabase Postgres (or Prisma) providers here later — keep controllers thin.
+ * Postgres access for the API (TypeORM). Feature modules register the repositories they need with
+ * `TypeOrmModule.forFeature([...])`; entities and migrations live in this library.
  */
 @Module({
-  controllers: [],
-  providers: [],
-  exports: [],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useFactory: () => buildDataSourceOptions(),
+    }),
+  ],
+  providers: [MigrationRunnerService],
+  exports: [TypeOrmModule],
 })
 export class ApiDataAccessModule {}

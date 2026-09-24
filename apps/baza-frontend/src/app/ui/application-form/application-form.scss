@@ -1,0 +1,113 @@
+:host {
+  display: block;
+}
+
+.baza-application-form {
+  overflow: hidden;
+  background: var(--baza-surface);
+  border: 1px solid var(--baza-border-strong);
+  border-radius: var(--baza-card-radius);
+  box-shadow: var(--baza-card-shadow-hover);
+}
+
+.baza-application-form__head {
+  padding: 20px 24px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.baza-application-form__title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.baza-application-form__lead {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.82;
+}
+
+.baza-application-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+}
+
+.baza-application-form__field {
+  width: 100%;
+}
+
+.baza-application-form__prefix {
+  margin-inline: 12px 4px;
+}
+
+.baza-application-form__banner {
+  margin-bottom: 8px;
+}
+
+.baza-application-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+// Same look as mat-error under the text fields
+.baza-application-form__error {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-error);
+}
+
+.baza-application-form__error--consent {
+  padding-left: 40px;
+}
+
+.baza-application-form__submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.baza-application-form__submit-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.baza-application-form__sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--baza-surface);
+  border: 1px solid var(--baza-success-border);
+  border-radius: var(--baza-card-radius);
+}
+
+.baza-application-form__sent-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  color: var(--baza-success-fg);
+  background: var(--baza-success-bg);
+}
+
+.baza-application-form__sent-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--baza-text);
+}
+
+.baza-application-form__sent-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--baza-text-secondary);
+}

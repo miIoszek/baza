@@ -1,0 +1,465 @@
+// =============================================================================
+// Baza — motyw Angular Material 3 + tokeny własnych komponentów
+// -----------------------------------------------------------------------------
+// JEDYNE miejsce w projekcie, gdzie definiujemy kolory, promienie i cienie.
+// Komponenty (także własne) czytają tokeny: --mat-sys-* i --baza-*.
+// Zakaz: ::ng-deep, selektory .mat-mdc-*, !important.
+//
+// Dwa światy:
+//   :root             → motyw JASNY (domyślnie publiczna część)
+//   .baza-panel       → motyw CIEMNY (panel/auth domyślnie; publiczne po przełączniku)
+//   .baza-map-surface → ciemna powierzchnia mapy (w obu światach)
+//
+// Klasę .baza-panel dostaje html/body oraz kontener overlayów Material (select,
+// snackbar, dialog), żeby rozwijane listy były ciemne. Dlatego tło jest tokenem
+// (--baza-page-bg), a nie `background` na samej klasie — inaczej gradient
+// zakryłby stronę pod pełnoekranowym kontenerem overlayów.
+//
+// Nazwy kluczy tokenów są zależne od wersji @angular/material. Jeśli Sass
+// wywali błąd na nieznanym kluczu, komunikat wypisuje listę dopuszczalnych
+// kluczy — użyj jej, nie obchodź tego ::ng-deep.
+// =============================================================================
+
+@use '@angular/cdk' as cdk;
+@use '@angular/material' as mat;
+@use './baza-palette' as palette;
+
+// .cdk-visually-hidden for text meant only for screen readers. The CDK adds it only
+// when a component that needs it is on the page, so the app loads it once, here.
+@include cdk.a11y-visually-hidden();
+
+// -----------------------------------------------------------------------------
+// 1. Paleta marki
+// -----------------------------------------------------------------------------
+// _baza-palette.scss wygenerowane przez `ng generate @angular/material:theme-color`
+// z ziaren: primary #0f172a (granat Bazy), secondary #90caf9 (błękit),
+// tertiary #fbbf24 (bursztyn). Dokładne kolory marki wchodzą niżej przez $overrides.
+
+$baza-primary-palette: palette.$primary-palette;
+$baza-tertiary-palette: palette.$tertiary-palette;
+
+// Surowe kolory marki (źródło: design-brief.md sekcja 5 + poprawki kontrastu z canvasu)
+$baza-navy-900: #020617; // tło najciemniejsze / mapa
+$baza-navy-800: #0f172a; // granat marki, przycisk główny w jasnym motywie
+$baza-navy-700: #1e293b; // powierzchnia w panelu
+$baza-navy-600: #334155;
+$baza-slate-500: #475569; // tekst drugorzędny w JASNYM motywie (4.5:1 na białym ✔)
+$baza-slate-450: #5c6b7f; // meta w jasnym motywie (miasto, data) — 5.4:1 na białym ✔
+$baza-slate-400: #64748b; // TYLKO na ciemnym tle albo ≥24px. Nigdy jako tekst na białym.
+$baza-sky-300: #90caf9; // primary w ciemnym motywie
+$baza-sky-on: #003258; // tekst na primary (ciemny motyw)
+$baza-green-300: #6ee7b7;
+$baza-amber-400: #fbbf24;
+$baza-red-400: #f87171;
+
+// -----------------------------------------------------------------------------
+// 2. Motyw jasny — publiczna część
+// -----------------------------------------------------------------------------
+:root {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: $baza-primary-palette,
+        tertiary: $baza-tertiary-palette,
+        theme-type: light,
+      ),
+      typography: Roboto,
+      density: 0,
+    ),
+    $overrides: (
+      // Kolory marki na tokenach systemowych
+      primary: $baza-navy-800,
+      on-primary: #ffffff,
+      surface: #ffffff,
+      surface-container: #f1f5f9,
+      surface-container-low: #f8fafc,
+      background: #f8fafc,
+      on-surface: $baza-navy-800,
+      on-background: $baza-navy-800,
+      on-surface-variant: $baza-slate-500,
+      outline: #cbd5e1,
+      outline-variant: #e2e8f0,
+      error: #b91c1c,
+
+      // Kształty — to bierzemy z makiety, bo kształt jest tanim tokenem
+      corner-small: 14px,
+      corner-medium: 14px,
+      corner-large: 24px,
+    )
+  );
+
+  // Tło strony (w panelu: gradient marki, patrz niżej)
+  --baza-page-bg: #f8fafc;
+
+  // Tokeny własnych komponentów — wariant jasny
+  --baza-text: #{$baza-navy-800};
+  --baza-text-secondary: #{$baza-slate-500};
+  --baza-text-muted: #{$baza-slate-450};
+  --baza-surface: #ffffff;
+  --baza-surface-sunken: #f1f5f9;
+  --baza-border: #e2e8f0;
+  --baza-border-strong: #cbd5e1;
+  --baza-link: #1e40af;
+
+  --baza-card-radius: 24px;
+  --baza-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --baza-card-shadow-hover: 0 4px 16px rgba(15, 23, 42, 0.08);
+
+  // Tag: wyróżnik (trasa + powrót do domu) — mocny kolor
+  --baza-tag-route-fg: #1e40af;
+  --baza-tag-route-bg: #dbeafe;
+  --baza-tag-route-border: rgba(30, 64, 175, 0.18);
+  --baza-tag-cadence-fg: #047857;
+  --baza-tag-cadence-bg: #d1fae5;
+  --baza-tag-cadence-border: rgba(4, 120, 87, 0.18);
+  // Tag: reszta (prawo jazdy, transport, doświadczenie) — neutralny
+  --baza-tag-neutral-fg: #{$baza-slate-500};
+  --baza-tag-neutral-bg: #f1f5f9;
+  --baza-tag-neutral-border: transparent;
+
+  --baza-skeleton: #eef2f7;
+
+  // Stany
+  --baza-error-fg: #b91c1c;
+  --baza-error-bg: #fee2e2;
+  --baza-error-border: #fca5a5;
+  --baza-warn-fg: #92400e;
+  --baza-warn-bg: #fef3c7;
+  --baza-warn-border: #fcd34d;
+  --baza-success-fg: #047857;
+  --baza-success-bg: #d1fae5;
+  --baza-success-border: #a7f3d0;
+
+  // Układ (odstępy, szerokości) — wspólne dla obu światów
+  --baza-page-pad: 64px;
+  --baza-content-max: 90rem;
+  --baza-content-min: 80rem;
+  --baza-shell-toolbar-height: 80px;
+
+  // Tag statusu oferty („Moje oferty”)
+  --baza-tag-published-fg: var(--baza-tag-cadence-fg);
+  --baza-tag-published-bg: var(--baza-tag-cadence-bg);
+  --baza-tag-published-border: var(--baza-tag-cadence-border);
+  --baza-tag-draft-fg: var(--baza-warn-fg);
+  --baza-tag-draft-bg: var(--baza-warn-bg);
+  --baza-tag-draft-border: var(--baza-warn-border);
+
+  // Szkło tylko w panelu — w :root zerujemy, żeby publiczna część nie dostała blur
+  --baza-glass-bg: var(--baza-surface);
+  --baza-glass-border: var(--baza-border);
+  --baza-glass-blur: 0px;
+  --baza-button-glow: none;
+
+  // Mapa jest zawsze ciemna — tokeny dostępne też poza .baza-map-surface
+  --baza-map-bg: #{$baza-navy-900};
+  --baza-map-land: #{$baza-navy-800};
+  --baza-map-land-stroke: #{$baza-navy-700};
+  --baza-map-label: #{$baza-slate-500};
+  --baza-map-label-strong: #{$baza-slate-400};
+  --baza-map-point-from: #{$baza-sky-300};
+  --baza-map-point-to: #{$baza-green-300};
+  --baza-map-route: #{$baza-amber-400};
+}
+
+@media (max-width: 767px) {
+  :root {
+    --baza-page-pad: 20px;
+    --baza-shell-toolbar-height: 64px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 3. Motyw ciemny — panel/auth oraz publiczne widoki po przełączeniu
+// -----------------------------------------------------------------------------
+// Klasa .baza-panel trafia na html/body oraz na kontener overlayów.
+// Typografia i gęstość dziedziczą się z :root — tu tylko kolory.
+.baza-panel {
+  color-scheme: dark;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: $baza-primary-palette,
+        tertiary: $baza-tertiary-palette,
+        theme-type: dark,
+      ),
+    ),
+    $overrides: (
+      primary: $baza-sky-300,
+      on-primary: $baza-sky-on,
+      surface: $baza-navy-700,
+      surface-container: #{$baza-navy-700},
+      surface-container-low: #{$baza-navy-800},
+      background: #{$baza-navy-800},
+      on-surface: #e2e8f0,
+      on-background: #e2e8f0,
+      on-surface-variant: #94a3b8,
+      outline: #{$baza-slate-500},
+      outline-variant: rgba(100, 116, 139, 0.35),
+      error: #{$baza-red-400},
+      on-error: #450a0a,
+      corner-small: 14px,
+      corner-medium: 14px,
+      corner-large: 24px,
+    )
+  );
+
+  // Tło panelu: radialny gradient marki (brief sekcja 5)
+  --baza-page-bg: radial-gradient(120% 80% at 50% 0%, #1e293b 0%, #0f172a 45%, #020617 100%);
+
+  --baza-text: #e2e8f0;
+  --baza-text-secondary: #94a3b8;
+  --baza-text-muted: #94a3b8;
+  --baza-surface: #{$baza-navy-700};
+  --baza-surface-sunken: rgba(2, 6, 23, 0.4);
+  --baza-border: rgba(100, 116, 139, 0.3);
+  --baza-border-strong: #{$baza-slate-500};
+  --baza-link: #{$baza-sky-300};
+
+  --baza-card-radius: 24px;
+  --baza-card-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --baza-card-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+  --baza-tag-route-fg: #{$baza-sky-300};
+  --baza-tag-route-bg: rgba(144, 202, 249, 0.14);
+  --baza-tag-route-border: rgba(144, 202, 249, 0.35);
+  --baza-tag-cadence-fg: #{$baza-green-300};
+  --baza-tag-cadence-bg: rgba(110, 231, 183, 0.14);
+  --baza-tag-cadence-border: rgba(110, 231, 183, 0.35);
+  --baza-tag-neutral-fg: #cbd5e1;
+  --baza-tag-neutral-bg: rgba(51, 65, 85, 0.55);
+  --baza-tag-neutral-border: transparent;
+  // Statusy ofert (tylko panel)
+  --baza-tag-published-fg: #{$baza-green-300};
+  --baza-tag-published-bg: rgba(110, 231, 183, 0.14);
+  --baza-tag-published-border: rgba(110, 231, 183, 0.35);
+  --baza-tag-draft-fg: #{$baza-amber-400};
+  --baza-tag-draft-bg: rgba(251, 191, 36, 0.14);
+  --baza-tag-draft-border: rgba(251, 191, 36, 0.35);
+
+  --baza-skeleton: rgba(100, 116, 139, 0.35);
+
+  --baza-error-fg: #fca5a5;
+  --baza-error-bg: rgba(248, 113, 113, 0.12);
+  --baza-error-border: rgba(248, 113, 113, 0.45);
+  --baza-warn-fg: #fde68a;
+  --baza-warn-bg: rgba(251, 191, 36, 0.07);
+  --baza-warn-border: rgba(251, 191, 36, 0.4);
+  --baza-success-fg: #{$baza-green-300};
+  --baza-success-bg: rgba(110, 231, 183, 0.12);
+  --baza-success-border: rgba(110, 231, 183, 0.45);
+
+  --baza-glass-bg: rgba(30, 41, 59, 0.42);
+  --baza-glass-border: var(--baza-border);
+  --baza-glass-blur: 28px;
+  --baza-button-glow: 0 0 20px rgba(144, 202, 249, 0.55);
+}
+
+// -----------------------------------------------------------------------------
+// 4. Tokeny komponentów Material (kształty i wypełnienia)
+// -----------------------------------------------------------------------------
+// NIE zmieniamy tu wysokości pól: rytm pionowy przyjmujemy od Material (plan, sekcja 4).
+// Wyjątek z planu: przycisk główny 48 px (osiągalne tokenem).
+:root {
+  @include mat.card-overrides(
+    (
+      elevated-container-shape: 24px,
+      outlined-container-shape: 24px,
+    )
+  );
+
+  @include mat.dialog-overrides(
+    (
+      container-shape: 24px,
+    )
+  );
+
+  // Pola i przyciski 14 px, pigułki 999 px (plan, sekcja 4)
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 14px,
+      filled-container-height: 48px,
+      outlined-container-shape: 14px,
+      protected-container-shape: 14px,
+      tonal-container-shape: 14px,
+      text-container-shape: 14px,
+    )
+  );
+
+  @include mat.form-field-overrides(
+    (
+      filled-container-shape: 14px,
+      filled-container-color: #f1f5f9,
+      // Hint text must not read like an entered value (#475569 is too close to #0f172a)
+      filled-input-text-placeholder-color: #{$baza-slate-450},
+    )
+  );
+
+  @include mat.chips-overrides(
+    (
+      container-shape-radius: 999px,
+    )
+  );
+
+  @include mat.toolbar-overrides(
+    (
+      standard-height: 80px,
+      title-text-size: 1.75rem,
+      title-text-line-height: 2.25rem,
+      title-text-weight: 700,
+    )
+  );
+}
+
+// Irreversible actions: red filled button (dialog confirm) and red text button ("Usuń")
+.baza-danger {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-error),
+      filled-label-text-color: var(--mat-sys-on-error),
+      text-label-text-color: var(--mat-sys-error),
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      icon-color: var(--mat-sys-error),
+    )
+  );
+}
+
+// Spinner inside a button takes the button's label colour (also when disabled)
+.baza-button-spinner {
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: currentColor,
+    )
+  );
+}
+
+.baza-panel {
+  // Wypełnienie pola w panelu (Załącznik B: rgba(51,65,85,0.5))
+  @include mat.form-field-overrides(
+    (
+      filled-container-color: rgba(51, 65, 85, 0.5),
+      filled-input-text-placeholder-color: #94a3b8,
+    )
+  );
+}
+
+// -----------------------------------------------------------------------------
+// 5. Mapa — zawsze ciemna, w obu światach
+// -----------------------------------------------------------------------------
+.baza-map-surface {
+  --baza-map-bg: #{$baza-navy-900};
+  --baza-map-land: #{$baza-navy-800};
+  --baza-map-land-stroke: #{$baza-navy-700};
+  --baza-map-label: #{$baza-slate-500};
+  --baza-map-label-strong: #{$baza-slate-400};
+  --baza-map-point-from: #{$baza-sky-300}; // punkt A / baza firmy
+  --baza-map-point-to: #{$baza-green-300}; // punkt B / kraj docelowy
+  --baza-map-route: #{$baza-amber-400}; // łuk trasy
+
+  background: var(--baza-map-bg);
+  color: #e2e8f0;
+}
+
+// -----------------------------------------------------------------------------
+// 6. Klasy pomocnicze — TYLKO panel
+// -----------------------------------------------------------------------------
+// Glass i poświata tylko przy ciemnym motywie (karty logowania, panel).
+// Na jasnej liście publicznej backdrop-filter jest zabroniony — zabija FPS
+// przy przewijaniu na średnim Androidzie (D2 z brief).
+.baza-panel {
+  .baza-glass {
+    background: var(--baza-glass-bg);
+    backdrop-filter: blur(var(--baza-glass-blur));
+    border: 1px solid var(--baza-border);
+    border-radius: var(--baza-card-radius);
+    box-shadow: var(--baza-card-shadow-hover);
+  }
+
+  .baza-glow {
+    box-shadow: var(--baza-button-glow);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 7. Podstawy dokumentu
+// -----------------------------------------------------------------------------
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+// Focused fields and anchors scroll clear of the sticky app bar.
+html {
+  scroll-padding-top: calc(var(--baza-shell-toolbar-height) + 16px);
+}
+
+body {
+  background-color: var(--mat-sys-background);
+  background-image: var(--baza-page-bg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center top;
+  color: var(--baza-text);
+  font: var(--mat-sys-body-medium);
+  font-family: Roboto, system-ui, sans-serif;
+}
+
+// Native headings must not inherit body's 14/20 line box — that clips 24px titles
+// and makes them look like unstyled UA serif.
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--baza-text);
+}
+
+// Podpowiedzi pod polami dziedziczą kolor (Material go nie ustawia): tekst drugorzędny.
+mat-hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Focus widoczny wszędzie — nie usuwaj outline'u bez zamiennika.
+:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+// Cienki, niski kontrast — Windows inaczej rysuje gruby jasny tor obok mapy.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--baza-text-muted) 42%, transparent)
+    transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--baza-text-muted) 42%, transparent);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--baza-text-muted) 68%, transparent);
+}
+
+.baza-filters-sheet-panel {
+  border-radius: 16px 16px 0 0;
+  padding: 0;
+  overflow: hidden;
+}

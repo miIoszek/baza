@@ -2,7 +2,7 @@
 project: baza
 deployed_at: 2026-09-04
 status: live-scaffold
-phase: api-fe-supabase-r2-wired
+phase: api-fe-postgres-r2-wired
 next_plan: company-registry-form (FR-001) — not started
 ---
 
@@ -18,7 +18,7 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 | Angular SPA (Cloudflare Pages) | https://baza-app.pages.dev | Live (HTTP 200); project name `baza-app` (name `baza` failed to create) |
 | Preview deploy example | https://8ce8f45f.baza-app.pages.dev | Used for first CORS allow-list |
 | R2 bucket | `baza-uploads` | Created 2026-09-04 |
-| Supabase | Env vars on Railway (user-wired) | Auth + company register live on API; Nest boot requires `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` |
+| Postgres + auth | Railway Postgres (private network) + `AUTH_*` variables | Migrations run at API boot; company register / login / refresh live on the API; Nest refuses to boot without `DATABASE_URL` (and, in production, `AUTH_JWT_SIGNING_KEYS`, `AUTH_WEB_BASE_URL`, `CORS_ORIGIN`) |
 
 ## Smoke — FE ↔ API
 
@@ -42,7 +42,7 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 - CORS from `CORS_ORIGIN` — [`libs/api/core/src/lib/configure-app.ts`](../../libs/api/core/src/lib/configure-app.ts)
 - FE consumes `/api/health` — [`apps/baza-frontend/src/app/app.ts`](../../apps/baza-frontend/src/app/app.ts)
 - Env name template — [`.env.example`](../../.env.example)
-- **Boot gate:** Nest refuses to start without `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (see `apps/baza-api/src/supabase-env.ts`). Service role is required for API process start, not only for optional compensation.
+- **Boot gate:** Nest refuses to start without `DATABASE_URL`; in production also `AUTH_JWT_SIGNING_KEYS`, `AUTH_WEB_BASE_URL` and an exact `CORS_ORIGIN` (see `apps/baza-api/src/app/identity/identity.config.ts`, `libs/api/data-access/src/lib/database.config.ts`).
 
 ## Cloudflare Pages (FE)
 
@@ -50,22 +50,22 @@ Audit trail for Lesson 5 Plan Mode deploy. Platform decision: `@context/foundati
 - **Deploy command used:**  
   `npx wrangler pages deploy dist/apps/baza-frontend/browser --project-name=baza-app --commit-dirty=true`
 - **Not used:** `wrangler deploy` (Workers) — Pages only.
-- **Public env on Pages:** none required beyond baked `apiBaseUrl` (no Supabase service role, no R2 secrets).
+- **Env on Pages:** `apiBaseUrl` is empty (same-origin `/api`, proxied by `apps/baza-frontend/functions/api/[[path]].ts`). The Pages project needs `API_ORIGIN` and `PROXY_SHARED_SECRET` (same value as on the API). No DB or signing secrets on Pages.
 
 ## Secrets / env — wired vs pending
 
 | Variable | Where | Status |
 |----------|-------|--------|
 | `CORS_ORIGIN` | Railway | Wired (Pages production + preview hosts) |
-| `SUPABASE_URL` | Railway | Wired by user (values not stored in this file) — **required for Nest boot** |
-| `SUPABASE_ANON_KEY` | Railway | Wired by user — **required for Nest boot** |
-| `SUPABASE_SERVICE_ROLE_KEY` | Railway | Wired by user — **required for Nest boot** (admin register + compensation); **never** on Pages |
+| `DATABASE_URL` | Railway | Reference variable `${{Postgres.DATABASE_URL}}` (private host) — **required for Nest boot** |
+| `AUTH_JWT_SIGNING_KEYS` | Railway | base64 JSON keyring (ES256); **required in production**; **never** on Pages |
+| `PROXY_SHARED_SECRET` | Railway + Pages | Lets the API trust the client IP forwarded by the Pages proxy (rate limiting) |
 | `R2_ACCOUNT_ID` | Railway | Wired by user |
 | `R2_ACCESS_KEY_ID` | Railway | Wired by user |
 | `R2_SECRET_ACCESS_KEY` | Railway | Wired by user |
 | `R2_BUCKET` | Railway | Expect `baza-uploads` |
 | `R2_PUBLIC_URL` | Railway | Optional / as configured |
-| Supabase anon on Pages | Pages / Actions | Injected at Pages build via GitHub Secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) — wire secrets before first Actions FE deploy |
+| Pages Function proxy | Pages project variables | `API_ORIGIN`, `PROXY_SHARED_SECRET` (secret) — set in the Cloudflare Pages project, not in GitHub |
 | R2 SDK / upload routes in Nest | Code | Shipped for register photo; keep R2 vars on Railway only |
 | `SENTRY_DSN` | Railway | API project (`baza-api`) — runtime; empty = SDK no-op |
 | `SENTRY_ENVIRONMENT` | Railway (optional) | e.g. `production` |
@@ -92,8 +92,7 @@ Workflows:
 | `RAILWAY_TOKEN` | API deploy job |
 | `CLOUDFLARE_API_TOKEN` | Pages deploy (Wrangler) |
 | `CLOUDFLARE_ACCOUNT_ID` | Pages deploy |
-| `SUPABASE_URL` | FE production env writer (public project URL) |
-| `SUPABASE_ANON_KEY` | FE production env writer (anon key only) |
+| `API_BASE_URL` (repository variable, optional) | FE production env writer; leave empty for same-origin `/api` |
 | `SENTRY_DSN` | FE production env writer (public browser DSN → `environment.sentryDsn`; optional) |
 | `SENTRY_AUTH_TOKEN` | FE source map / release upload (optional until Sentry wired) |
 | `SENTRY_ORG` | Sentry org slug for CLI upload |
@@ -101,7 +100,7 @@ Workflows:
 
 Path filters (see `deploy.yml`): API also watches `libs/api/**`, `libs/shared/**`, lockfile/Nx config, `railway.toml`. FE watches `apps/baza-frontend/**`, `libs/baza/**`, `libs/shared/**`, lockfile/Nx config. Shared-lib or root package changes redeploy both.
 
-FE build injects Supabase anon via `scripts/write-fe-production-env.mjs` (overwrites `environment.production.ts` in the runner only — committed file stays empty placeholders).
+FE build writes `environment.production.ts` via `scripts/write-fe-production-env.mjs` in the runner only (Sentry values; `apiBaseUrl` empty = same-origin) — the committed file stays a placeholder.
 
 ## Redeploy cheat-sheet (manual fallback)
 
@@ -117,7 +116,7 @@ npx wrangler pages deploy dist/apps/baza-frontend/browser --project-name=baza-ap
 ## Human-only (do not automate)
 
 - Billing / Hobby upgrade on Railway
-- Drop Supabase project / rotate service-role
+- Drop the old Supabase project (irreversible; only after the cutover is verified and the user confirms)
 - Delete R2 bucket or account API tokens
 - Custom DNS
 

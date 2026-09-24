@@ -1,0 +1,45 @@
+:host {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--baza-border);
+  border-radius: 14px;
+  color: var(--baza-text-secondary);
+  background: var(--baza-surface-sunken);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+:host(.baza-banner--error) {
+  color: var(--baza-error-fg);
+  background: var(--baza-error-bg);
+  border-color: var(--baza-error-border);
+}
+
+:host(.baza-banner--warn) {
+  color: var(--baza-warn-fg);
+  background: var(--baza-warn-bg);
+  border-color: var(--baza-warn-border);
+}
+
+:host(.baza-banner--success) {
+  color: var(--baza-success-fg);
+  background: var(--baza-success-bg);
+  border-color: var(--baza-success-border);
+}
+
+.baza-banner__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.baza-banner__body {
+  min-width: 0;
+}
+
+.baza-banner__title {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+}

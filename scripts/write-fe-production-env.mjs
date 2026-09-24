@@ -2,26 +2,18 @@ import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const DEFAULT_API_BASE_URL =
-  'https://baza-api-production-4306.up.railway.app';
-
-const supabaseUrl = process.env.SUPABASE_URL?.trim();
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY?.trim();
-const apiBaseUrl =
-  process.env.API_BASE_URL?.trim() || DEFAULT_API_BASE_URL;
+/**
+ * Empty = same-origin `/api` (Cloudflare Pages Function proxies it to the API, so the HttpOnly
+ * refresh cookie is first-party). Set API_BASE_URL only when the API is on a same-SITE subdomain
+ * of the SPA (e.g. https://api.example.com): a cross-site API cannot hold the SameSite=Strict cookie.
+ */
+const apiBaseUrl = process.env.API_BASE_URL?.trim() ?? '';
 /** Public FE DSN from Actions; empty when unset so builds do not require Sentry. */
 const sentryDsn = process.env.SENTRY_DSN?.trim() || '';
 const sentryRelease =
   process.env.SENTRY_RELEASE?.trim() ||
   process.env.GITHUB_SHA?.trim() ||
   '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    'write-fe-production-env: SUPABASE_URL and SUPABASE_ANON_KEY are required'
-  );
-  process.exit(1);
-}
 
 function tsString(value) {
   return JSON.stringify(value);
@@ -42,8 +34,6 @@ const contents = `import type { BazaEnvironment } from './environment.model';
 export const environment: BazaEnvironment = {
   production: true,
   apiBaseUrl: ${tsString(apiBaseUrl)},
-  supabaseUrl: ${tsString(supabaseUrl)},
-  supabaseAnonKey: ${tsString(supabaseAnonKey)},
   sentryDsn: ${tsString(sentryDsn)},
   sentryRelease: ${tsString(sentryRelease)},
 };

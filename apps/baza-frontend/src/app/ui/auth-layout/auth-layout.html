@@ -1,0 +1,28 @@
+<div class="baza-auth">
+  <a class="baza-auth__brand" routerLink="/" aria-label="Baza — oferty pracy">
+    <img src="/baza-logo.png" alt="" width="40" height="49" />
+    <span>Baza</span>
+  </a>
+
+  <section
+    class="baza-auth__card baza-glass"
+    [class.baza-auth__card--wide]="wide()"
+    [attr.aria-labelledby]="titleId"
+  >
+    <h1 class="baza-auth__title" [id]="titleId">{{ title() }}</h1>
+    @if (subtitle()) {
+      <p class="baza-auth__subtitle">{{ subtitle() }}</p>
+    }
+    <ng-content />
+    @if (footerLinkLabel() && footerLink()) {
+      <p class="baza-auth__footer">
+        @if (footerText()) {
+          {{ footerText() }}
+        }
+        <a [routerLink]="footerLink()">{{ footerLinkLabel() }}</a>
+      </p>
+    }
+  </section>
+
+  <a class="baza-auth__back" routerLink="/">← Wróć do ofert pracy</a>
+</div>

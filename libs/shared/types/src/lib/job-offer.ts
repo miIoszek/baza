@@ -3,6 +3,7 @@ import type { RouteDirection } from './route-direction';
 import type { GeoPoint } from './company';
 import type { TransportType } from './transport-type';
 import type { DriverLicenseCategory } from './driver-license';
+import type { EmploymentForm } from './employment-form';
 
 export interface SalaryRange {
   min?: number;
@@ -20,6 +21,8 @@ export interface JobOffer {
   requiredTransportType: TransportType;
   /** Wire code (`C_E` not `C+E`). */
   licenseCategory: DriverLicenseCategory;
+  /** At least one form; matching is set overlap. */
+  employmentForms: EmploymentForm[];
   description: string;
   salary?: SalaryRange;
   /** Map pin = company base location for MVP (null if company has no coords). */
@@ -42,6 +45,7 @@ export interface CreateJobOfferRequest {
   requiredTransportType: TransportType;
   description: string;
   licenseCategory: DriverLicenseCategory;
+  employmentForms: EmploymentForm[];
   /** Wire format matches Nest DTO (flat fields, not nested SalaryRange). */
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -58,6 +62,7 @@ export interface UpdateJobOfferRequest {
   requiredTransportType: TransportType;
   description: string;
   licenseCategory: DriverLicenseCategory;
+  employmentForms: EmploymentForm[];
   salaryMin?: number | null;
   salaryMax?: number | null;
   salaryCurrency?: string | null;
@@ -67,9 +72,10 @@ export interface UpdateJobOfferRequest {
 /** Public list query shape (Nest `GET /api/offers`). */
 export interface JobOfferFilters {
   countries?: string[];
-  homeReturnCadence?: HomeReturnCadence;
-  licenseCategory?: DriverLicenseCategory;
-  requiredTransportType?: TransportType;
+  homeReturnCadences?: HomeReturnCadence[];
+  licenseCategories?: DriverLicenseCategory[];
+  requiredTransportTypes?: TransportType[];
+  employmentForms?: EmploymentForm[];
   /** Optional: nearest-first when driver shares location. */
   near?: GeoPoint;
 }

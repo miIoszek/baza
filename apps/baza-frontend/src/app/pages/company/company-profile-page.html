@@ -1,205 +1,195 @@
-<section class="auth-page">
-  <mat-card class="auth-card baza-glass-card" appearance="outlined">
-    <div class="auth-brand">
-      <img
-        class="auth-brand__logo"
-        src="/baza-logo.png"
-        alt=""
-        width="48"
-        height="59"
-      />
-      <span class="auth-brand__name">Baza</span>
+<section class="profile">
+  <header class="profile__header">
+    <div>
+      <h1 class="profile__title">Profil firmy</h1>
+      <p class="profile__subtitle">Dane, które widzą kierowcy w ogłoszeniach</p>
     </div>
-    <mat-card-header>
-      <mat-card-title>Profil firmy</mat-card-title>
-      <mat-card-subtitle>
-        Edytuj dane widoczne na publicznym profilu
-      </mat-card-subtitle>
-    </mat-card-header>
+    @if (company(); as c) {
+      <a class="profile__public" [routerLink]="['/companies', c.id]" target="_blank" rel="noopener">
+        Zobacz profil publiczny
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="21" y1="3" x2="10" y2="14" />
+          <path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5" />
+        </svg>
+        <span class="cdk-visually-hidden">(otwiera się w nowej karcie)</span>
+      </a>
+    }
+  </header>
 
-    <mat-card-content>
-      @if (loading()) {
-      <p class="auth-form company-profile__status">Ładowanie…</p>
-      } @else {
-      <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="auth-row">
-          <mat-form-field class="auth-field"
-          >
-            <mat-label>Nazwa firmy</mat-label>
-            <mat-icon matPrefix>business</mat-icon>
+  @if (loading()) {
+    <p class="profile__loading" role="status">Ładowanie…</p>
+    <div class="profile__grid" aria-hidden="true">
+      <div class="profile__card">
+        <baza-skeleton width="120px" height="14px" />
+        <baza-skeleton class="profile__skel-field" height="48px" radius="14px" />
+        <baza-skeleton class="profile__skel-field" height="112px" radius="14px" />
+      </div>
+      <div class="profile__card">
+        <baza-skeleton width="120px" height="14px" />
+        <baza-skeleton class="profile__skel-field" height="48px" radius="14px" />
+        <baza-skeleton class="profile__skel-field" height="260px" radius="18px" />
+      </div>
+    </div>
+  } @else if (loadError(); as err) {
+    <baza-state-block
+      variant="error"
+      icon="alert"
+      title="Nie udało się wczytać profilu"
+      [message]="err"
+      actionLabel="Spróbuj ponownie"
+      (action)="retryLoad()"
+    />
+  } @else if (company(); as c) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="profile__grid">
+        <section class="profile__card" aria-labelledby="profile-company">
+          <h2 id="profile-company" class="profile__card-title">Dane firmy</h2>
+          <div class="profile__fields">
+            <div class="profile__row">
+              <mat-form-field class="profile__name" subscriptSizing="dynamic">
+                <mat-label>Nazwa firmy</mat-label>
+                <input matInput formControlName="name" maxlength="120" autocomplete="organization" />
+                @if (form.controls.name.hasError('minlength')) {
+                  <mat-error>Nazwa musi mieć co najmniej 2 znaki</mat-error>
+                } @else {
+                  <mat-error>Podaj nazwę firmy</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field class="profile__nip" subscriptSizing="dynamic">
+                <mat-label>NIP</mat-label>
+                <input matInput formControlName="nip" inputmode="numeric" maxlength="13" autocomplete="off" />
+                @if (form.controls.nip.hasError('required')) {
+                  <mat-error>Podaj NIP</mat-error>
+                } @else {
+                  <mat-error>Nieprawidłowy NIP — sprawdź cyfry</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <mat-form-field subscriptSizing="dynamic">
+              <mat-label>Krótki opis</mat-label>
+              <textarea
+                matInput
+                formControlName="description"
+                maxlength="2000"
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="4"
+                cdkAutosizeMaxRows="14"
+              ></textarea>
+              <mat-error>Opisz firmę w kilku zdaniach</mat-error>
+            </mat-form-field>
+
+            <div>
+              <span class="profile__label" aria-hidden="true">Logo firmy (PNG, JPG lub WebP, max. 5 MB)</span>
+              <div class="profile__logo">
+                <baza-logo-avatar [name]="form.controls.name.value || c.name" [logoUrl]="photoPreview()" [size]="64" />
+                <baza-file-drop
+                  class="profile__logo-drop"
+                  label="Logo firmy (PNG, JPG lub WebP, max. 5 MB)"
+                  [labelHidden]="true"
+                  accept="image/png,image/jpeg,image/webp"
+                  [maxSizeMb]="5"
+                  [fileName]="photoName()"
+                  [invalid]="!!photoError()"
+                  [errorId]="photoError() ? 'profile-logo-error' : null"
+                  (selected)="onPhotoSelected($event)"
+                  (rejected)="onPhotoRejected($event)"
+                />
+              </div>
+              @if (photoError(); as error) {
+                <p id="profile-logo-error" class="profile__error" role="alert">{{ error }}</p>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="profile__card" aria-labelledby="profile-base">
+          <h2 id="profile-base" class="profile__card-title profile__card-title--lead">Adres bazy</h2>
+          <p class="profile__lead">
+            Adres widzą kierowcy w ofertach. Pin na mapie ustawisz, wybierając miejscowość — bez
+            niego Twoje oferty nie pojawią się na mapie.
+          </p>
+
+          <mat-form-field class="profile__full" subscriptSizing="dynamic">
+            <mat-label>Adres bazy</mat-label>
             <input
               matInput
-              formControlName="name"
-              maxlength="120"
-              autocomplete="organization"
+              formControlName="baseLocation"
+              maxlength="200"
+              placeholder="np. Bałtycka 21, Poznań"
+              autocomplete="street-address"
             />
-            @if (form.controls.name.touched &&
-            form.controls.name.hasError('required')) {
-            <mat-error>Pole wymagane</mat-error>
-            } @else if (form.controls.name.touched &&
-            form.controls.name.hasError('minlength')) {
-            <mat-error>Min. 2 znaki</mat-error>
-            } @else if (form.controls.name.touched &&
-            form.controls.name.hasError('maxlength')) {
-            <mat-error>Max. 120 znaków</mat-error>
-            }
+            <mat-error>Podaj adres bazy</mat-error>
           </mat-form-field>
 
-          <mat-form-field class="auth-field"
-          >
-            <mat-label>NIP</mat-label>
-            <mat-icon matPrefix>badge</mat-icon>
-            <input
-              matInput
-              formControlName="nip"
-              inputmode="numeric"
-              maxlength="10"
-            />
-            @if (form.controls.nip.touched &&
-            form.controls.nip.hasError('required')) {
-            <mat-error>Pole wymagane</mat-error>
-            } @else if (form.controls.nip.touched &&
-            form.controls.nip.hasError('pattern')) {
-            <mat-error>NIP musi mieć dokładnie 10 cyfr</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <mat-form-field class="auth-field"
-        >
-          <mat-label>Lokalizacja bazowa</mat-label>
-          <mat-icon matPrefix>place</mat-icon>
-          <input
-            matInput
-            formControlName="baseLocation"
-            maxlength="200"
-            placeholder="Polska, ul. Przykładowa 1, 00-001 Warszawa"
-            autocomplete="street-address"
+          <baza-address-autocomplete
+            class="profile__locality"
+            [value]="pickedLocality()"
+            (valueChange)="onLocality($event)"
           />
-          @if (form.controls.baseLocation.touched &&
-          form.controls.baseLocation.hasError('required')) {
-          <mat-error>Lokalizacja jest wymagana</mat-error>
-          } @else if (form.controls.baseLocation.touched &&
-          form.controls.baseLocation.hasError('maxlength')) {
-          <mat-error>Max. 200 znaków</mat-error>
+
+          <div class="profile__map">
+            <baza-offer-route-map [baseLocation]="pin()" [preview]="true" />
+            <span class="profile__pin-chip">{{ pinLabel() ?? 'Brak punktu na mapie' }}</span>
+          </div>
+
+          @if (showCoordinates()) {
+            <mat-form-field class="profile__coords" subscriptSizing="dynamic">
+              <mat-label>Współrzędne bazy</mat-label>
+              <input
+                id="profile-coordinates"
+                matInput
+                formControlName="coordinates"
+                placeholder="52.4300, 16.9500"
+                autocomplete="off"
+                (input)="onCoordinatesTyped()"
+              />
+              <mat-hint>
+                Skąd je wziąć? W Mapach Google kliknij prawym przyciskiem na bazę (na telefonie
+                przytrzymaj palec) i skopiuj liczby.
+              </mat-hint>
+              <mat-error>Wklej dwie liczby, np. 52.4300, 16.9500</mat-error>
+            </mat-form-field>
+          } @else {
+            <div class="profile__pin-row">
+              <span class="profile__hint">Pin nie stoi dokładnie?</span>
+              <button mat-button type="button" (click)="revealCoordinates()">
+                Wpisz współrzędne ręcznie
+              </button>
+            </div>
           }
-        </mat-form-field>
+        </section>
+      </div>
 
-        <p class="company-profile__hint">
-          Współrzędne mapy (na razie ręcznie; później Google Places)
-        </p>
-        <div class="auth-row">
-          <mat-form-field class="auth-field"
-          >
-            <mat-label>Szerokość (lat)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="baseLat"
-              step="any"
-              placeholder="52.2297"
-            />
-            @if (form.controls.baseLat.touched && form.controls.baseLat.hasError('min')) {
-            <mat-error>Min. −90</mat-error>
-            } @else if (form.controls.baseLat.touched && form.controls.baseLat.hasError('max')) {
-            <mat-error>Max. 90</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field class="auth-field"
-          >
-            <mat-label>Długość (lng)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="baseLng"
-              step="any"
-              placeholder="21.0122"
-            />
-            @if (form.controls.baseLng.touched && form.controls.baseLng.hasError('min')) {
-            <mat-error>Min. −180</mat-error>
-            } @else if (form.controls.baseLng.touched && form.controls.baseLng.hasError('max')) {
-            <mat-error>Max. 180</mat-error>
-            }
-          </mat-form-field>
-        </div>
-        @if (form.touched && form.hasError('coordsPair')) {
-        <p class="auth-field-error">Podaj obie współrzędne albo żadnej</p>
-        }
-
-        <mat-form-field class="auth-field"
-        >
-          <mat-label>Krótki opis</mat-label>
-          <mat-icon matPrefix>notes</mat-icon>
-          <textarea
-            matInput
-            rows="3"
-            formControlName="description"
-            maxlength="2000"
-          ></textarea>
-          @if (form.controls.description.touched &&
-          form.controls.description.hasError('required')) {
-          <mat-error>Opis jest wymagany</mat-error>
-          } @else if (form.controls.description.touched &&
-          form.controls.description.hasError('maxlength')) {
-          <mat-error>Max. 2000 znaków</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="auth-photo">
-          <label class="auth-photo__label" for="profile-photo"
-            >Logo firmy (opcjonalne)</label
-          >
-          <input
-            id="profile-photo"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            (change)="onPhotoSelected($event)"
-          />
-          @if (photoPreview()) {
-          <img
-            class="auth-photo__preview"
-            [src]="photoPreview()"
-            alt="Podgląd logo"
-          />
-          }
-        </div>
-
+      <div class="profile__actions">
         <button
           mat-flat-button
-          color="primary"
-          class="baza-btn-premium full-width"
           type="submit"
+          class="baza-glow"
           [disabled]="submitting()"
+          disabledInteractive
         >
-          Zapisz zmiany
+          <span class="profile__submit-content">
+            @if (submitting()) {
+              <mat-progress-spinner class="baza-button-spinner" mode="indeterminate" diameter="20" aria-hidden="true" />
+              Zapisywanie…
+            } @else {
+              Zapisz zmiany
+            }
+          </span>
         </button>
-      </form>
-      }
-    </mat-card-content>
-
-    @if (companyId()) {
-    <mat-card-footer class="auth-footer company-profile__footer">
-      <div>
-        Zobacz jak wygląda profil
-        <a [routerLink]="['/companies', companyId()]" target="_blank" rel="noopener"
-          >Profil publiczny</a
-        >
+        <button mat-stroked-button type="button" [disabled]="submitting()" (click)="discardChanges()">
+          Anuluj
+        </button>
       </div>
-      <div class="company-profile__offer-links">
-        <a
-          mat-stroked-button
-          class="company-profile__offer-link"
-          routerLink="/company/offers"
-          >Moje oferty</a
-        >
-        <a
-          mat-flat-button
-          class="baza-btn-premium company-profile__offer-link"
-          routerLink="/company/offers/new"
-          >Dodaj ofertę</a
-        >
-      </div>
-    </mat-card-footer>
-    }
-  </mat-card>
+    </form>
+  } @else {
+    <baza-state-block
+      icon="alert"
+      title="Nie znaleziono profilu firmy"
+      message="To konto nie ma przypisanej firmy."
+    />
+  }
 </section>
