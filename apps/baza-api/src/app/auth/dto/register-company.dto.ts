@@ -2,6 +2,7 @@ import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -31,10 +32,11 @@ export class RegisterCompanyDto {
   @MaxLength(2000)
   description!: string;
 
+  /** Set later in the company profile, once logged in; empty at registration. */
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(200)
-  baseLocation!: string;
+  baseLocation?: string;
 
   @Transform(({ value }) => value === true || value === 'true' || value === '1')
   @IsBoolean()

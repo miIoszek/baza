@@ -101,6 +101,7 @@
       </div>
     } @else {
       <div class="register__fields" formGroupName="company">
+        <p class="register__hint">Adres bazy i pin na mapie ustawisz po zalogowaniu, w profilu firmy.</p>
         <div class="register__row">
           <mat-form-field>
             <mat-label>Nazwa firmy</mat-label>
@@ -135,19 +136,6 @@
             }
           </mat-form-field>
         </div>
-
-        <mat-form-field subscriptSizing="dynamic">
-          <mat-label>Lokalizacja bazowa</mat-label>
-          <input
-            matInput
-            formControlName="location"
-            autocomplete="address-level2"
-            maxlength="200"
-            placeholder="Poznań, Wielkopolskie"
-          />
-          <mat-hint>Punkt bazy na mapie ustawisz po rejestracji, w profilu firmy</mat-hint>
-          <mat-error>Podaj lokalizację bazy</mat-error>
-        </mat-form-field>
 
         <mat-form-field>
           <mat-label>Krótki opis</mat-label>
