@@ -70,7 +70,6 @@ describe('RegisterPage', () => {
     page['company'].setValue({
       companyName: 'Transgór Logistics',
       nip: '1234563219',
-      location: 'Poznań',
       description: 'Plandeki PL–IT',
       terms: true,
     });
@@ -86,7 +85,6 @@ describe('RegisterPage', () => {
     page['company'].setValue({
       companyName: ' Transgór Logistics ',
       nip: '123-456-32-18',
-      location: 'Poznań, Wielkopolskie',
       description: 'Plandeki PL–IT',
       terms: true,
     });
@@ -96,7 +94,7 @@ describe('RegisterPage', () => {
     expect(body.get('name')).toBe('Transgór Logistics');
     expect(body.get('nip')).toBe('1234563218');
     expect(body.get('email')).toBe('biuro@firma.pl');
-    expect(body.get('baseLocation')).toBe('Poznań, Wielkopolskie');
+    expect(body.get('baseLocation')).toBeNull();
     expect(body.get('termsAccepted')).toBe('true');
     req.flush({ emailVerificationRequired: true });
     await pending;

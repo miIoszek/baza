@@ -84,7 +84,6 @@ export class RegisterPage {
         [Validators.required, Validators.minLength(2), Validators.maxLength(120)],
       ],
       nip: ['', [Validators.required, nipValidator()]],
-      location: ['', [Validators.required, Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.maxLength(2000)]],
       terms: [false, [Validators.requiredTrue]],
     }),
@@ -134,7 +133,6 @@ export class RegisterPage {
     formData.append('email', email);
     formData.append('password', account.password);
     formData.append('description', company.description.trim());
-    formData.append('baseLocation', company.location.trim());
     formData.append('termsAccepted', String(company.terms));
 
     this.submitting.set(true);

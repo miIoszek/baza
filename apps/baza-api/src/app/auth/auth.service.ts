@@ -144,7 +144,7 @@ export class AuthService {
             name: dto.name,
             nip: dto.nip,
             description: dto.description,
-            baseLocation: dto.baseLocation,
+            baseLocation: dto.baseLocation ?? '',
             photoKey: null,
             photoUrls: null,
           })
