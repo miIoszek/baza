@@ -2,10 +2,11 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import type { CompanyPublicProfile, JobOffer } from '@baza/shared-types';
+import type { CompanyPublicProfile, GeoPoint, JobOffer } from '@baza/shared-types';
 import {
   BazaLogoAvatar,
   BazaOfferCard,
+  OfferRouteMapComponent,
   BazaStateBlock,
   toOfferCardVm,
 } from '../../ui';
@@ -19,6 +20,7 @@ import { environment } from '../../../environments/environment';
     RouterLink,
     BazaLogoAvatar,
     BazaOfferCard,
+    OfferRouteMapComponent,
     BazaStateBlock,
   ],
   templateUrl: './company-public-profile.html',
@@ -75,6 +77,13 @@ export class CompanyPublicProfilePage implements OnInit {
     if (this.companyId) {
       this.loadOffers(this.companyId);
     }
+  }
+
+  /** The base pin, or null while the company has not placed one. */
+  protected basePin(profile: CompanyPublicProfile): GeoPoint | null {
+    return profile.baseLat !== null && profile.baseLng !== null
+      ? { lat: profile.baseLat, lng: profile.baseLng }
+      : null;
   }
 
   protected logoUrl(profile: CompanyPublicProfile): string | null {

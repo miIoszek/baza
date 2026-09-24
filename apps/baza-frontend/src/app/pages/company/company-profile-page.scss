@@ -105,17 +105,21 @@
 
 .profile__label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-size: 13px;
   font-weight: 500;
   color: var(--baza-text-secondary);
 }
 
-.profile__logo-row {
+.profile__logo {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px 16px;
+  gap: 16px;
+}
+
+.profile__logo-drop {
+  flex: 1;
+  min-width: 0;
 }
 
 .profile__hint {

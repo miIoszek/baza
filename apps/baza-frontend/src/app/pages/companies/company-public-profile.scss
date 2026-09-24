@@ -162,3 +162,24 @@
   color: var(--baza-error-fg);
   margin: 0 0 0.5rem;
 }
+
+.company-public__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .company-public__top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+  }
+}
+
+.company-public__map {
+  height: 220px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--baza-border);
+  border-radius: 18px;
+}

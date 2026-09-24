@@ -1,4 +1,4 @@
-<span class="baza-file-drop__label" [id]="inputId + '-label'">{{ label() }}</span>
+<span class="baza-file-drop__label" [class.cdk-visually-hidden]="labelHidden()" [id]="inputId + '-label'">{{ label() }}</span>
 <label
   class="baza-file-drop"
   [class.baza-file-drop--filled]="fileName()"

@@ -203,9 +203,15 @@ describe('CompanyProfilePage', () => {
   });
 
   it('accepts PNG, JPG or WebP logos up to 5 MB only', async () => {
-    const { page } = await start();
-    const pick = (file: File) =>
-      page['onPhotoSelected']({ target: { files: [file], value: 'x' } } as unknown as Event);
+    const { page, el } = await start();
+    const input = el.querySelector<HTMLInputElement>('baza-file-drop input[type=file]');
+    if (!input) {
+      throw new Error('logo file input missing');
+    }
+    const pick = (file: File) => {
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      input.dispatchEvent(new Event('change'));
+    };
 
     pick(new File(['x'], 'logo.gif', { type: 'image/gif' }));
     expect(page['photoError']()).toBe('Logo musi być plikiem PNG, JPG lub WebP.');

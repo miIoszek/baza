@@ -82,34 +82,24 @@
             </mat-form-field>
 
             <div>
-              <span class="profile__label">Logo firmy</span>
-              <div class="profile__logo-row">
+              <span class="profile__label" aria-hidden="true">Logo firmy (PNG, JPG lub WebP, max. 5 MB)</span>
+              <div class="profile__logo">
                 <baza-logo-avatar [name]="form.controls.name.value || c.name" [logoUrl]="photoPreview()" [size]="64" />
-                <input
-                  #logoInput
-                  type="file"
-                  hidden
+                <baza-file-drop
+                  class="profile__logo-drop"
+                  label="Logo firmy (PNG, JPG lub WebP, max. 5 MB)"
+                  [labelHidden]="true"
                   accept="image/png,image/jpeg,image/webp"
-                  (change)="onPhotoSelected($event)"
+                  [maxSizeMb]="5"
+                  [fileName]="photoName()"
+                  [invalid]="!!photoError()"
+                  [errorId]="photoError() ? 'profile-logo-error' : null"
+                  (selected)="onPhotoSelected($event)"
+                  (rejected)="onPhotoRejected($event)"
                 />
-                <button
-                  mat-stroked-button
-                  type="button"
-                  aria-describedby="profile-logo-hint"
-                  (click)="logoInput.click()"
-                >
-                  {{ photoPreview() ? 'Zmień logo' : 'Dodaj logo' }}
-                </button>
-                <span id="profile-logo-hint" class="profile__hint">
-                  @if (photoName(); as name) {
-                    Nowe logo: {{ name }} — zapisze się razem z profilem
-                  } @else {
-                    PNG, JPG lub WebP, max 5 MB
-                  }
-                </span>
               </div>
               @if (photoError(); as error) {
-                <p class="profile__error" role="alert">{{ error }}</p>
+                <p id="profile-logo-error" class="profile__error" role="alert">{{ error }}</p>
               }
             </div>
           </div>

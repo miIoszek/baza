@@ -41,6 +41,8 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
    * the map still scrolls the page. Read once, when the map is created.
    */
   readonly preview = input(false);
+  /** Closest zoom the map fits to; lower shows more around the points. */
+  readonly maxZoom = input(6);
 
   private readonly mapHost =
     viewChild.required<ElementRef<HTMLDivElement>>('mapHost');
@@ -162,9 +164,9 @@ export class OfferRouteMapComponent implements AfterViewInit, OnDestroy {
       // Fit against the container's current size, not a cached one.
       this.map.invalidateSize();
       if (!hasPoint) {
-        this.map.setView([52.1, 19.4], 6);
+        this.map.setView([52.1, 19.4], this.maxZoom());
       } else {
-        this.map.fitBounds(bounds.pad(0.25), { maxZoom: 6 });
+        this.map.fitBounds(bounds.pad(0.25), { maxZoom: this.maxZoom() });
       }
     }
   }

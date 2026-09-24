@@ -27,14 +27,13 @@ import { coordinatesValidator, formatCoordinates, parseCoordinates } from '../..
 import { nipValidator } from '../../core/form-validators';
 import {
   BazaAddressAutocomplete,
+  BazaFileDrop,
+  type BazaFileRejection,
   BazaLogoAvatar,
   BazaSkeleton,
   BazaStateBlock,
   OfferRouteMapComponent,
 } from '../../ui';
-
-const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
-const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /**
  * Company profile (canvas "ProfilFirmy"). The base is an address line (what drivers
@@ -53,6 +52,7 @@ const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
     MatInputModule,
     MatProgressSpinnerModule,
     BazaAddressAutocomplete,
+    BazaFileDrop,
     BazaLogoAvatar,
     BazaSkeleton,
     BazaStateBlock,
@@ -150,21 +150,13 @@ export class CompanyProfilePage implements OnInit, OnDestroy {
     this.manualPin.set(true);
   }
 
-  protected onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    input.value = '';
-    if (!file) {
-      return;
-    }
-    if (!PHOTO_MIME.has(file.type)) {
-      this.photoError.set('Logo musi być plikiem PNG, JPG lub WebP.');
-      return;
-    }
-    if (file.size > PHOTO_MAX_BYTES) {
-      this.photoError.set('Logo może mieć najwyżej 5 MB.');
-      return;
-    }
+  protected onPhotoRejected(reason: BazaFileRejection): void {
+    this.photoError.set(
+      reason === 'type' ? 'Logo musi być plikiem PNG, JPG lub WebP.' : 'Logo może mieć najwyżej 5 MB.'
+    );
+  }
+
+  protected onPhotoSelected(file: File): void {
     this.photoError.set(null);
     this.revokePreview();
     this.photoFile = file;

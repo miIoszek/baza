@@ -12,16 +12,26 @@
     <a mat-button routerLink="/">← Oferty</a>
   </p>
   } @else if (profile(); as company) {
-  <a mat-button routerLink="/">← Oferty</a>
+  <div class="company-public__top">
+    <div>
+      <a mat-button routerLink="/">← Oferty</a>
 
-  <div class="company-public__identity">
-    <baza-logo-avatar
-      [name]="company.name"
-      [logoUrl]="logoUrl(company)"
-      [size]="96"
-    />
-    <h1 class="company-public__name">{{ company.name }}</h1>
-    <p class="company-public__nip">NIP: {{ company.nip }}</p>
+      <div class="company-public__identity">
+        <baza-logo-avatar
+          [name]="company.name"
+          [logoUrl]="logoUrl(company)"
+          [size]="96"
+        />
+        <h1 class="company-public__name">{{ company.name }}</h1>
+        <p class="company-public__nip">NIP: {{ company.nip }}</p>
+      </div>
+    </div>
+
+    @if (basePin(company); as pin) {
+    <div class="company-public__map">
+      <baza-offer-route-map [baseLocation]="pin" [preview]="true" [maxZoom]="5" />
+    </div>
+    }
   </div>
 
   <dl class="company-public__fields">

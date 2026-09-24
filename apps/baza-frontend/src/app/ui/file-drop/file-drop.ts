@@ -43,6 +43,8 @@ let nextId = 0;
 })
 export class BazaFileDrop {
   readonly label = input.required<string>();
+  /** Keeps the label for screen readers only, when the page shows its own. */
+  readonly labelHidden = input(false);
   readonly accept = input('application/pdf');
   readonly maxSizeMb = input(5);
   /** Name of the file the parent holds; null shows the empty prompt. */
